@@ -1268,73 +1268,144 @@
     let calendarYear = 2026;
     let calendarMonth = 8;
     let selectedCalendarDate = null;
-
-    const extraCalendarEvents = [
-      { year: 2026, month: 8, day: 9, title: 'CMM321 Lecture: Linear Transformations & Affine Space', type: 'lecture', courseCode: 'CMM321', color: 'rose' },
-      { year: 2026, month: 8, day: 14, title: 'CMM349 Lab: Express Middleware & Routing Guardrails', type: 'lab', courseCode: 'CMM349', color: 'sky' },
-      { year: 2026, month: 8, day: 21, title: 'Exam Prep: Midterm Review with T.Komsan', type: 'exam', courseCode: 'CMM310', color: 'sky' },
-      { year: 2026, month: 8, day: 24, title: 'CMM349 Workshop: Socket.io Client Architecture', type: 'workshop', courseCode: 'CMM349', color: 'sky' },
-      { year: 2026, month: 9, day: 6, title: 'CMM349 Lab: WebSocket Connection Pools & Clustering', type: 'lab', courseCode: 'CMM349', color: 'sky' },
-      { year: 2026, month: 9, day: 20, title: 'CMM321 Workshop: Raymarching Volumetric Fog', type: 'workshop', courseCode: 'CMM321', color: 'rose' },
-      { year: 2026, month: 10, day: 10, title: 'KMUTT Tech Expo & Multimedia Student Showcase', type: 'event', courseCode: 'KMUTT', color: 'amber' },
-      { year: 2026, month: 10, day: 24, title: 'CMM349 Special Guest Lecture: Cloud Scale DevOps', type: 'lecture', courseCode: 'CMM349', color: 'sky' }
-    ];
+    let calendarLastFocusedUserKey = null;
 
     function parseTaskDueDate(dueStr) {
       if (!dueStr) return null;
-      const match = dueStr.match(/([A-Za-z]{3})\s+(\d{1,2}),\s+(\d{4})/);
+      const str = String(dueStr).trim();
+      const iso = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (iso) {
+        return { year: parseInt(iso[1], 10), month: parseInt(iso[2], 10) - 1, day: parseInt(iso[3], 10) };
+      }
+      const match = str.match(/([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})/);
       if (!match) return null;
+      const mKey = match[1].slice(0, 3).toLowerCase();
       const months = {
-        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+        jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+        jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
       };
-      const m = months[match[1]];
+      const m = months[mKey];
       const d = parseInt(match[2], 10);
       const y = parseInt(match[3], 10);
       if (m === undefined || isNaN(d) || isNaN(y)) return null;
       return { year: y, month: m, day: d };
     }
 
+    function getCalendarScopedTasks() {
+      if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+      const out = [];
+      const seenTaskIds = new Set();
+
+      if (currentUserRole === 'teacher') {
+        const teacher = typeof getCurrentTeacher === 'function' ? getCurrentTeacher() : null;
+        const allowedCodes = typeof getTeacherAssignedCourseCodes === 'function'
+          ? getTeacherAssignedCourseCodes(teacher)
+          : Object.keys(coursesCatalog);
+        allowedCodes.forEach(cCode => {
+          const course = coursesCatalog[cCode];
+          if (!course || !Array.isArray(course.tasks)) return;
+          course.tasks.forEach(t => {
+            if (!t || !t.id || seenTaskIds.has(t.id)) return;
+            if (String(t.id).startsWith('sim-')) return;
+            seenTaskIds.add(t.id);
+            out.push({ courseCode: course.code || cCode, courseTitle: course.title, task: t });
+          });
+        });
+        return out;
+      }
+
+      if (currentUserRole === 'student' && typeof getCurrentStudent === 'function') {
+        const curStd = getCurrentStudent();
+        Object.entries(coursesCatalog).forEach(([cCode, course]) => {
+          if (!course) return;
+          const myTasks = typeof getStudentTasksInCourse === 'function'
+            ? getStudentTasksInCourse(curStd.id, course.code || cCode)
+            : (course.tasks || []).filter(t => t && (t.createdBy === curStd.id || (t.members || []).some(m => m.id === curStd.id)));
+          myTasks.forEach(t => {
+            if (!t || !t.id || seenTaskIds.has(t.id)) return;
+            seenTaskIds.add(t.id);
+            out.push({ courseCode: course.code || cCode, courseTitle: course.title, task: t });
+          });
+        });
+        return out;
+      }
+
+      Object.entries(coursesCatalog).forEach(([cCode, course]) => {
+        if (!course || !Array.isArray(course.tasks)) return;
+        course.tasks.forEach(t => {
+          if (!t || !t.id || seenTaskIds.has(t.id) || String(t.id).startsWith('sim-')) return;
+          seenTaskIds.add(t.id);
+          out.push({ courseCode: course.code || cCode, courseTitle: course.title, task: t });
+        });
+      });
+      return out;
+    }
+
+    function getCalendarTaskVisualMeta(task, courseCode) {
+      let statusStr = typeof computeTaskStatus === 'function' ? computeTaskStatus(task, courseCode) : (task.status || 'Active');
+      if (currentUserRole === 'teacher') {
+        const isDoneT = !!(task.isFinished || String(task.status || '').toLowerCase().includes('graded') || String(task.status || '').toLowerCase().includes('finish'));
+        statusStr = isDoneT ? (String(task.status || '').toLowerCase().includes('graded') ? task.status : 'Finished') : 'Active';
+      }
+      const s = String(statusStr || '').toLowerCase();
+      const isRevision = s.includes('revision') || s.includes('รอแก้');
+      const isDone = !isRevision && (s.includes('graded') || s.includes('finish') || s.includes('complete'));
+      const color = isRevision ? 'amber' : (isDone ? 'emerald' : 'rose');
+      const rawTitle = String(task.title || '').trim();
+      const cleanPrefix = new RegExp(`^${String(courseCode || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[:-]?\\s*`, 'i');
+      const displayTitle = rawTitle.replace(cleanPrefix, '').trim() || rawTitle;
+      return { statusStr, isDone, isRevision, color, displayTitle };
+    }
+
     function getCalendarEventsForMonth(year, month) {
       const map = {};
+      const scoped = getCalendarScopedTasks();
 
-      for (const [courseCode, course] of Object.entries(coursesCatalog)) {
-        if (!course.tasks) continue;
-        for (const task of course.tasks) {
-          const p = parseTaskDueDate(task.due);
-          if (p && p.year === year && p.month === month) {
-            if (!map[p.day]) map[p.day] = [];
-            map[p.day].push({
-              isTask: true,
-              type: 'task',
-              courseCode: course.code,
-              courseTitle: course.title,
-              task: task,
-              title: task.title,
-              status: task.status,
-              isFinished: task.isFinished,
-              due: task.due,
-              color: course.code === 'CMM321' ? 'rose' : course.code === 'CMM349' ? 'sky' : 'indigo'
-            });
-          }
-        }
-      }
-
-      for (const ev of extraCalendarEvents) {
-        if (ev.year === year && ev.month === month) {
-          if (!map[ev.day]) map[ev.day] = [];
-          map[ev.day].push({
-            isTask: false,
-            type: ev.type,
-            courseCode: ev.courseCode,
-            courseTitle: ev.courseCode,
-            title: ev.title,
-            color: ev.color || 'sky'
-          });
-        }
-      }
+      scoped.forEach(({ courseCode, courseTitle, task }) => {
+        const p = parseTaskDueDate(task.due);
+        if (!p || p.year !== year || p.month !== month) return;
+        if (!map[p.day]) map[p.day] = [];
+        const meta = getCalendarTaskVisualMeta(task, courseCode);
+        map[p.day].push({
+          isTask: true,
+          type: 'task',
+          courseCode,
+          courseTitle,
+          task,
+          title: meta.displayTitle,
+          statusStr: meta.statusStr,
+          isDone: meta.isDone,
+          isRevision: meta.isRevision,
+          due: task.due,
+          color: meta.color
+        });
+      });
 
       return map;
+    }
+
+    function syncCalendarFocusToUserTasks(force = false) {
+      const uid = currentUserRole === 'teacher'
+        ? (typeof getCurrentTeacher === 'function' ? getCurrentTeacher().id : 'teacher')
+        : (currentUserRole === 'student' && typeof getCurrentStudent === 'function' ? getCurrentStudent().id : 'admin');
+      const userKey = `${currentUserRole}:${uid}`;
+      if (!force && calendarLastFocusedUserKey === userKey) return;
+      calendarLastFocusedUserKey = userKey;
+
+      const scoped = getCalendarScopedTasks()
+        .map(item => ({ ...item, parsed: parseTaskDueDate(item.task.due), meta: getCalendarTaskVisualMeta(item.task, item.courseCode) }))
+        .filter(item => item.parsed)
+        .sort((a, b) => (a.parsed.year - b.parsed.year) || (a.parsed.month - b.parsed.month) || (a.parsed.day - b.parsed.day));
+
+      const target = scoped.find(item => !item.meta.isDone) || scoped[0];
+      if (target && target.parsed) {
+        calendarYear = target.parsed.year;
+        calendarMonth = target.parsed.month;
+      } else {
+        calendarYear = 2026;
+        calendarMonth = 8;
+      }
+      selectedCalendarDate = null;
     }
 
     function changeCalendarMonth(delta) {
@@ -1351,9 +1422,7 @@
     }
 
     function resetCalendarToCurrentMonth() {
-      calendarYear = 2026;
-      calendarMonth = 8;
-      selectedCalendarDate = null;
+      syncCalendarFocusToUserTasks(true);
       renderCalendar();
     }
 
@@ -1376,6 +1445,7 @@
     }
 
     function renderCalendar() {
+      syncCalendarFocusToUserTasks(false);
       const isTeacher = currentUserRole === 'teacher';
       const titleEls = [document.getElementById('calendarMonthYearTitle'), document.getElementById('teacherCalendarMonthYearTitle'), document.getElementById('mobileCalendarMonthYearTitle')].filter(Boolean);
       const daysHeaderEls = [document.getElementById('calendarDaysHeader'), document.getElementById('teacherCalendarDaysHeader'), document.getElementById('mobileCalendarDaysHeader')].filter(Boolean);
@@ -1424,30 +1494,29 @@
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.onclick = () => handleCalendarDayClick(d);
-          btn.title = hasItems ? items.map(it => it.title).join(' • ') : `Day ${d}`;
+          btn.title = hasItems ? items.map(it => `${it.courseCode}: ${it.title}`).join(' • ') : `Day ${d}`;
 
-          let baseClasses = 'py-1.5 min-h-[30px] w-full flex items-center justify-center font-bold transition pressable touch-manipulation rounded-full text-[11px] relative cursor-pointer';
+          let baseClasses = 'py-1.5 min-h-[32px] w-full flex items-center justify-center font-bold transition pressable touch-manipulation rounded-full text-[11px] relative cursor-pointer';
 
           if (isSelected) {
-            baseClasses += ' ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-neutral-900 z-10';
+            baseClasses += ' ring-2 ring-sky-400 ring-offset-2 dark:ring-offset-neutral-900 z-10 scale-105';
           }
 
           if (hasItems) {
-            const prime = items[0];
-            const color = prime.color || 'indigo';
+            const hasRev = items.some(it => it.color === 'amber');
+            const hasUnfinished = items.some(it => it.color === 'rose');
+            const color = hasRev ? 'amber' : (hasUnfinished ? 'rose' : 'emerald');
 
             if (color === 'rose') {
-              btn.className = `${baseClasses} text-white bg-rose-500 shadow-2xs hover:bg-rose-600`;
-            } else if (color === 'sky') {
-              btn.className = `${baseClasses} text-white bg-sky-500 shadow-2xs hover:bg-sky-600`;
+              btn.className = `${baseClasses} text-white bg-gradient-to-br from-rose-500 to-pink-600 shadow-xs hover:brightness-110`;
             } else if (color === 'amber') {
-              btn.className = `${baseClasses} text-white bg-amber-500 shadow-2xs hover:bg-amber-600`;
+              btn.className = `${baseClasses} text-white bg-gradient-to-br from-amber-500 to-orange-500 shadow-xs hover:brightness-110`;
             } else {
-              btn.className = `${baseClasses} text-white bg-indigo-600 shadow-2xs hover:bg-indigo-700`;
+              btn.className = `${baseClasses} text-white bg-gradient-to-br from-emerald-500 to-teal-600 shadow-xs hover:brightness-110`;
             }
 
             if (items.length > 1) {
-              btn.innerHTML = `<span>${d}</span><span class="absolute bottom-0.5 w-1 h-1 rounded-full bg-white"></span>`;
+              btn.innerHTML = `<span>${d}</span><span class="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-neutral-900 text-white text-[8px] font-black flex items-center justify-center border border-white/80">${items.length}</span>`;
             } else {
               btn.innerText = d;
             }
@@ -1472,27 +1541,49 @@
         }
       });
 
+      const statusLegendBar = `
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 mb-1 border-b border-neutral-100 dark:border-neutral-800/80 text-[9px] font-bold text-neutral-500 dark:text-neutral-400">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>${isThai ? 'ส่งแล้ว' : 'Done'}</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>${isThai ? 'รอแก้' : 'Revision'}</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>${isThai ? 'ยังไม่ส่ง' : 'Due'}</span>
+          </div>
+          <span class="text-[9px] text-neutral-400">${Object.values(eventsMap).reduce((sum, arr) => sum + arr.length, 0)} ${isThai ? 'งาน' : 'Tasks'}</span>
+        </div>
+      `;
+
       legendEls.forEach(legendEl => {
         const daysWithEvents = Object.keys(eventsMap).map(Number).sort((a, b) => a - b);
         if (daysWithEvents.length === 0) {
-          legendEl.innerHTML = `<p class="text-[10px] text-neutral-400 italic">${isThai ? 'ไม่มีงานหรือกำหนดการในเดือนนี้' : 'No tasks scheduled in this month.'}</p>`;
+          legendEl.innerHTML = `${statusLegendBar}<p class="text-[10px] text-neutral-400 italic py-2 text-center">${isThai ? 'ไม่มีกำหนดส่งงานของคุณในเดือนนี้' : 'No tasks due in this month.'}</p>`;
         } else {
-          const monthAbbr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
-          legendEl.innerHTML = daysWithEvents.map(day => {
+          const monthAbbr = isThai
+            ? ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][calendarMonth]
+            : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
+          const rowsHtml = daysWithEvents.map(day => {
             const dayItems = eventsMap[day];
             return dayItems.map(it => {
-              const dotColor = it.color === 'rose' ? 'bg-rose-500' : it.color === 'sky' ? 'bg-sky-500' : it.color === 'amber' ? 'bg-amber-500' : 'bg-indigo-600';
+              const dotColor = it.color === 'emerald' ? 'bg-emerald-500' : it.color === 'amber' ? 'bg-amber-500' : 'bg-rose-500';
+              const tagCls = it.color === 'emerald'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60'
+                : it.color === 'amber'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60'
+                  : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/60';
+              const shortStatus = it.isDone ? (isThai ? 'ส่งแล้ว' : 'Done') : (it.isRevision ? (isThai ? 'รอแก้' : 'Revise') : (isThai ? 'ยังไม่ส่ง' : 'Due'));
               return `
-                <div onclick="handleCalendarDayClick(${day})" class="flex items-center justify-between p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition pressable cursor-pointer group">
-                  <div class="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 min-w-0">
+                <div onclick="handleCalendarDayClick(${day})" class="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-50/90 hover:bg-neutral-100 dark:bg-neutral-800/70 dark:hover:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/70 transition pressable cursor-pointer group">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
                     <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
-                    <span class="truncate group-hover:text-blue-600 transition font-medium text-[11px]">${monthAbbr} ${day} - ${escapeHtml(it.courseCode)} ${escapeHtml(it.title)}</span>
+                    <span class="px-1.5 py-0.5 rounded-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-[9px] font-black text-neutral-700 dark:text-neutral-200 shrink-0">${day} ${monthAbbr}</span>
+                    <span class="text-[10px] font-extrabold text-blue-600 dark:text-sky-400 shrink-0">${escapeHtml(it.courseCode)}</span>
+                    <span class="truncate group-hover:text-blue-600 dark:group-hover:text-sky-300 transition font-semibold text-[11px] text-neutral-800 dark:text-neutral-100">${escapeHtml(it.title)}</span>
                   </div>
-                  <span class="text-[9px] text-blue-600 font-bold shrink-0 ml-1.5 opacity-80 group-hover:opacity-100">${isThai ? 'ตัวอย่าง →' : 'Preview →'}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border shrink-0 ${tagCls}">${shortStatus}</span>
                 </div>
               `;
             }).join('');
           }).join('');
+          legendEl.innerHTML = `${statusLegendBar}<div class="space-y-1.5">${rowsHtml}</div>`;
         }
       });
 
@@ -1572,7 +1663,7 @@
       items.forEach(it => {
         if (it.isTask && it.task) {
           const task = it.task;
-          const computedStatus = computeTaskStatus(task, course.code);
+          const computedStatus = computeTaskStatus(task, it.courseCode);
           const statusColor = getTaskStatusBadgeClasses(computedStatus);
 
           const actionBtn = isTeacher

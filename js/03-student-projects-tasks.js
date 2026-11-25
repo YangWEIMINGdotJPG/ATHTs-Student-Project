@@ -1334,6 +1334,9 @@
       try {
         localStorage.setItem(COURSES_CATALOG_STORAGE_KEY, JSON.stringify(coursesCatalog));
       } catch (e) {}
+      if (hasSeededSimulatedTasks && typeof renderCalendar === 'function') {
+        try { renderCalendar(); } catch (e) {}
+      }
     }
 
 

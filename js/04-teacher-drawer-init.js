@@ -1741,7 +1741,7 @@
       const titleInput = document.getElementById('teacherAddTaskTitleInput');
       if (titleInput) titleInput.value = `Student Project ${nextNum}`;
       const dueInput = document.getElementById('teacherAddTaskDueInput');
-      if (dueInput) dueInput.value = 'Sep 30, 2026';
+      if (dueInput) dueInput.value = '2026-09-30';
       const timeInput = document.getElementById('teacherAddTaskTimeInput');
       if (timeInput) timeInput.value = '22:59';
 
@@ -1763,10 +1763,11 @@
       const titleInput = document.getElementById('teacherAddTaskTitleInput');
       if (titleInput) titleInput.value = proj ? proj.title : (task.title || '');
       const rawDue = (proj && proj.dueDate) || (task && task.due) || 'Sep 30, 2026';
+      const parsedDue = typeof parseTaskDueDateTime === 'function' ? parseTaskDueDateTime(rawDue) : { dateVal: '2026-09-30', timeVal: '22:59' };
       const dueInput = document.getElementById('teacherAddTaskDueInput');
-      if (dueInput) dueInput.value = rawDue.split('(')[0].split(' at ')[0].trim();
+      if (dueInput) dueInput.value = parsedDue.dateVal || '2026-09-30';
       const timeInput = document.getElementById('teacherAddTaskTimeInput');
-      if (timeInput) timeInput.value = '22:59';
+      if (timeInput) timeInput.value = parsedDue.timeVal || '22:59';
 
       const modal = document.getElementById('modalTeacherAddTask');
       if (modal) modal.classList.remove('hidden');
@@ -1796,9 +1797,9 @@
       const course = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
       const editId = document.getElementById('teacherModalEditingTaskId')?.value;
       const title = document.getElementById('teacherAddTaskTitleInput')?.value.trim() || `Student Project ${course.tasks.length + 1}`;
-      const dueDatePart = document.getElementById('teacherAddTaskDueInput')?.value.trim() || 'Sep 30, 2026';
+      const dueDatePart = document.getElementById('teacherAddTaskDueInput')?.value.trim() || '2026-09-30';
       const dueTimePart = document.getElementById('teacherAddTaskTimeInput')?.value.trim() || '22:59';
-      const due = `${dueDatePart} (${dueTimePart})`;
+      const due = typeof formatTaskDueDateTime === 'function' ? formatTaskDueDateTime(dueDatePart, dueTimePart) : `${dueDatePart} (${dueTimePart})`;
 
       if (editId) {
         const existingProj = studentProjectsList.find(p => p.id === editId);
