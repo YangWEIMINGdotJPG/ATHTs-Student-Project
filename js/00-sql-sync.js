@@ -387,7 +387,7 @@
     flushTimer = setTimeout(() => {
       flushTimer = null;
       flushPendingToRemote(false);
-    }, 90);
+    }, 35);
   }
 
   // Write-through localStorage hook
@@ -414,6 +414,17 @@
     });
   }
 
+  const LIVE_SAFE_INPUT_IDS = new Set([
+    'replyInput',
+    'teacherFeedbackNoteInput',
+    'projectsSearchInput',
+    'teacherStudentSearchInput',
+    'adminSearchInput',
+    'coursesSearchInput',
+    'notificationsSearchInput',
+    'teacherProjectSearchInput'
+  ]);
+
   function hasOpenModal() {
     if (typeof document === 'undefined') return false;
     return Array.from(document.querySelectorAll('[role="dialog"]')).some(el => !el.classList.contains('hidden'));
@@ -421,12 +432,26 @@
 
   function isUserTyping() {
     if (typeof document === 'undefined' || !document.activeElement) return false;
-    const tag = (document.activeElement.tagName || '').toUpperCase();
+    const el = document.activeElement;
+    if (el.id && LIVE_SAFE_INPUT_IDS.has(el.id)) return false;
+    const tag = (el.tagName || '').toUpperCase();
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
   }
 
   function refreshActiveScreenFromRemote() {
     try {
+      const prevEl = (typeof document !== 'undefined' && document.activeElement && document.activeElement.id)
+        ? document.activeElement
+        : null;
+      const savedInputState = (prevEl && LIVE_SAFE_INPUT_IDS.has(prevEl.id))
+        ? {
+            id: prevEl.id,
+            value: typeof prevEl.value === 'string' ? prevEl.value : '',
+            selStart: typeof prevEl.selectionStart === 'number' ? prevEl.selectionStart : null,
+            selEnd: typeof prevEl.selectionEnd === 'number' ? prevEl.selectionEnd : null
+          }
+        : null;
+
       if (typeof loadPersistedCoursesCatalog === 'function') loadPersistedCoursesCatalog();
       if (typeof loadAdminPersistedDirectories === 'function') loadAdminPersistedDirectories();
       if (typeof getStoredProjects === 'function' && typeof studentProjectsList !== 'undefined') {
@@ -444,8 +469,13 @@
         else if (currentScreen === 'course-detail' && typeof renderCourseDetailPage === 'function') renderCourseDetailPage();
         else if (currentScreen === 'tasks-hub' && typeof renderGlobalTasksHub === 'function') renderGlobalTasksHub();
         else if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
-        else if (currentScreen === 'projects' && typeof renderProjectsScreen === 'function') renderProjectsScreen();
-        else if (currentScreen === 'notifications' && typeof renderNotificationsScreen === 'function') renderNotificationsScreen();
+        else if (currentScreen === 'projects') {
+          if (typeof activeViewingProjectId !== 'undefined' && activeViewingProjectId && typeof openProjectMilestoneDetail === 'function') {
+            openProjectMilestoneDetail(activeViewingProjectId);
+          } else if (typeof renderProjectsScreen === 'function') {
+            renderProjectsScreen();
+          }
+        } else if (currentScreen === 'notifications' && typeof renderNotificationsScreen === 'function') renderNotificationsScreen();
         else if (currentScreen === 'teacher-dashboard' && typeof renderTeacherDashboard === 'function') renderTeacherDashboard();
         else if (currentScreen === 'teacher-review' && typeof renderTeacherReviewScreen === 'function') renderTeacherReviewScreen();
         else if (currentScreen === 'admin' && typeof renderAdminScreen === 'function') renderAdminScreen();
@@ -457,6 +487,21 @@
       }
       if (typeof translateDOM === 'function' && typeof currentLanguage !== 'undefined') {
         translateDOM(currentLanguage);
+      }
+
+      if (savedInputState && typeof document !== 'undefined') {
+        const restoredEl = document.getElementById(savedInputState.id);
+        if (restoredEl) {
+          if (typeof restoredEl.value === 'string' && restoredEl.value !== savedInputState.value) {
+            restoredEl.value = savedInputState.value;
+          }
+          if (document.activeElement !== restoredEl && typeof restoredEl.focus === 'function') {
+            try { restoredEl.focus({ preventScroll: true }); } catch (e) { try { restoredEl.focus(); } catch (e2) {} }
+          }
+          if (savedInputState.selStart !== null && typeof restoredEl.setSelectionRange === 'function') {
+            try { restoredEl.setSelectionRange(savedInputState.selStart, savedInputState.selEnd); } catch (e) {}
+          }
+        }
       }
     } catch (e) {}
   }
@@ -871,7 +916,7 @@
 
     setInterval(() => {
       if (syncMode && initialHydrationDone) checkBackupVersion();
-    }, 5000);
+    }, 2500);
   });
 
   function handleForegroundSync() {
