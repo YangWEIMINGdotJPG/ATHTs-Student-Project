@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATHT • Contact Support</title>
+  <link rel="icon" type="image/png" href="atht-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Prompt', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'] },
+          colors: { appHeader: '#1D4ED8', appDarkCard: '#1E293B', appOrange: '#38BDF8' }
+        }
+      }
+    };
+    (function() {
+      const savedTheme = localStorage.getItem('atht_theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      const savedFest = localStorage.getItem('atht_global_festival_theme') || localStorage.getItem('atht_festival_theme') || 'default';
+      document.documentElement.setAttribute('data-festival', savedFest);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen text-neutral-800 dark:text-neutral-100 antialiased flex flex-col m-0 p-0 overflow-x-hidden">
+
+  <header id="mainHeader" class="w-full bg-appHeader text-white sticky top-0 z-40 shadow-xs">
+    <div class="max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-3.5 flex items-center justify-between gap-3">
+      <a href="index.html" class="flex items-center gap-2.5 pressable text-left group">
+        <img src="atht-logo.png" alt="ATHT Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-md shrink-0" />
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm font-bold tracking-tight text-white">ATHT</span>
+          <span id="supRolePill" class="px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-white/20 border border-white/35 text-white">Support Center</span>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="toggleSupportLang()" class="h-8 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-1 border border-white/15 transition pressable">
+          <span class="hidden sm:inline">🌐</span>
+          <span id="supLangText">TH</span>
+        </button>
+        <button type="button" onclick="toggleSupportTheme()" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center text-sm transition pressable" title="Toggle Dark/Light Mode">
+          <span id="supThemeIcon">🌙</span>
+        </button>
+        <a href="index.html" class="h-8 px-3.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 font-bold text-xs flex items-center gap-1.5 shadow-xs transition pressable whitespace-nowrap">
+          <span>←</span>
+          <span id="supBackBtnText">Back to Portal</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10 flex-1 w-full max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-8 sm:py-10 space-y-8">
+
+    <!-- Hero Banner -->
+    <section class="genz-hero-panel bg-appHeader text-white rounded-3xl p-6 sm:p-9 shadow-lg border border-white/15 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="space-y-2 max-w-2xl">
+        <span id="supHeroBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-[11px] font-bold uppercase tracking-wider">🛟 Helpdesk &amp; Technical Support</span>
+        <h1 id="supHeroTitle" class="text-2xl sm:text-3xl font-black tracking-tight">ATHT Contact Support</h1>
+        <p id="supHeroDesc" class="text-xs sm:text-sm text-white/85 leading-relaxed">
+          Need assistance with your student/instructor account, course permissions, assignment uploads, or bug reports? Reach out through any channel below or send a help request directly.
+        </p>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-xs space-y-1.5 shrink-0 min-w-[220px]">
+        <div id="supHoursTitle" class="font-extrabold text-white">Office &amp; Response Hours</div>
+        <div id="supHoursTime" class="text-white/85">Mon – Fri • 08:30 – 17:00 (ICT)</div>
+        <div id="supHoursAvg" class="text-[11px] text-emerald-200 font-semibold">● Usually responds within 2–4 hrs</div>
+      </div>
+    </section>
+
+    <!-- Contact Channels Grid -->
+    <section class="space-y-3">
+      <h2 id="supChannelsHeading" class="text-base sm:text-lg font-black text-neutral-900 dark:text-white">Direct Contact Channels</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <!-- Email -->
+        <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col justify-between gap-4">
+          <div class="space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-300 flex items-center justify-center text-lg">📧</div>
+            <div>
+              <h3 id="supCardEmailTitle" class="text-sm font-black text-neutral-900 dark:text-white">Email Support</h3>
+              <p id="supCardEmailDesc" class="text-[11px] text-neutral-500 dark:text-neutral-400">Official KMUTT support &amp; account issues</p>
+            </div>
+            <div class="text-xs font-mono font-bold text-blue-600 dark:text-sky-400 break-all">support@kmutt.ac.th</div>
+            <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 break-all">atht.support@kmutt.ac.th</div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <a href="mailto:support@kmutt.ac.th?subject=ATHT%20Portal%20Support%20Request" class="flex-1 py-2 px-3 rounded-xl genz-primary-btn text-center text-[11px] font-bold transition pressable">Send Email</a>
+            <button type="button" onclick="copyTextValue('support@kmutt.ac.th', this)" class="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-[11px] font-bold transition">Copy</button>
+          </div>
+        </div>
+
+        <!-- Instagram -->
+        <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col justify-between gap-4">
+          <div class="space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/50 text-pink-600 dark:text-pink-400 flex items-center justify-center text-lg">📸</div>
+            <div>
+              <h3 id="supCardIgTitle" class="text-sm font-black text-neutral-900 dark:text-white">Instagram (IG)</h3>
+              <p id="supCardIgDesc" class="text-[11px] text-neutral-500 dark:text-neutral-400">DM for quick student help &amp; announcements</p>
+            </div>
+            <div class="text-xs font-mono font-bold text-pink-600 dark:text-pink-400">@atht.kmutt</div>
+            <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">@cmm.kmutt</div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <a href="https://www.instagram.com/cmm.kmutt/" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-pink-600 to-rose-500 hover:brightness-105 text-white text-center text-[11px] font-bold transition pressable">Open IG</a>
+            <button type="button" onclick="copyTextValue('@atht.kmutt', this)" class="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-[11px] font-bold transition">Copy</button>
+          </div>
+        </div>
+
+        <!-- LINE Official & Discord -->
+        <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col justify-between gap-4">
+          <div class="space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">💬</div>
+            <div>
+              <h3 id="supCardLineTitle" class="text-sm font-black text-neutral-900 dark:text-white">LINE OA &amp; Discord</h3>
+              <p id="supCardLineDesc" class="text-[11px] text-neutral-500 dark:text-neutral-400">Live chat for urgent deadlines &amp; bugs</p>
+            </div>
+            <div class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">LINE: @atht-helpdesk</div>
+            <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Discord: ATHT CMM Lounge</div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <button type="button" onclick="copyTextValue('@atht-helpdesk', this)" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-center text-[11px] font-bold transition pressable">Copy LINE ID</button>
+          </div>
+        </div>
+
+        <!-- Phone & Campus Office -->
+        <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col justify-between gap-4">
+          <div class="space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">🏫</div>
+            <div>
+              <h3 id="supCardOfficeTitle" class="text-sm font-black text-neutral-900 dark:text-white">Campus Office &amp; Tel</h3>
+              <p id="supCardOfficeDesc" class="text-[11px] text-neutral-500 dark:text-neutral-400">Applied Computer Science - Multimedia</p>
+            </div>
+            <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">KMUTT Bangmod • FIET 4F</div>
+            <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Tel: 02-470-8500 (Ext. 8520)</div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <a href="tel:024708500" class="flex-1 py-2 px-3 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:text-neutral-900 text-white text-center text-[11px] font-bold transition pressable">Call Helpdesk</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Help Request Form & FAQ -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <div class="lg:col-span-7 bg-white dark:bg-neutral-900 rounded-3xl p-6 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+        <div>
+          <h2 id="supFormHeading" class="text-base sm:text-lg font-black text-neutral-900 dark:text-white">Send a Help Request</h2>
+          <p id="supFormDesc" class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Submit your issue details below and our support team will get back to you.</p>
+        </div>
+
+        <form onsubmit="handleSupportFormSubmit(event)" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label id="supLblName" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Full Name / Student or Faculty ID *</label>
+              <input type="text" id="supInputName" required placeholder="e.g. 67080200501 / Chonchanok" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label id="supLblEmail" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Reply Email *</label>
+              <input type="email" id="supInputEmail" required placeholder="e.g. name@mail.kmutt.ac.th" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label id="supLblTopic" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Issue Category</label>
+              <select id="supInputTopic" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold focus:outline-none">
+                <option value="Account / Login">Account / Login Issue</option>
+                <option value="Course Access">Course / Instructor Assignment</option>
+                <option value="File Upload">Assignment File Upload / Download</option>
+                <option value="Bug Report">Bug Report / Feedback</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label id="supLblSocial" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">IG / LINE Contact (Optional)</label>
+              <input type="text" id="supInputSocial" placeholder="e.g. IG @yourhandle or LINE ID" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label id="supLblMsg" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Message / Details *</label>
+            <textarea id="supInputMessage" rows="4" required placeholder="Describe what happened, course code, or screenshot link..." class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <div id="supSuccessBanner" class="hidden p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-semibold"></div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <span id="supFormHint" class="text-[11px] text-neutral-400">Or email directly to support@kmutt.ac.th</span>
+            <button type="submit" id="supSubmitBtn" class="px-5 py-2.5 rounded-xl genz-primary-btn font-extrabold text-xs shadow-xs transition pressable">
+              Submit Request
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="lg:col-span-5 bg-white dark:bg-neutral-900 rounded-3xl p-6 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+        <h2 id="supFaqHeading" class="text-base sm:text-lg font-black text-neutral-900 dark:text-white">Quick FAQ</h2>
+        <div class="space-y-3 text-xs">
+          <div class="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 space-y-1">
+            <h4 id="faqQ1" class="font-bold text-neutral-900 dark:text-white">Cannot see a course in my Teacher/Student view?</h4>
+            <p id="faqA1" class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Contact System Admin via email or IG so the administrator can assign your instructor permissions or enable student visibility for that course.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 space-y-1">
+            <h4 id="faqQ2" class="font-bold text-neutral-900 dark:text-white">How do I resubmit an assignment after grading?</h4>
+            <p id="faqA2" class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Once graded, submissions lock automatically. Ask your instructor to set the status to "Revision Requested" to unlock resubmission.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 space-y-1">
+            <h4 id="faqQ3" class="font-bold text-neutral-900 dark:text-white">Forgot KMUTT account / SSO details?</h4>
+            <p id="faqA3" class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Send your 11-digit Student ID or Faculty Code to support@kmutt.ac.th or message @atht.kmutt on Instagram.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="relative z-10 w-full bg-neutral-100 dark:bg-neutral-900/80 border-t border-neutral-200/90 dark:border-neutral-800 py-5 mt-auto">
+    <div class="max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 text-center text-xs text-neutral-400 space-y-1.5">
+      <div class="font-medium text-neutral-600 dark:text-neutral-300">© 2026 ATHT Student Project System • King Mongkut's University of Technology Thonburi</div>
+      <div><a href="index.html" id="supFooterBack" class="underline hover:text-neutral-700 dark:hover:text-white">← Return to ATHT Portal</a></div>
+    </div>
+  </footer>
+
+  <script>
+    let supLang = localStorage.getItem('atht_lang') || 'en';
+
+    const supI18n = {
+      en: {
+        langBtn: 'TH',
+        supRolePill: 'Support Center',
+        supBackBtnText: 'Back to Portal',
+        supHeroBadge: '🛟 Helpdesk & Technical Support',
+        supHeroTitle: 'ATHT Contact Support',
+        supHeroDesc: 'Need assistance with your student/instructor account, course permissions, assignment uploads, or bug reports? Reach out through any channel below or send a help request directly.',
+        supHoursTitle: 'Office & Response Hours',
+        supHoursTime: 'Mon – Fri • 08:30 – 17:00 (ICT)',
+        supHoursAvg: '● Usually responds within 2–4 hrs',
+        supChannelsHeading: 'Direct Contact Channels',
+        supCardEmailTitle: 'Email Support',
+        supCardEmailDesc: 'Official KMUTT support & account issues',
+        supCardIgTitle: 'Instagram (IG)',
+        supCardIgDesc: 'DM for quick student help & announcements',
+        supCardLineTitle: 'LINE OA & Discord',
+        supCardLineDesc: 'Live chat for urgent deadlines & bugs',
+        supCardOfficeTitle: 'Campus Office & Tel',
+        supCardOfficeDesc: 'Applied Computer Science - Multimedia',
+        supFormHeading: 'Send a Help Request',
+        supFormDesc: 'Submit your issue details below and our support team will get back to you.',
+        supLblName: 'Full Name / Student or Faculty ID *',
+        supLblEmail: 'Reply Email *',
+        supLblTopic: 'Issue Category',
+        supLblSocial: 'IG / LINE Contact (Optional)',
+        supLblMsg: 'Message / Details *',
+        supFormHint: 'Or email directly to support@kmutt.ac.th',
+        supSubmitBtn: 'Submit Request',
+        supFaqHeading: 'Quick FAQ',
+        faqQ1: 'Cannot see a course in my Teacher/Student view?',
+        faqA1: 'Contact System Admin via email or IG so the administrator can assign your instructor permissions or enable student visibility for that course.',
+        faqQ2: 'How do I resubmit an assignment after grading?',
+        faqA2: 'Once graded, submissions lock automatically. Ask your instructor to set the status to "Revision Requested" to unlock resubmission.',
+        faqQ3: 'Forgot KMUTT account / SSO details?',
+        faqA3: 'Send your 11-digit Student ID or Faculty Code to support@kmutt.ac.th or message @atht.kmutt on Instagram.',
+        supFooterBack: '← Return to ATHT Portal'
+      },
+      th: {
+        langBtn: 'EN',
+        supRolePill: 'ศูนย์ช่วยเหลือ',
+        supBackBtnText: 'กลับหน้าหลัก',
+        supHeroBadge: '🛟 ศูนย์ช่วยเหลือและแจ้งปัญหาการใช้งาน',
+        supHeroTitle: 'ติดต่อฝ่ายสนับสนุน ATHT',
+        supHeroDesc: 'พบปัญหาการเข้าสู่ระบบ สิทธิ์รายวิชา การส่งไฟล์งาน หรืออยากแจ้งบั๊ก? ติดต่อทีมงานผ่านช่องทางด้านล่างหรือส่งคำร้องขอความช่วยเหลือได้ทันที',
+        supHoursTitle: 'เวลาทำการและการตอบกลับ',
+        supHoursTime: 'จันทร์ – ศุกร์ • 08:30 – 17:00 น.',
+        supHoursAvg: '● ตอบกลับโดยเฉลี่ยภายใน 2–4 ชั่วโมง',
+        supChannelsHeading: 'ช่องทางการติดต่อโดยตรง',
+        supCardEmailTitle: 'อีเมลฝ่ายสนับสนุน (Email)',
+        supCardEmailDesc: 'ติดต่อแจ้งปัญหาบัญชีผู้ใช้และระบบ มจธ.',
+        supCardIgTitle: 'อินสตาแกรม (Instagram / IG)',
+        supCardIgDesc: 'ทักแชท DM สอบถามด่วนและติดตามประกาศ',
+        supCardLineTitle: 'LINE OA และ Discord',
+        supCardLineDesc: 'แชทสอบถามกรณีเร่งด่วนหรือติดปัญหาส่งงาน',
+        supCardOfficeTitle: 'ห้องพักภาควิชาและโทรศัพท์',
+        supCardOfficeDesc: 'สาขาวิทยาการคอมพิวเตอร์ประยุกต์-มัลติมีเดีย',
+        supFormHeading: 'ส่งคำร้องขอความช่วยเหลือ',
+        supFormDesc: 'กรอกรายละเอียดปัญหาด้านล่างเพื่อให้ทีมงานตรวจสอบและติดต่อกลับ',
+        supLblName: 'ชื่อ-นามสกุล / รหัสนักศึกษาหรือรหัสอาจารย์ *',
+        supLblEmail: 'อีเมลสำหรับติดต่อกลับ *',
+        supLblTopic: 'หมวดหมู่ปัญหา',
+        supLblSocial: 'ช่องทาง IG / LINE สำหรับติดต่อกลับ (ไม่บังคับ)',
+        supLblMsg: 'รายละเอียดปัญหาที่พบ *',
+        supFormHint: 'หรือส่งอีเมลตรงมาที่ support@kmutt.ac.th',
+        supSubmitBtn: 'ส่งคำร้องขอความช่วยเหลือ',
+        supFaqHeading: 'คำถามที่พบบ่อย (FAQ)',
+        faqQ1: 'ไม่เห็นรายวิชาในหน้าอาจารย์หรือนักศึกษา?',
+        faqA1: 'กรุณาติดต่อ Admin ผ่านอีเมลหรือ IG เพื่อให้ผู้ดูแลระบบกำหนดสิทธิ์อาจารย์ผู้สอนหรือเปิดการมองเห็นรายวิชานั้น',
+        faqQ2: 'ส่งงานแก้หลังจากอาจารย์ให้คะแนนไปแล้วอย่างไร?',
+        faqA2: 'เมื่องานได้คะแนนแล้วระบบจะล็อกการส่งซ้ำ ให้อาจารย์เปลี่ยนสถานะเป็น "ส่งแก้ไข (Revision Requested)" เพื่อปลดล็อกให้ส่งไฟล์ใหม่ได้',
+        faqQ3: 'ลืมข้อมูลบัญชีหรือเข้าสู่ระบบไม่ได้?',
+        faqA3: 'ส่งรหัสนักศึกษา 11 หลักหรือรหัสอาจารย์มาที่ support@kmutt.ac.th หรือทัก IG @atht.kmutt ได้เลยครับ',
+        supFooterBack: '← กลับเข้าสู่หน้าเว็บหลัก ATHT'
+      }
+    };
+
+    function applySupportLang(lang) {
+      supLang = lang === 'th' ? 'th' : 'en';
+      localStorage.setItem('atht_lang', supLang);
+      const dict = supI18n[supLang];
+      document.getElementById('supLangText').innerText = dict.langBtn;
+      Object.keys(dict).forEach((id) => {
+        if (id === 'langBtn') return;
+        const el = document.getElementById(id);
+        if (el) el.innerText = dict[id];
+      });
+    }
+
+    function toggleSupportLang() {
+      applySupportLang(supLang === 'th' ? 'en' : 'th');
+    }
+
+    function syncSupportThemeIcon() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const icon = document.getElementById('supThemeIcon');
+      if (icon) icon.innerText = isDark ? '☀️' : '🌙';
+    }
+
+    function toggleSupportTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('atht_theme', isDark ? 'dark' : 'light');
+      syncSupportThemeIcon();
+    }
+
+    function copyTextValue(val, btn) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(val).catch(() => {});
+      }
+      if (btn) {
+        const orig = btn.innerText;
+        btn.innerText = supLang === 'th' ? 'คัดลอกแล้ว ✓' : 'Copied ✓';
+        setTimeout(() => { btn.innerText = orig; }, 1400);
+      }
+    }
+
+    function handleSupportFormSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('supInputName').value.trim();
+      const email = document.getElementById('supInputEmail').value.trim();
+      const topic = document.getElementById('supInputTopic').value;
+      const social = document.getElementById('supInputSocial').value.trim();
+      const msg = document.getElementById('supInputMessage').value.trim();
+      if (!name || !email || !msg) return;
+
+      const ticketId = 'SUP-' + Date.now().toString().slice(-6);
+      try {
+        const prev = JSON.parse(localStorage.getItem('atht_support_requests') || '[]');
+        prev.unshift({ ticketId, name, email, topic, social, msg, createdAt: new Date().toISOString() });
+        localStorage.setItem('atht_support_requests', JSON.stringify(prev.slice(0, 30)));
+      } catch (err) {}
+
+      const banner = document.getElementById('supSuccessBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+        banner.innerText = supLang === 'th'
+          ? `ส่งคำร้องขอความช่วยเหลือสำเร็จ (รหัสอ้างอิง ${ticketId})! ทีมงานจะติดต่อกลับทาง ${email}${social ? ' หรือ ' + social : ''} โดยเร็วที่สุด`
+          : `Help request submitted (Ref: ${ticketId})! Our team will contact you via ${email}${social ? ' or ' + social : ''} shortly.`;
+      }
+      e.target.reset();
+    }
+
+    syncSupportThemeIcon();
+    applySupportLang(supLang);
+  </script>
+</body>
+</html>

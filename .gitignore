@@ -5,3 +5,7 @@ Thumbs.db
 .vscode/
 .vs/
 node_modules/
+bin/
+obj/
+*.user
+*.suo
