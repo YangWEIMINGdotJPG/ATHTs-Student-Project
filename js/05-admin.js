@@ -791,3 +791,97 @@
         if (e && e.key === 'Escape') closeAllOpenModals();
       });
     }
+
+    /* === ATHT_OPTIONAL_WEB_ANIMATIONS_JS_START === */
+    (function initATHTInteractiveMotion() {
+      if (typeof window === 'undefined' || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
+
+      const cardSelectors = [
+        '#dashboardCourseCards > div',
+        '#teacherCourseCards > div',
+        '#allCoursesListContainer > div',
+        '#globalTasksListContainer > div',
+        '#detailTasksScrollContainer > div',
+        '#projectsCardsContainer > div',
+        '#teacherAssessmentTasksContainer > div',
+        '#notificationsContainer > div',
+        '#adminKpiGrid > div'
+      ].join(',');
+
+      let activeTiltCard = null;
+      let lastSparkTime = 0;
+      let lastSparkX = -999;
+      let lastSparkY = -999;
+      let activeSparkCount = 0;
+      let sparkCounter = 0;
+
+      const resetTiltCard = (card) => {
+        if (!card) return;
+        card.style.removeProperty('--atht-rx');
+        card.style.removeProperty('--atht-ry');
+        card.style.removeProperty('--atht-mx');
+        card.style.removeProperty('--atht-my');
+      };
+
+      const handlePointer = (e) => {
+        if (!e || typeof e.clientX !== 'number') return;
+        if (e.pointerType === 'touch') return;
+
+        // 1) Interactive 3D tilt + spotlight on hovered card
+        const target = e.target && typeof e.target.closest === 'function' ? e.target.closest(cardSelectors) : null;
+        if (activeTiltCard && activeTiltCard !== target) {
+          resetTiltCard(activeTiltCard);
+          activeTiltCard = null;
+        }
+        if (target && typeof target.getBoundingClientRect === 'function') {
+          if (!target.classList.contains('atht-tilt-card')) target.classList.add('atht-tilt-card');
+          activeTiltCard = target;
+          const rect = target.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            const px = (e.clientX - rect.left) / rect.width;
+            const py = (e.clientY - rect.top) / rect.height;
+            const rx = ((0.5 - py) * 12).toFixed(2) + 'deg';
+            const ry = ((px - 0.5) * 12).toFixed(2) + 'deg';
+            target.style.setProperty('--atht-rx', rx);
+            target.style.setProperty('--atht-ry', ry);
+            target.style.setProperty('--atht-mx', `${Math.round(px * 100)}%`);
+            target.style.setProperty('--atht-my', `${Math.round(py * 100)}%`);
+          }
+        }
+
+        // 2) Throttled cursor sparkle trail
+        const now = Date.now();
+        const dist = Math.hypot(e.clientX - lastSparkX, e.clientY - lastSparkY);
+        if (now - lastSparkTime >= 24 && dist >= 8 && activeSparkCount < 16 && document.body) {
+          lastSparkTime = now;
+          lastSparkX = e.clientX;
+          lastSparkY = e.clientY;
+          activeSparkCount++;
+          sparkCounter++;
+          const spark = document.createElement('span');
+          const isStar = sparkCounter % 2 === 0;
+          spark.className = isStar ? 'atht-cursor-spark atht-cursor-spark--star' : 'atht-cursor-spark';
+          if (isStar) spark.textContent = '✦';
+          const driftX = (((sparkCounter * 7) % 21) - 10) + 'px';
+          spark.style.setProperty('--atht-sx', driftX);
+          spark.style.left = `${e.clientX}px`;
+          spark.style.top = `${e.clientY}px`;
+          document.body.appendChild(spark);
+          const cleanup = () => {
+            if (spark.parentNode) spark.parentNode.removeChild(spark);
+            activeSparkCount = Math.max(0, activeSparkCount - 1);
+          };
+          spark.addEventListener('animationend', cleanup, { once: true });
+          setTimeout(cleanup, 780);
+        }
+      };
+
+      const moveEvent = typeof window.PointerEvent !== 'undefined' ? 'pointermove' : 'mousemove';
+      document.addEventListener(moveEvent, handlePointer, { passive: true });
+
+      document.addEventListener('mouseleave', () => {
+        resetTiltCard(activeTiltCard);
+        activeTiltCard = null;
+      }, { passive: true });
+    })();
+    /* === ATHT_OPTIONAL_WEB_ANIMATIONS_JS_END === */

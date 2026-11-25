@@ -44,7 +44,7 @@
     })();
   </script>
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20261126b">
 </head>
 <body class="min-h-screen text-neutral-800 antialiased bg-white flex flex-col m-0 p-0 overflow-x-hidden">
 
@@ -53,7 +53,7 @@
     <div id="festivalEffectsLayer" class="fixed inset-0 pointer-events-none overflow-hidden z-[5] hidden" aria-hidden="true"></div>
 
     <header id="mainHeader" class="w-full bg-appHeader text-white sticky top-0 z-40 shadow-xs">
-      <div class="max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-3.5 flex items-center justify-between gap-2">
+      <div class="max-w-[1520px] mx-auto px-3 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-3 sm:py-3.5 flex items-center justify-between gap-2">
 
         <div class="flex items-center gap-2 sm:gap-6 min-w-0">
           <button onclick="handleLogoClick()" class="flex items-center gap-1.5 sm:gap-2.5 pressable focus:outline-none text-left group min-w-0">
@@ -141,7 +141,7 @@
     </header>
 
     <div id="breadcrumbBar" class="w-full bg-neutral-100/95 dark:bg-[#0d1117]/95 border-b border-neutral-200 dark:border-neutral-800 sticky top-[52px] sm:top-[60px] z-30 backdrop-blur-sm">
-      <div class="max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-2 text-xs">
+      <div class="max-w-[1520px] mx-auto px-3 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-2 flex items-center justify-between gap-2 text-xs">
         <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs min-w-0 flex-1 overflow-x-auto hide-scrollbar whitespace-nowrap">
           <span id="breadcrumbRolePrefix" class="text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:underline shrink-0" onclick="handleLogoClick()">Student</span>
           <span class="text-neutral-400 dark:text-neutral-500 shrink-0">/</span>
@@ -162,7 +162,7 @@
     </div>
 
     <nav id="navPillsBar" class="w-full bg-white dark:bg-neutral-900 border-b border-neutral-200/90 dark:border-neutral-800 relative sm:sticky sm:top-[96px] z-20 sm:z-30 shadow-2xs">
-      <div class="max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3">
+      <div class="max-w-[1520px] mx-auto px-3 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-2.5 flex items-center justify-between gap-3">
 
         <div id="dynamicNavPillsContainer" class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 sm:overflow-x-auto hide-scrollbar w-full">
 
@@ -179,7 +179,7 @@
       </div>
     </nav>
 
-    <main class="flex-1 w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col">
+    <main class="flex-1 w-full max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-6 sm:py-8 flex flex-col">
 
       <div id="studentWireframeBreadcrumbRow" class="hidden items-center justify-between gap-2 pb-4">
         <div class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-[11px] sm:text-xs shadow-2xs font-bold text-neutral-800 dark:text-neutral-200 max-w-full overflow-x-auto hide-scrollbar">
@@ -1526,7 +1526,7 @@
     </main>
 
     <footer class="w-full bg-neutral-100 border-t border-neutral-200/90 py-5 mt-auto">
-      <div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-neutral-400 space-y-2">
+      <div class="max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 text-center text-xs text-neutral-400 space-y-2">
         <div class="font-medium text-neutral-600">© 2026 ATHT Student Project System • King Mongkut's University of Technology Thonburi</div>
         <div class="flex items-center justify-center gap-4 text-[11px]">
           <a href="javascript:void(0)" onclick="alertMessage('KMUTT Helpdesk: support@kmutt.ac.th')" class="hover:text-neutral-700 underline">Contact Support</a>
@@ -2414,6 +2414,6 @@
   <script src="js/02-core-i18n-auth-nav.js"></script>
   <script src="js/03-student-projects-tasks.js"></script>
   <script src="js/04-teacher-drawer-init.js"></script>
-  <script src="js/05-admin.js"></script>
+  <script src="js/05-admin.js?v=20261126b"></script>
 </body>
 </html>
