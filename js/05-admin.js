@@ -308,7 +308,7 @@
         const isActive = u.status === 'Active';
 
         const row = document.createElement('div');
-        row.className = 'p-3.5 md:py-3 md:px-4 bg-neutral-50/60 md:bg-transparent dark:bg-neutral-800/35 md:dark:bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/60 border border-neutral-200/80 md:border-0 rounded-2xl md:rounded-xl transition grid grid-cols-1 md:grid-cols-12 gap-2.5 md:gap-3 items-center text-xs';
+        row.className = 'p-3.5 md:py-3 md:px-4 bg-neutral-50/60 md:bg-transparent dark:bg-neutral-800/35 md:dark:bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/60 border border-neutral-200/80 md:border-0 rounded-2xl md:rounded-xl transition grid grid-cols-1 md:grid-cols-[112px_minmax(140px,1.4fr)_minmax(140px,1.25fr)_minmax(120px,1fr)_98px_132px] gap-2.5 md:gap-3 items-center text-xs';
 
         const roleBadgeHtml = isTeacher
           ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-950/70 dark:text-orange-300 border border-orange-200 dark:border-orange-800 whitespace-nowrap shrink-0">👨‍🏫 Teacher</span>`
@@ -320,14 +320,14 @@
 
         row.innerHTML = `
 
-          <div class="md:col-span-2 flex items-center justify-between md:justify-start gap-2">
+          <div class="min-w-0 flex items-center justify-between md:justify-start gap-2">
             <span class="font-mono font-bold text-neutral-900 dark:text-white bg-white md:bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-200/80 dark:border-neutral-700 text-[11px] whitespace-nowrap">
               ${escapeHtml(u.codeDisplay)}
             </span>
             <span class="md:hidden shrink-0">${statusPillHtml}</span>
           </div>
 
-          <div class="md:col-span-3 flex items-center gap-2.5 min-w-0">
+          <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-9 h-9 md:w-8 md:h-8 rounded-xl ${isTeacher ? 'bg-orange-600 text-white' : 'bg-neutral-900 dark:bg-neutral-700 text-white'} flex items-center justify-center text-[11px] font-extrabold shrink-0 shadow-2xs">
               ${escapeHtml(u.initials)}
             </div>
@@ -342,14 +342,14 @@
             </div>
           </div>
 
-          <div class="md:col-span-3 min-w-0 pt-1.5 md:pt-0 border-t md:border-t-0 border-neutral-200/60 dark:border-neutral-700/60">
+          <div class="min-w-0 pt-1.5 md:pt-0 border-t md:border-t-0 border-neutral-200/60 dark:border-neutral-700/60">
             <span class="font-mono text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate block" title="${escapeHtml(u.email)}">
               ${escapeHtml(u.email)}
             </span>
             <span class="text-[10px] text-neutral-400 block">KMUTT SSO Verified</span>
           </div>
 
-          <div class="md:col-span-2 min-w-0">
+          <div class="min-w-0">
             ${isTeacher ? `
               <div class="flex flex-wrap gap-1">
                 ${u.courses.map(c => `<span class="px-2 py-0.5 rounded-md bg-neutral-900 text-white dark:bg-neutral-700 text-[10px] font-bold">${escapeHtml(c)}</span>`).join('')}
@@ -360,11 +360,11 @@
             `}
           </div>
 
-          <div class="hidden md:flex md:col-span-1 justify-center">
+          <div class="hidden md:flex justify-center shrink-0">
             ${statusPillHtml}
           </div>
 
-          <div class="md:col-span-1 flex items-center justify-between md:justify-end gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-200/70 dark:border-neutral-800">
+          <div class="flex items-center justify-between md:justify-end gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-200/70 dark:border-neutral-800 shrink-0">
             <button onclick="adminImpersonateUser('${u.role}', '${escapeHtml(u.id)}')" title="Preview Portal as ${escapeHtml(u.shortName)}" class="flex-1 md:flex-initial py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl md:rounded-lg bg-white md:bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-neutral-200 md:border-0 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 font-bold text-[11px] md:text-[10px] transition pressable whitespace-nowrap text-center">
               View As
             </button>
@@ -734,7 +734,10 @@
       if (typeof renderCalendar === 'function') renderCalendar();
       closeAdminDeleteModal();
       renderAdminScreen();
-      updateBreadcrumbUI('admin');
+      if (typeof currentScreen !== 'undefined' && currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') {
+        renderCoursesCatalog();
+      }
+      updateBreadcrumbUI(typeof currentScreen !== 'undefined' ? currentScreen : 'admin');
       alertMessage(`Removed ${name} cleanly.`);
     }
 
@@ -933,6 +936,14 @@
       const visSelect = document.getElementById('adminCourseStudentVisibilitySelect');
 
       const course = mode === 'edit' ? coursesCatalog[courseCode] : null;
+      const deleteBtn = document.getElementById('adminCourseDeleteBtn');
+      const deleteBtnLabel = document.getElementById('adminCourseDeleteBtnLabel');
+      if (deleteBtn) {
+        deleteBtn.classList.toggle('hidden', !(mode === 'edit' && course));
+      }
+      if (deleteBtnLabel) {
+        deleteBtnLabel.innerText = isTh ? 'ลบรายวิชานี้' : 'Delete Course';
+      }
       if (mode === 'edit' && course) {
         if (titleEl) titleEl.innerText = isTh ? `แก้ไขรายวิชา: ${course.code}` : `Edit Course: ${course.code}`;
         if (submitBtn) submitBtn.innerText = isTh ? 'บันทึกรายวิชา' : 'Save Course Changes';
@@ -992,6 +1003,14 @@
         return;
       }
       openAdminDeleteModal('course', courseCode, courseTitle);
+    }
+
+    function triggerDeleteFromCourseModal() {
+      const code = (document.getElementById('adminCourseOrigCode')?.value || document.getElementById('adminCourseCodeInput')?.value || '').trim().toUpperCase();
+      if (!code || !coursesCatalog[code]) return;
+      const title = coursesCatalog[code].title || code;
+      closeAdminCourseModal();
+      openAdminDeleteCourseModal(code, title);
     }
 
     function handleSaveAdminCourse(e, overrideTeacherIds = null) {

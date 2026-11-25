@@ -132,9 +132,14 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-[10px] text-neutral-400">
-            <span>${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
-            <span class="font-bold text-neutral-800">${isAdmin ? (isThai ? 'แก้ไข / กำหนดอาจารย์ →' : 'Manage / Assign →') : (isThai ? 'ดูรายละเอียด →' : 'View Details →')}</span>
+          <div class="flex items-center justify-between gap-2 text-[10px] text-neutral-400">
+            <span class="truncate">${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
+            ${isAdmin ? `
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="event.stopPropagation(); openAdminDeleteCourseModal('${escapeHtml(c.code).replace(/'/g, "\\'")}', '${escapeHtml(c.title || c.code).replace(/'/g, "\\'")}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold transition" title="${isThai ? 'ลบรายวิชา' : 'Delete Course'}">🗑 ${isThai ? 'ลบ' : 'Delete'}</button>
+                <span class="font-bold text-neutral-800 dark:text-neutral-200 whitespace-nowrap">${isThai ? 'แก้ไข →' : 'Manage →'}</span>
+              </div>
+            ` : `<span class="font-bold text-neutral-800 whitespace-nowrap shrink-0">${isThai ? 'ดูรายละเอียด →' : 'View Details →'}</span>`}
           </div>
         `;
         container.appendChild(card);
