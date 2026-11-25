@@ -282,7 +282,9 @@
         const mLabel = isTh ? 'สมาชิก' : 'Members';
 
         if (mode === 'assessment') {
-          bc.innerHTML = proj ? `${hBtn} ${s} ${cBtn} ${s} ${pBtn} ${s} <span class="font-bold text-neutral-900 dark:text-white">${tLabel}</span>` : `${hBtn} ${s} ${cBtn} ${s} <span class="font-bold text-neutral-900 dark:text-white">${tLabel}</span>`;
+          bc.innerHTML = `${hBtn} ${s} ${cBtn} ${s} <span class="font-bold text-neutral-900 dark:text-white">${isTh ? 'โปรเจกต์ทั้งหมด' : 'Projects'}</span>`;
+        } else if (mode === 'projectTasks') {
+          bc.innerHTML = proj ? `${hBtn} ${s} ${cBtn} ${s} <span class="font-bold text-neutral-900 dark:text-white">${escapeHtml(projName)}</span>` : `${hBtn} ${s} ${cBtn} ${s} <span class="font-bold text-neutral-900 dark:text-white">${tLabel}</span>`;
         } else if (mode === 'editTask') {
           bc.innerHTML = `${hBtn} ${s} ${cBtn} ${s} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400">${tLabel}</button> ${s} <span class="font-bold text-neutral-900 dark:text-white">${isTh ? 'แก้ไขงาน' : 'Edit Task'}</span>`;
         } else if (mode === 'students') {
@@ -425,7 +427,42 @@
 
     function openTeacherProjectReview(projectId, studentId = null) {
       activeReviewProjectId = projectId;
-      activeReviewStudentId = studentId || null;
+      const tProj = (typeof teacherProjects !== 'undefined' && Array.isArray(teacherProjects))
+        ? teacherProjects.find(p => p.id === projectId)
+        : null;
+      const sp = Array.isArray(studentProjectsList)
+        ? studentProjectsList.find(p => p.id === projectId)
+        : null;
+
+      if (tProj) {
+        if (tProj.courseCode && coursesCatalog[tProj.courseCode]) {
+          activeCourseId = tProj.courseCode;
+          activeProjectsFilter = tProj.courseCode;
+        }
+        const matchedSp = (studentProjectsList || []).find(p =>
+          p.id === projectId || (p.course === activeCourseId && (p.title === tProj.taskTitle || (tProj.groupName && p.title.includes(tProj.groupName))))
+        ) || (studentProjectsList || []).find(p => p.course === activeCourseId);
+        if (matchedSp) activeProjectId = matchedSp.id;
+        const c = coursesCatalog[activeCourseId];
+        const matchedTask = c && Array.isArray(c.tasks)
+          ? (c.tasks.find(t => t.projectId === activeProjectId) || c.tasks.find(t => t.title === tProj.taskTitle) || null)
+          : null;
+        if (matchedTask) selectedTeacherAssessmentTaskId = matchedTask.id;
+        if (!studentId && Array.isArray(tProj.students) && tProj.students[0]) {
+          const firstS = tProj.students[0];
+          studentId = firstS.id || (firstS.name ? getStudentProfile(firstS.name).id : null);
+        }
+      } else if (sp) {
+        activeCourseId = sp.course || activeCourseId;
+        activeProjectsFilter = activeCourseId;
+        activeProjectId = sp.id;
+        const c = coursesCatalog[activeCourseId];
+        const matchedTask = c && Array.isArray(c.tasks) ? c.tasks.find(t => t.projectId === sp.id) : null;
+        selectedTeacherAssessmentTaskId = matchedTask ? matchedTask.id : null;
+        if (!studentId && sp.createdBy) studentId = sp.createdBy;
+      }
+
+      activeReviewStudentId = studentId || activeReviewStudentId || null;
       teacherReviewViewMode = 'grading';
       navigateTo('teacher-review');
     }
@@ -438,11 +475,12 @@
         activeProjectId = proj.id;
         if (proj.course && coursesCatalog[proj.course]) {
           activeCourseId = proj.course;
+          activeProjectsFilter = proj.course;
         }
         const c = coursesCatalog[activeCourseId] || course;
-        task = (c.tasks || []).find(t => t.projectId === proj.id) || (c.tasks || [])[0] || null;
-      }
-      if (task) {
+        task = (c.tasks || []).find(t => t.projectId === proj.id) || null;
+        selectedTeacherAssessmentTaskId = task ? task.id : null;
+      } else if (task) {
         selectedTeacherAssessmentTaskId = task.id;
         if (task.projectId) activeProjectId = task.projectId;
       }
@@ -1210,11 +1248,83 @@
       alertMessage(currentLanguage === 'th' ? `ดาวน์โหลดไฟล์สำเร็จ: ${downloadName}` : `Downloaded: ${downloadName}`);
     }
 
+    function clampTeacherScoreNumber(rawVal) {
+      const cleaned = String(rawVal ?? '').split('/')[0].trim();
+      if (!cleaned) return null;
+      const num = Number(cleaned);
+      if (!Number.isFinite(num)) return null;
+      const clamped = Math.max(0, Math.min(10, num));
+      return Number(clamped.toFixed(2));
+    }
+
+    function handleTeacherScoreFocus(el) {
+      if (!el) return;
+      const num = clampTeacherScoreNumber(el.value);
+      el.value = num !== null ? String(num) : '';
+    }
+
+    function handleTeacherScoreTyping(el) {
+      if (!el) return;
+      const raw = String(el.value || '');
+      if (!raw.trim()) {
+        el.value = '';
+        return;
+      }
+      if (raw.trim().startsWith('-')) {
+        el.value = '0';
+        return;
+      }
+      const noSlash = raw.split('/')[0];
+      let filtered = noSlash.replace(/[^0-9.]/g, '');
+      const dotIdx = filtered.indexOf('.');
+      if (dotIdx !== -1) {
+        filtered = filtered.slice(0, dotIdx + 1) + filtered.slice(dotIdx + 1).replace(/\./g, '');
+      }
+      if (!filtered) {
+        el.value = '';
+        return;
+      }
+      if (filtered === '.') {
+        el.value = '0.';
+        return;
+      }
+      const num = parseFloat(filtered);
+      if (Number.isFinite(num)) {
+        if (num > 10) {
+          el.value = '10';
+          return;
+        }
+        if (num < 0) {
+          el.value = '0';
+          return;
+        }
+      }
+      el.value = filtered;
+    }
+
+    function handleTeacherScoreBlur(el) {
+      if (!el) return;
+      const num = clampTeacherScoreNumber(el.value);
+      el.value = num !== null ? `${num} / 10` : '';
+    }
+
     function sendTeacherFeedbackNote() {
       const input = document.getElementById('teacherFeedbackNoteInput');
       const text = input ? input.value.trim() : '';
       const scoreInput = document.getElementById('teacherGradingScoreInput');
-      const scoreVal = scoreInput ? scoreInput.value.trim() : '9/10';
+      const rawScoreStr = scoreInput ? scoreInput.value.trim() : '';
+      const parsedScore = clampTeacherScoreNumber(rawScoreStr);
+      if (parsedScore === null && !text) {
+        alertMessage(currentLanguage === 'th'
+          ? 'กรุณากรอกคะแนน (0 - 10) หรือพิมพ์ข้อเสนอแนะก่อนส่ง'
+          : 'Please enter a score (0 - 10) or feedback note before sending.');
+        return;
+      }
+      const hasScoreEntered = parsedScore !== null;
+      const scoreVal = hasScoreEntered ? `${parsedScore} / 10` : '';
+      if (scoreInput && hasScoreEntered) {
+        scoreInput.value = scoreVal;
+      }
 
       const course = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
       const student = getStudentProfile(activeReviewStudentId || '67080500208');
@@ -1238,9 +1348,15 @@
             ? activeTeacherGradingRevisionIndex
             : revs.length - 1;
           const targetRev = revs[idx];
+          const existingRevScore = (targetRev.score && targetRev.score !== 'Pending' && targetRev.score !== '-' && targetRev.score !== 'Revise')
+            ? targetRev.score
+            : '';
+          const effectiveScore = hasScoreEntered ? scoreVal : existingRevScore;
           targetRev.status = 'complete';
           targetRev.statusLabel = 'ส่งแล้ว';
-          targetRev.score = scoreVal;
+          if (hasScoreEntered) {
+            targetRev.score = scoreVal;
+          }
           const msgTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const teacherMsg = text ? {
             id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -1255,14 +1371,16 @@
             targetRev.notes.push({ ...teacherMsg });
           }
 
-          task.score = scoreVal;
-          task.status = `Graded (${scoreVal})`;
+          if (effectiveScore) {
+            task.score = effectiveScore;
+            task.status = `Graded (${effectiveScore})`;
+          }
           task.isFinished = true;
           syncGroupSubmissionSnapshot(task, student.id, {
             submitted: true,
-            score: scoreVal,
-            status: `Graded (${scoreVal})`,
-            memberTaskStatus: `Graded (${scoreVal})`,
+            score: effectiveScore || 'Pending',
+            status: effectiveScore ? `Graded (${effectiveScore})` : 'Submitted',
+            memberTaskStatus: effectiveScore ? `Graded (${effectiveScore})` : 'Finished',
             file: targetRev.file,
             submittedAt: targetRev.submittedAt,
             revisions: revs
@@ -1271,13 +1389,16 @@
             if (!Array.isArray(task.comments)) task.comments = [];
             task.comments.push({ ...teacherMsg });
           }
+          if (typeof markNotificationsReadForTarget === 'function') {
+            markNotificationsReadForTarget({ course: course.code, taskId: task.id, studentId: student.id });
+          }
           if (typeof pushAppNotification === 'function') {
             pushAppNotification({
-              type: 'grade',
+              type: hasScoreEntered ? 'grade' : 'comment',
               targetRole: 'student',
               targetStudentIds: getGroupSyncStudentIds(task, student.id),
               course: course.code,
-              title: `ตรวจงานแล้ว (${scoreVal}): ${task.title}`,
+              title: hasScoreEntered ? `ตรวจงานแล้ว (${scoreVal}): ${task.title}` : `ข้อเสนอแนะจากอาจารย์: ${task.title}`,
               taskTitle: text || `บันทึกคะแนน ${scoreVal}`,
               taskId: task.id,
               studentId: student.id,
@@ -1292,7 +1413,9 @@
       if (input) input.value = '';
       renderTeacherReviewScreen();
       updateBreadcrumbUI(currentScreen);
-      alertMessage(`บันทึกคะแนน (${scoreVal}) และข้อเสนอแนะสำหรับ ${student.shortName} เรียบร้อยแล้ว!`);
+      alertMessage(hasScoreEntered
+        ? `บันทึกคะแนน (${scoreVal}) และข้อเสนอแนะสำหรับ ${student.shortName} เรียบร้อยแล้ว!`
+        : `ส่งข้อเสนอแนะสำหรับ ${student.shortName} เรียบร้อยแล้ว!`);
     }
 
     function requestTeacherRevision() {
@@ -1348,6 +1471,9 @@
             submittedAt: targetRev.submittedAt,
             revisions: revs
           });
+          if (typeof markNotificationsReadForTarget === 'function') {
+            markNotificationsReadForTarget({ course: course.code, taskId: task.id, studentId: student.id });
+          }
           if (typeof pushAppNotification === 'function') {
             pushAppNotification({
               type: 'comment',
@@ -1740,9 +1866,10 @@
 
       const scoreInputEl = document.getElementById('teacherGradingScoreInput');
       if (scoreInputEl) {
-        scoreInputEl.value = activeRev
-          ? ((activeRev.score && activeRev.score !== 'Pending' && activeRev.score !== '-') ? activeRev.score : '9/10')
-          : '0/10';
+        const existingScoreNum = (activeRev && activeRev.score && activeRev.score !== 'Pending' && activeRev.score !== '-' && activeRev.score !== 'Revise')
+          ? clampTeacherScoreNumber(activeRev.score)
+          : null;
+        scoreInputEl.value = existingScoreNum !== null ? `${existingScoreNum} / 10` : '';
       }
 
       const instNameEl = document.getElementById('teacherGradingInstructorName');
@@ -1885,6 +2012,9 @@
         createdAt: new Date().toISOString().slice(0, 10),
         dueDate: due
       });
+      activeProjectId = newProjId;
+      activeProjectsFilter = course.code;
+      selectedTeacherAssessmentTaskId = null;
       saveStoredProjects(studentProjectsList);
       if (typeof syncAllATHTData === 'function') syncAllATHTData();
       else saveCoursesCatalog();

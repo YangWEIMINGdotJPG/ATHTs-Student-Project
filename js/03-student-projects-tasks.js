@@ -131,8 +131,10 @@
     function viewTaskDetails(taskId) {
       activeTaskId = taskId;
       for (const [cCode, cData] of Object.entries(coursesCatalog)) {
-        if (cData.tasks.some(t => t.id === taskId)) {
+        const foundTask = (cData && Array.isArray(cData.tasks)) ? cData.tasks.find(t => t.id === taskId) : null;
+        if (foundTask) {
           activeCourseId = cCode;
+          if (foundTask.projectId) activeProjectId = foundTask.projectId;
           break;
         }
       }
@@ -2486,6 +2488,11 @@
     }
 
     function renderProjectsScreen() {
+      activeViewingProjectId = null;
+      const cardsContainer = document.getElementById('projectsCardsContainer');
+      const milestoneView = document.getElementById('projectDetailMilestoneView');
+      if (cardsContainer) cardsContainer.classList.remove('hidden');
+      if (milestoneView) milestoneView.classList.add('hidden');
       const isTeacher = currentUserRole === 'teacher';
       const isAdmin = currentUserRole === 'admin';
       const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
@@ -2640,11 +2647,15 @@
       const p = studentProjectsList.find(x => x.id === projectId);
       if (!p) return;
       activeCourseId = p.course;
+      activeProjectsFilter = p.course;
       activeProjectId = projectId;
 
       if (currentUserRole === 'teacher') {
+        const c = coursesCatalog[p.course];
+        const linkedTask = c && Array.isArray(c.tasks) ? c.tasks.find(t => t.projectId === projectId) : null;
+        selectedTeacherAssessmentTaskId = linkedTask ? linkedTask.id : null;
         teacherCameFromProjects = true;
-        switchTeacherViewMode('assessment');
+        switchTeacherViewMode('projectTasks');
         navigateTo('teacher-review');
       } else {
         navigateTo('course-detail');
@@ -2727,6 +2738,13 @@
       };
 
       studentProjectsList.unshift(newProj);
+      activeProjectId = newProj.id;
+      activeCourseId = newProj.course;
+      activeTasksCourseFilter = newProj.course;
+      activeTasksProjectFilter = newProj.id;
+      if (activeProjectsFilter !== 'ALL' && activeProjectsFilter !== newProj.course) {
+        activeProjectsFilter = newProj.course;
+      }
       saveStoredProjects(studentProjectsList);
 
       // Also create a linked Group/Individual starter task in coursesCatalog so Teacher & all teammates see it immediately
@@ -2910,6 +2928,19 @@
       renderGlobalTasksHub();
     }
 
+    let activeNotificationFilterTab = 'all';
+
+    function setNotificationFilterTab(tab) {
+      activeNotificationFilterTab = tab || 'all';
+      renderNotificationsScreen();
+    }
+
+    function saveStoredNotifications(list) {
+      try {
+        localStorage.setItem('atht_v2_notifications', JSON.stringify((list || []).slice(0, 120)));
+      } catch (e) {}
+    }
+
     function loadStoredNotifications() {
       try {
         const raw = localStorage.getItem('atht_v2_notifications');
@@ -2923,10 +2954,83 @@
 
     function pushAppNotification(entry) {
       try {
-        const list = loadStoredNotifications();
-        list.unshift({ id: 'notif-' + Date.now(), ...entry });
-        localStorage.setItem('atht_v2_notifications', JSON.stringify(list.slice(0, 30)));
+        let list = loadStoredNotifications();
+        if (entry && entry.targetRole === 'teacher' && entry.type === 'submission') {
+          list = list.filter(n => !(
+            n &&
+            n.targetRole === 'teacher' &&
+            n.type === 'submission' &&
+            n.course === entry.course &&
+            (n.projectId || '') === (entry.projectId || '') &&
+            n.taskId === entry.taskId &&
+            n.studentId === entry.studentId
+          ));
+        }
+        list.unshift({ id: 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), ...entry });
+        saveStoredNotifications(list);
       } catch (e) {}
+    }
+
+    function getVisibleNotificationsForCurrentUser() {
+      const isTeacher = currentUserRole === 'teacher';
+      const curStd = getCurrentStudent();
+      const allowedTeacherSet = isTeacher && typeof getTeacherAssignedCourseCodes === 'function'
+        ? new Set(getTeacherAssignedCourseCodes())
+        : null;
+
+      const dynamicNotifs = loadStoredNotifications().filter(n => {
+        if (isTeacher) {
+          return n.targetRole === 'teacher' && (!allowedTeacherSet || allowedTeacherSet.has(n.course));
+        }
+        if (n.targetRole && n.targetRole !== 'student') return false;
+        if (Array.isArray(n.targetStudentIds) && !n.targetStudentIds.includes(curStd.id)) return false;
+        return true;
+      });
+      return [...dynamicNotifs, ...notificationsList];
+    }
+
+    function hasUnreadNotifications() {
+      return getVisibleNotificationsForCurrentUser().some(n => n && n.isNew);
+    }
+
+    function markAllNotificationsRead() {
+      const isTeacher = currentUserRole === 'teacher';
+      const curStd = getCurrentStudent();
+      const stored = loadStoredNotifications().map(n => {
+        if (isTeacher && n.targetRole === 'teacher') return { ...n, isNew: false };
+        if (!isTeacher && (!n.targetRole || n.targetRole === 'student')) {
+          if (!Array.isArray(n.targetStudentIds) || n.targetStudentIds.includes(curStd.id)) {
+            return { ...n, isNew: false };
+          }
+        }
+        return n;
+      });
+      saveStoredNotifications(stored);
+      (notificationsList || []).forEach(n => { n.isNew = false; });
+      if (typeof renderDynamicPills === 'function') renderDynamicPills(currentScreen);
+      renderNotificationsScreen();
+      if (typeof alertMessage === 'function') {
+        alertMessage(currentLanguage === 'th' ? 'ทำเครื่องหมายว่าอ่านการแจ้งเตือนทั้งหมดแล้ว' : 'Marked all notifications as read.');
+      }
+    }
+
+    function markNotificationsReadForTarget({ course = '', projectId = '', taskId = '', studentId = '' } = {}) {
+      let changed = false;
+      const stored = loadStoredNotifications().map(n => {
+        if (!n || n.targetRole !== 'teacher' || !n.isNew) return n;
+        const matchCourse = !course || n.course === course;
+        const matchProj = projectId && n.projectId && n.projectId === projectId && !studentId;
+        const matchTaskStudent = (!taskId || n.taskId === taskId) && (!studentId || n.studentId === studentId);
+        if (matchCourse && (matchProj || (taskId && matchTaskStudent))) {
+          changed = true;
+          return { ...n, isNew: false };
+        }
+        return n;
+      });
+      if (changed) {
+        saveStoredNotifications(stored);
+        if (typeof renderDynamicPills === 'function') renderDynamicPills(currentScreen);
+      }
     }
 
     function resolveTaskProjectId(courseCode, taskObj, studentId) {
@@ -2950,6 +3054,7 @@
         : null;
       const resolvedProjId = projectId || resolveTaskProjectId(cCode, taskObj, studentId);
 
+      markNotificationsReadForTarget({ course: cCode, projectId: resolvedProjId });
       activeCourseId = cCode;
       activeProjectsFilter = cCode;
       if (resolvedProjId) activeProjectId = resolvedProjId;
@@ -2962,36 +3067,172 @@
       navigateTo('teacher-review');
     }
 
+    function toggleNotifGroupDetails(groupDomId, ev) {
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      const el = document.getElementById(groupDomId);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function buildTeacherGroupedNotifications(items) {
+      const result = [];
+      const subGroups = new Map();
+      items.forEach(item => {
+        if (item.type === 'submission') {
+          const key = `${item.course || 'CMM321'}::${item.projectId || item.taskId || 'default'}`;
+          if (!subGroups.has(key)) {
+            const grp = {
+              isGroupedSubmission: true,
+              key,
+              course: item.course || 'CMM321',
+              projectId: item.projectId || '',
+              items: [],
+              uniqueSubmitters: new Set(),
+              isNew: false
+            };
+            subGroups.set(key, grp);
+            result.push(grp);
+          }
+          const grp = subGroups.get(key);
+          grp.items.push(item);
+          if (item.studentId) grp.uniqueSubmitters.add(item.studentId);
+          if (item.isNew) grp.isNew = true;
+        } else {
+          result.push(item);
+        }
+      });
+      return result;
+    }
+
     function renderNotificationsScreen() {
       const container = document.getElementById('notificationsContainer');
       if (!container) return;
       container.innerHTML = '';
 
       const isTeacher = currentUserRole === 'teacher';
+      const isTh = currentLanguage === 'th';
       const curStd = getCurrentStudent();
-      const allowedTeacherSet = isTeacher && typeof getTeacherAssignedCourseCodes === 'function'
-        ? new Set(getTeacherAssignedCourseCodes())
-        : null;
+      const rawMerged = getVisibleNotificationsForCurrentUser();
+      const displaySource = isTeacher ? buildTeacherGroupedNotifications(rawMerged) : rawMerged;
 
-      const dynamicNotifs = loadStoredNotifications().filter(n => {
-        if (isTeacher) {
-          return n.targetRole === 'teacher' && (!allowedTeacherSet || allowedTeacherSet.has(n.course));
-        }
-        if (n.targetRole && n.targetRole !== 'student') return false;
-        if (Array.isArray(n.targetStudentIds) && !n.targetStudentIds.includes(curStd.id)) return false;
+      const isSubmissionKind = (x) => x.isGroupedSubmission || x.type === 'submission' || (!isTeacher && x.type === 'grade');
+      const isCommentKind = (x) => x.type === 'comment';
+
+      const totalCount = displaySource.length;
+      const subCount = displaySource.filter(isSubmissionKind).length;
+      const chatCount = displaySource.filter(isCommentKind).length;
+      const unreadCount = displaySource.filter(x => x.isNew).length;
+
+      const unreadBadge = document.getElementById('notifUnreadCountBadge');
+      if (unreadBadge) {
+        unreadBadge.classList.toggle('hidden', unreadCount === 0);
+        unreadBadge.innerText = isTh ? `ยังไม่อ่าน ${unreadCount}` : `${unreadCount} New`;
+      }
+      const markAllText = document.getElementById('btnNotifMarkAllReadText');
+      if (markAllText) {
+        markAllText.innerText = isTh ? 'อ่านทั้งหมดแล้ว' : 'Mark All Read';
+      }
+
+      const tabConfigs = [
+        { id: 'notifTabAll', key: 'all', label: isTh ? `ทั้งหมด (${totalCount})` : `All (${totalCount})` },
+        {
+          id: 'notifTabSubmission',
+          key: 'submission',
+          label: isTeacher
+            ? (isTh ? `📦 ส่งงาน (${subCount})` : `📦 Submissions (${subCount})`)
+            : (isTh ? `🏅 คะแนน/งาน (${subCount})` : `🏅 Grades/Work (${subCount})`)
+        },
+        { id: 'notifTabComment', key: 'comment', label: isTh ? `💬 ข้อความแชท (${chatCount})` : `💬 Messages (${chatCount})` }
+      ];
+      tabConfigs.forEach(tc => {
+        const el = document.getElementById(tc.id);
+        if (!el) return;
+        el.innerText = tc.label;
+        const active = activeNotificationFilterTab === tc.key;
+        el.className = active
+          ? 'px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold transition pressable'
+          : 'px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable';
+      });
+
+      const filteredDisplay = displaySource.filter(item => {
+        if (activeNotificationFilterTab === 'submission') return isSubmissionKind(item);
+        if (activeNotificationFilterTab === 'comment') return isCommentKind(item);
         return true;
       });
 
-      const merged = [...dynamicNotifs, ...notificationsList];
+      if (filteredDisplay.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-8 text-center text-neutral-400 border border-neutral-200 dark:border-neutral-800">
+            <p class="text-xs font-medium">${isTh ? 'ไม่มีการแจ้งเตือนในหมวดนี้' : 'No notifications in this category'}</p>
+          </div>
+        `;
+        return;
+      }
 
-      merged.forEach((item) => {
+      const allProjects = typeof getStoredProjects === 'function' ? getStoredProjects() : studentProjectsList;
+      const totalClassSize = Math.max(1, Object.keys(studentDirectory || {}).length || 81);
+
+      filteredDisplay.forEach((entry, idx) => {
         const card = document.createElement('div');
-        card.className = 'bg-white dark:bg-neutral-900 rounded-2xl sm:rounded-3xl px-3.5 sm:px-6 py-3.5 sm:py-4 border border-neutral-200/90 dark:border-neutral-800 shadow-sm hover:shadow-md transition flex items-center justify-between gap-2.5 sm:gap-4';
+        card.className = 'bg-white dark:bg-neutral-900 rounded-2xl sm:rounded-3xl px-3.5 sm:px-6 py-3.5 sm:py-4 border border-neutral-200/90 dark:border-neutral-800 shadow-sm hover:shadow-md transition space-y-2.5';
 
+        if (entry.isGroupedSubmission && entry.items.length > 1) {
+          const latest = entry.items[0];
+          const projObj = (allProjects || []).find(p => p.id === entry.projectId);
+          const projTitle = projObj ? projObj.title : (latest.taskTitle || entry.course);
+          const submitCount = entry.uniqueSubmitters.size || entry.items.length;
+          const tId = latest.taskId || 'cmm321-t1';
+          const sId = latest.studentId || curStd.id;
+          const pId = entry.projectId || '';
+          const groupDomId = `notifGroupList_${idx}`;
+          const actionFn = `openTeacherNotificationTarget('${escapeHtml(entry.course)}', '${escapeHtml(tId)}', '${escapeHtml(sId)}', '${escapeHtml(pId)}')`;
+          const btnClass = entry.isNew
+            ? 'bg-neutral-900 hover:bg-black text-white dark:bg-neutral-800 dark:hover:bg-neutral-700'
+            : 'bg-neutral-700 hover:bg-neutral-900 text-white';
+
+          const recentItemsHtml = entry.items.slice(0, 8).map(subItem => `
+            <div class="flex items-center justify-between text-[11px] py-1 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0">
+              <span class="font-semibold text-neutral-700 dark:text-neutral-200 truncate pr-2">• ${escapeHtml(subItem.title)} — ${escapeHtml(subItem.taskTitle)}</span>
+              <span class="text-[10px] text-neutral-400 shrink-0">${escapeHtml(subItem.time || 'Just now')}</span>
+            </div>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-2.5 sm:gap-4">
+              <div onclick="${actionFn}" class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 cursor-pointer">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 flex items-center justify-center shrink-0 text-base sm:text-xl mt-0.5 sm:mt-0">
+                  📦
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-xs sm:text-base font-black text-neutral-900 dark:text-white leading-tight truncate">${isTh ? `ส่งงานแล้ว ${submitCount}/${totalClassSize} คน • ${escapeHtml(projTitle)}` : `${submitCount}/${totalClassSize} Submitted • ${escapeHtml(projTitle)}`}</span>
+                    ${entry.isNew ? '<span class="text-[9px] sm:text-[10px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
+                  </div>
+                  <p class="text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(entry.course)} • ${isTh ? 'ล่าสุด:' : 'Latest:'} ${escapeHtml(latest.title)}</p>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[10px] sm:text-[11px] text-neutral-400 font-medium">${escapeHtml(latest.time)} (${entry.items.length} ${isTh ? 'รายการ' : 'submissions'})</span>
+                    <button type="button" onclick="toggleNotifGroupDetails('${groupDomId}', event)" class="text-[10px] font-bold text-blue-600 dark:text-sky-400 hover:underline">${isTh ? 'ดูรายชื่อล่าสุด ▾' : 'Recent list ▾'}</button>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
+                <span>${isTh ? 'ดูสมาชิกโปรเจกต์ →' : 'Project Members →'}</span>
+              </button>
+            </div>
+            <div id="${groupDomId}" class="hidden pl-11 sm:pl-14 pr-2 pt-1 space-y-0.5">
+              ${recentItemsHtml}
+              ${entry.items.length > 8 ? `<div class="text-[10px] text-neutral-400 pt-1">${isTh ? `และอีก ${entry.items.length - 8} รายการ...` : `+${entry.items.length - 8} more...`}</div>` : ''}
+            </div>
+          `;
+          container.appendChild(card);
+          return;
+        }
+
+        const item = entry.isGroupedSubmission ? entry.items[0] : entry;
         const tId = item.taskId || item.targetTaskId || 'cmm321-t1';
         const sId = item.studentId || curStd.id;
         const pId = item.projectId || '';
-        const actionLabel = currentLanguage === 'th' ? (isTeacher ? 'ดูสมาชิกโปรเจกต์ →' : 'ดูรายละเอียดงาน →') : (isTeacher ? 'Project Members →' : 'View Task →');
+        const actionLabel = isTh ? (isTeacher ? 'ดูสมาชิกโปรเจกต์ →' : 'ดูรายละเอียดงาน →') : (isTeacher ? 'Project Members →' : 'View Task →');
         const actionFn = isTeacher
           ? `openTeacherNotificationTarget('${escapeHtml(item.course || 'CMM321')}', '${escapeHtml(tId)}', '${escapeHtml(sId)}', '${escapeHtml(pId)}')`
           : `openTaskDetails('${escapeHtml(tId)}')`;
@@ -3000,23 +3241,25 @@
           : 'bg-neutral-700 hover:bg-neutral-900 text-white';
 
         card.innerHTML = `
-          <div onclick="${actionFn}" class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 cursor-pointer">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 text-base sm:text-xl mt-0.5 sm:mt-0">
-              ${item.type === 'grade' ? '🏅' : item.type === 'comment' ? '🔔' : '🏅'}
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs sm:text-base font-black text-neutral-900 dark:text-white leading-tight truncate">${escapeHtml(item.title)}</span>
-                ${item.isNew ? '<span class="text-[9px] sm:text-[10px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
+          <div class="flex items-center justify-between gap-2.5 sm:gap-4">
+            <div onclick="${actionFn}" class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 cursor-pointer">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 text-base sm:text-xl mt-0.5 sm:mt-0">
+                ${item.type === 'grade' ? '🏅' : item.type === 'comment' ? '💬' : '🏅'}
               </div>
-              <p class="text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(item.course)}: ${escapeHtml(item.taskTitle)}</p>
-              <span class="text-[10px] sm:text-[11px] text-neutral-400 font-medium block mt-0.5">${escapeHtml(item.time)}</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs sm:text-base font-black text-neutral-900 dark:text-white leading-tight truncate">${escapeHtml(item.title)}</span>
+                  ${item.isNew ? '<span class="text-[9px] sm:text-[10px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
+                </div>
+                <p class="text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(item.course)}: ${escapeHtml(item.taskTitle)}</p>
+                <span class="text-[10px] sm:text-[11px] text-neutral-400 font-medium block mt-0.5">${escapeHtml(item.time)}</span>
+              </div>
             </div>
-          </div>
 
-          <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
-            <span>${actionLabel}</span>
-          </button>
+            <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
+              <span>${actionLabel}</span>
+            </button>
+          </div>
         `;
         container.appendChild(card);
       });

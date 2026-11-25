@@ -746,16 +746,38 @@
 
       <section id="screen-notifications" class="hidden screen-fade max-w-6xl mx-auto w-full space-y-5 py-2">
 
-        <div class="flex items-center gap-3 pb-1">
-          <div class="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-            </svg>
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-1">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 data-i18n="notifications" class="text-xl font-black text-neutral-900 dark:text-white">Notifications</h2>
+              <p data-i18n="announcementsDesc" class="text-xs text-neutral-400">Class announcements, grades published, & project team updates</p>
+            </div>
           </div>
-          <div>
-            <h2 data-i18n="notifications" class="text-xl font-black text-neutral-900 dark:text-white">Notifications</h2>
-            <p data-i18n="announcementsDesc" class="text-xs text-neutral-400">Class announcements, grades published, & project team updates</p>
+
+          <div class="flex items-center gap-2">
+            <span id="notifUnreadCountBadge" class="hidden text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200 dark:border-amber-800">0 New</span>
+            <button type="button" id="btnNotifMarkAllRead" onclick="markAllNotificationsRead()" class="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold transition pressable flex items-center gap-1.5">
+              <span>✓</span>
+              <span id="btnNotifMarkAllReadText">อ่านทั้งหมดแล้ว</span>
+            </button>
           </div>
+        </div>
+
+        <div id="notificationsFilterBar" class="flex flex-wrap items-center gap-2">
+          <button type="button" id="notifTabAll" onclick="setNotificationFilterTab('all')" class="px-3.5 py-1.5 rounded-full bg-neutral-900 text-white text-xs font-bold transition pressable">
+            ทั้งหมด
+          </button>
+          <button type="button" id="notifTabSubmission" onclick="setNotificationFilterTab('submission')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            📦 ส่งงาน (รายโปรเจกต์)
+          </button>
+          <button type="button" id="notifTabComment" onclick="setNotificationFilterTab('comment')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            💬 ข้อความแชท
+          </button>
         </div>
 
         <div id="notificationsContainer" class="space-y-3.5"></div>
@@ -988,6 +1010,9 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <span id="teacherProjectTasksCountBadge" class="text-[11px] font-bold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50">0 Tasks</span>
+              <button type="button" onclick="switchTeacherViewMode('students')" class="px-3.5 py-1.5 rounded-full bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 text-xs font-bold transition pressable shrink-0">
+                👥 ดูสมาชิก (Members) →
+              </button>
             </div>
           </div>
 
@@ -1242,7 +1267,7 @@
                 <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-center justify-between">
                   <span class="text-xs font-bold text-slate-200">Grade Score</span>
                   <div class="flex items-center gap-1.5">
-                    <input type="text" id="teacherGradingScoreInput" value="9/10" class="w-20 text-center py-1 rounded-lg bg-slate-900 text-white font-black text-xs border border-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-400" />
+                    <input type="text" inputmode="decimal" id="teacherGradingScoreInput" value="" placeholder="0 - 10" onfocus="handleTeacherScoreFocus(this)" oninput="handleTeacherScoreTyping(this)" onblur="handleTeacherScoreBlur(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();handleTeacherScoreBlur(this);sendTeacherFeedbackNote();}" class="w-24 text-center py-1 rounded-lg bg-slate-900 text-white font-black text-xs border border-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-400" />
                   </div>
                 </div>
 

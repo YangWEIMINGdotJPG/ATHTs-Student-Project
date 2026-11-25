@@ -1485,7 +1485,7 @@
           </button>
           <button onclick="navigateTo('notifications')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isNotifs ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
             <span>Notifications</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>
+            ${(typeof hasUnreadNotifications !== 'function' || hasUnreadNotifications()) ? '<span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>' : ''}
           </button>
         `;
       } else {
@@ -1512,7 +1512,7 @@
           </button>
           <button onclick="navigateTo('notifications')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isNotifs ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
             <span>Notifications</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>
+            ${(typeof hasUnreadNotifications !== 'function' || hasUnreadNotifications()) ? '<span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>' : ''}
           </button>
         `;
       }
