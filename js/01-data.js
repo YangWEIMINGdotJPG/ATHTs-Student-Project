@@ -945,7 +945,9 @@ const coursesCatalog = {
         assignedCoursesTitle: 'Assigned Courses',
         requestRevisionBtn: 'Request Revision',
         sendGradeBtn: 'Send',
-        downloadFileBtn: 'DOWNLOAD FILE'
+        downloadFileBtn: 'DOWNLOAD FILE',
+        adminPortalTitle: 'User Management Portal',
+        adminPortalSubtitle: 'Manage student rosters, faculty instructors, course assignments, and portal access permissions'
       },
       th: {
         kmuttAcademicPortal: 'ระบบบริการการศึกษา มจธ.',
@@ -1023,8 +1025,8 @@ const coursesCatalog = {
         requestRevisionBtn: 'ส่งแก้ (รอแก้)',
         sendGradeBtn: 'บันทึกคะแนน',
         downloadFileBtn: 'ดาวน์โหลดไฟล์',
-        switchStudentPrompt: 'สลับ / ทดสอบรหัสนักศึกษา (81 คน)',
-        closeBtn: 'ปิด'
+        adminPortalTitle: 'ระบบจัดการบัญชีผู้ใช้',
+        adminPortalSubtitle: 'จัดการรายชื่อนักศึกษา อาจารย์ผู้สอน รายวิชาที่รับผิดชอบ และสิทธิ์การเข้าใช้งานระบบ'
       }
     };
 

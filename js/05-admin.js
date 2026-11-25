@@ -95,6 +95,7 @@
       const logs = getAdminAuditLogs();
       if (logs.length === 0) {
         container.innerHTML = `<p class="text-xs text-neutral-400 italic py-4 text-center">No recent directory changes recorded.</p>`;
+        if (typeof translateDOM === 'function') translateDOM(currentLanguage);
         return;
       }
       container.innerHTML = logs.map(item => `
@@ -109,6 +110,7 @@
           <span class="text-[10px] font-mono text-neutral-400 shrink-0">${escapeHtml(item.time)}</span>
         </div>
       `).join('');
+      if (typeof translateDOM === 'function') translateDOM(currentLanguage);
     }
 
     function switchAdminTab(tab) {
@@ -118,12 +120,21 @@
       const btnTeachers = document.getElementById('adminTabBtnTeachers');
       const btnAll = document.getElementById('adminTabBtnAll');
 
-      const activeClass = 'px-4 py-2 rounded-xl text-xs font-extrabold transition pressable bg-neutral-900 text-white shadow-xs flex items-center gap-1.5';
-      const inactiveClass = 'px-4 py-2 rounded-xl text-xs font-bold transition pressable text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 flex items-center gap-1.5';
+      const activeClass = 'px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition pressable bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-xs flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 min-w-0 text-center';
+      const inactiveClass = 'px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition pressable text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 min-w-0 text-center';
 
       if (btnStudents) btnStudents.className = tab === 'students' ? activeClass : inactiveClass;
       if (btnTeachers) btnTeachers.className = tab === 'teachers' ? activeClass : inactiveClass;
       if (btnAll) btnAll.className = tab === 'all' ? activeClass : inactiveClass;
+
+      const activeBadgeClass = 'sm:order-last px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 dark:bg-neutral-900/15 text-white dark:text-neutral-900 shrink-0';
+      const inactiveBadgeClass = 'sm:order-last px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 shrink-0';
+      const bStd = document.getElementById('adminTabBadgeStudents');
+      const bTch = document.getElementById('adminTabBadgeTeachers');
+      const bAll = document.getElementById('adminTabBadgeAll');
+      if (bStd) bStd.className = tab === 'students' ? activeBadgeClass : inactiveBadgeClass;
+      if (bTch) bTch.className = tab === 'teachers' ? activeBadgeClass : inactiveBadgeClass;
+      if (bAll) bAll.className = tab === 'all' ? activeBadgeClass : inactiveBadgeClass;
 
       const inlineBtnText = document.getElementById('adminInlineAddBtnText');
       const topBtnText = document.getElementById('adminTopCreateBtnLabel');
@@ -266,6 +277,7 @@
             <p class="text-[11px] text-neutral-400">Try clearing your search query or adding a new user account.</p>
           </div>
         `;
+        if (typeof translateDOM === 'function') translateDOM(currentLanguage);
         return;
       }
 
@@ -274,41 +286,41 @@
         const isActive = u.status === 'Active';
 
         const row = document.createElement('div');
-        row.className = 'py-3 px-3 sm:px-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 rounded-xl transition grid grid-cols-1 md:grid-cols-12 gap-2.5 md:gap-3 items-center text-xs';
+        row.className = 'p-3.5 md:py-3 md:px-4 bg-neutral-50/60 md:bg-transparent dark:bg-neutral-800/35 md:dark:bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/60 border border-neutral-200/80 md:border-0 rounded-2xl md:rounded-xl transition grid grid-cols-1 md:grid-cols-12 gap-2.5 md:gap-3 items-center text-xs';
 
         const roleBadgeHtml = isTeacher
-          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-950/70 dark:text-orange-300 border border-orange-200 dark:border-orange-800">👨‍🏫 Teacher</span>`
-          : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700"><img src="student-icon.png" alt="Student" class="w-3.5 h-3.5 object-contain" /><span>Student</span></span>`;
+          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-950/70 dark:text-orange-300 border border-orange-200 dark:border-orange-800 whitespace-nowrap shrink-0">👨‍🏫 Teacher</span>`
+          : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 whitespace-nowrap shrink-0"><img src="student-icon.png" alt="Student" class="w-3.5 h-3.5 object-contain" /><span>Student</span></span>`;
 
         const statusPillHtml = isActive
-          ? `<button onclick="toggleAdminUserStatus('${u.role}', '${escapeHtml(u.id)}')" title="Click to toggle Active/Suspended" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:opacity-80 transition cursor-pointer">● Active</button>`
-          : `<button onclick="toggleAdminUserStatus('${u.role}', '${escapeHtml(u.id)}')" title="Click to activate account" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:opacity-80 transition cursor-pointer">○ Suspended</button>`;
+          ? `<button onclick="toggleAdminUserStatus('${u.role}', '${escapeHtml(u.id)}')" title="Click to toggle Active/Suspended" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:opacity-80 transition cursor-pointer whitespace-nowrap">● Active</button>`
+          : `<button onclick="toggleAdminUserStatus('${u.role}', '${escapeHtml(u.id)}')" title="Click to activate account" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:opacity-80 transition cursor-pointer whitespace-nowrap">○ Suspended</button>`;
 
         row.innerHTML = `
 
           <div class="md:col-span-2 flex items-center justify-between md:justify-start gap-2">
-            <span class="font-mono font-bold text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-200/80 dark:border-neutral-700 text-[11px]">
+            <span class="font-mono font-bold text-neutral-900 dark:text-white bg-white md:bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-200/80 dark:border-neutral-700 text-[11px] whitespace-nowrap">
               ${escapeHtml(u.codeDisplay)}
             </span>
-            <span class="md:hidden">${statusPillHtml}</span>
+            <span class="md:hidden shrink-0">${statusPillHtml}</span>
           </div>
 
           <div class="md:col-span-3 flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-xl ${isTeacher ? 'bg-orange-600 text-white' : 'bg-neutral-900 dark:bg-neutral-700 text-white'} flex items-center justify-center text-[11px] font-extrabold shrink-0 shadow-2xs">
+            <div class="w-9 h-9 md:w-8 md:h-8 rounded-xl ${isTeacher ? 'bg-orange-600 text-white' : 'bg-neutral-900 dark:bg-neutral-700 text-white'} flex items-center justify-center text-[11px] font-extrabold shrink-0 shadow-2xs">
               ${escapeHtml(u.initials)}
             </div>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-neutral-900 dark:text-white truncate">${escapeHtml(u.fullName)}</span>
+                <span class="font-bold text-neutral-900 dark:text-white truncate block">${escapeHtml(u.fullName)}</span>
               </div>
-              <div class="flex items-center gap-1.5 mt-0.5">
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                 ${roleBadgeHtml}
-                <span class="text-[10px] text-neutral-400 truncate">${escapeHtml(u.subMeta)}</span>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">${escapeHtml(u.subMeta)}</span>
               </div>
             </div>
           </div>
 
-          <div class="md:col-span-3 min-w-0">
+          <div class="md:col-span-3 min-w-0 pt-1.5 md:pt-0 border-t md:border-t-0 border-neutral-200/60 dark:border-neutral-700/60">
             <span class="font-mono text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate block" title="${escapeHtml(u.email)}">
               ${escapeHtml(u.email)}
             </span>
@@ -330,21 +342,24 @@
             ${statusPillHtml}
           </div>
 
-          <div class="md:col-span-1 flex items-center justify-end gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-100 dark:border-neutral-800">
-            <button onclick="adminImpersonateUser('${u.role}', '${escapeHtml(u.id)}')" title="Preview Portal as ${escapeHtml(u.shortName)}" class="px-2.5 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 font-bold text-[10px] transition pressable">
+          <div class="md:col-span-1 flex items-center justify-between md:justify-end gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-200/70 dark:border-neutral-800">
+            <button onclick="adminImpersonateUser('${u.role}', '${escapeHtml(u.id)}')" title="Preview Portal as ${escapeHtml(u.shortName)}" class="flex-1 md:flex-initial py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl md:rounded-lg bg-white md:bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-neutral-200 md:border-0 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 font-bold text-[11px] md:text-[10px] transition pressable whitespace-nowrap text-center">
               View As
             </button>
-            <button onclick="openAdminUserModal('edit', '${u.role}', '${escapeHtml(u.id)}')" title="Edit User" class="p-1.5 rounded-lg bg-neutral-900 hover:bg-black text-white text-xs transition pressable">
-              ✏️
-            </button>
-            <button onclick="openAdminDeleteModal('${u.role}', '${escapeHtml(u.id)}', '${escapeHtml(u.fullName)}')" title="Remove User" class="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs transition pressable">
-              🗑️
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="openAdminUserModal('edit', '${u.role}', '${escapeHtml(u.id)}')" title="Edit User" class="w-8 h-8 md:w-auto md:h-auto md:p-1.5 rounded-xl md:rounded-lg bg-neutral-900 hover:bg-black text-white text-xs transition pressable flex items-center justify-center">
+                ✏️
+              </button>
+              <button onclick="openAdminDeleteModal('${u.role}', '${escapeHtml(u.id)}', '${escapeHtml(u.fullName)}')" title="Remove User" class="w-8 h-8 md:w-auto md:h-auto md:p-1.5 rounded-xl md:rounded-lg bg-white md:bg-transparent dark:bg-neutral-800 md:dark:bg-transparent border border-neutral-200 md:border-0 dark:border-neutral-700 text-neutral-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs transition pressable flex items-center justify-center">
+                🗑️
+              </button>
+            </div>
           </div>
         `;
 
         tbody.appendChild(row);
       });
+      if (typeof translateDOM === 'function') translateDOM(currentLanguage);
     }
 
     function setAdminModalRoleType(role) {
@@ -384,6 +399,7 @@
         if (stdGroup) stdGroup.classList.remove('hidden');
         if (tchGroup) tchGroup.classList.add('hidden');
       }
+      if (typeof translateDOM === 'function') translateDOM(currentLanguage);
     }
 
     function autoFillAdminShortNameAndEmail() {
@@ -467,6 +483,7 @@
       }
 
       modal.classList.remove('hidden');
+      if (typeof translateDOM === 'function') translateDOM(currentLanguage);
     }
 
     function closeAdminUserModal() {
@@ -586,10 +603,15 @@
       pendingAdminDeleteUser = { role, id, name };
       const textEl = document.getElementById('adminDeleteConfirmText');
       if (textEl) {
-        textEl.innerText = `Are you sure you want to remove ${role.toUpperCase()} "${name}" (${id}) from the portal directory?`;
+        const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        const roleTh = role === 'teacher' ? 'อาจารย์' : 'นักศึกษา';
+        textEl.innerText = isThai
+          ? `คุณแน่ใจหรือไม่ว่าต้องการลบ${roleTh} "${name}" (${id}) ออกจากระบบ มจธ.?`
+          : `Are you sure you want to remove ${role.toUpperCase()} "${name}" (${id}) from the portal directory?`;
       }
       const modal = document.getElementById('modalAdminDeleteConfirm');
       if (modal) modal.classList.remove('hidden');
+      if (typeof translateDOM === 'function') translateDOM(currentLanguage);
     }
 
     function closeAdminDeleteModal() {

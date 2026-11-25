@@ -45,7 +45,7 @@
       ['Feedback Note', 'ข้อเสนอแนะจากอาจารย์'],
       ['Grade Score', 'คะแนน'],
       ['Send', 'บันทึกคะแนน'],
-      ['Create Project', '+ สร้างโปรเจกต์'],
+      ['Create Project', 'สร้างโปรเจกต์'],
       ['+ Create Project', '+ สร้างโปรเจกต์'],
       ['Add Task', 'เพิ่มงาน'],
       ['+ Add Task', '+ เพิ่มงาน'],
@@ -101,7 +101,84 @@
       ['Notifications & Announcements', 'การแจ้งเตือนและประกาศ'],
       ['Class announcements, grades published, & project team updates', 'ประกาศจากชั้นเรียน ผลคะแนน และความคืบหน้าของทีม'],
       ['Track and filter assignments across all enrolled subjects', 'ติดตามและคัดกรองงานที่ได้รับมอบหมายในทุกรายวิชา'],
-      ['All Course Tasks', 'งานในรายวิชาทั้งหมด']
+      ['All Course Tasks', 'งานในรายวิชาทั้งหมด'],
+      ['Manage Students', 'จัดการนักศึกษา'],
+      ['Manage Teachers', 'จัดการอาจารย์'],
+      ['All Directory', 'รายชื่อทั้งหมด'],
+      ['User Management', 'จัดการผู้ใช้'],
+      ['System Administrator', 'ผู้ดูแลระบบ'],
+      ['KMUTT Directory Control', 'ศูนย์ควบคุมบัญชี มจธ.'],
+      ['Add New User', 'เพิ่มผู้ใช้ใหม่'],
+      ['Add New Student', 'เพิ่มนักศึกษาใหม่'],
+      ['Add New Teacher', 'เพิ่มอาจารย์ใหม่'],
+      ['Export CSV', 'ส่งออก CSV'],
+      ['Active Directory', 'ภาพรวมบัญชีในระบบ'],
+      ['Total Users', 'ผู้ใช้ทั้งหมด'],
+      ['ACTIVE', 'ใช้งานอยู่'],
+      ['Enrolled Students', 'นักศึกษาในระบบ'],
+      ['Undergraduate • CSM', 'ปริญญาตรี • สาขา CSM'],
+      ['Faculty Teachers', 'อาจารย์ผู้สอน'],
+      ['Advisors & Coordinators', 'อาจารย์ที่ปรึกษาและผู้ประสานงาน'],
+      ['Active Accounts', 'บัญชีที่เปิดใช้งาน'],
+      ['Verified KMUTT SSO', 'ยืนยันตัวตน KMUTT SSO แล้ว'],
+      ['Status: All', 'สถานะ: ทั้งหมด'],
+      ['All Courses (CMM)', 'ทุกรายวิชา (CMM)'],
+      ['CMM321 Graphics Math', 'CMM321 คณิตศาสตร์คอมพิวเตอร์กราฟิก'],
+      ['CMM349 Web App Dev', 'CMM349 การพัฒนาเว็บแอปพลิเคชัน'],
+      ['CMM310 Game Design', 'CMM310 การออกแบบและพัฒนาเกม'],
+      ['CMM390 Project Management', 'CMM390 การจัดการโครงการ'],
+      ['CMM320 Light and Sound Physics', 'CMM320 ฟิสิกส์แสงและเสียง'],
+      ['GEN121 Learning & Problem Solving', 'GEN121 การเรียนรู้และการแก้ปัญหา'],
+      ['Click "View As" to preview the portal as that Student or Teacher, or "Edit" to modify details.', 'กด "ดูมุมมองผู้ใช้" เพื่อทดลองดูพอร์ทัลแทนนักศึกษา/อาจารย์ หรือกด "แก้ไข" เพื่อปรับปรุงข้อมูล'],
+      ['Reset Directory to Default', 'รีเซ็ตรายชื่อกลับเป็นค่าเริ่มต้น'],
+      ['ID / Code', 'รหัสประจำตัว'],
+      ['Full Name & Role', 'ชื่อ-นามสกุล และบทบาท'],
+      ['Linked KMUTT Email', 'อีเมล มจธ.'],
+      ['Department / Courses', 'สาขาวิชา / รายวิชา'],
+      ['Actions', 'จัดการ'],
+      ['View As', 'ดูมุมมองผู้ใช้'],
+      ['● Active', '● ใช้งานอยู่'],
+      ['○ Suspended', '○ ระงับใช้งาน'],
+      ['KMUTT SSO Verified', 'ยืนยันตัวตน KMUTT SSO แล้ว'],
+      ['No matching user accounts found', 'ไม่พบบัญชีผู้ใช้ที่ตรงกับการค้นหา'],
+      ['Try clearing your search query or adding a new user account.', 'ลองล้างคำค้นหาหรือเพิ่มบัญชีผู้ใช้ใหม่'],
+      ['Recent Directory Audit Log', 'ประวัติการแก้ไขข้อมูลล่าสุด'],
+      ['Clear Log', 'ล้างประวัติ'],
+      ['No recent directory changes recorded.', 'ยังไม่มีบันทึกการแก้ไขข้อมูล'],
+      ['Portal Role Inspector', 'โหมดตรวจสอบมุมมองระบบ'],
+      ['Preview Student & Teacher Views', 'ทดลองสลับดูมุมมองนักศึกษาและอาจารย์'],
+      ['Test how changes to student rosters and instructor assignments appear in real time across the Student and Teacher portals.', 'ทดสอบการแสดงผลรายชื่อนักศึกษาและรายวิชาที่มอบหมายในหน้าต่างนักศึกษาและอาจารย์แบบเรียลไทม์'],
+      ['Student View', 'มุมมองนักศึกษา'],
+      ['Teacher View', 'มุมมองอาจารย์'],
+      ['Register or update KMUTT user identity & permissions', 'ลงทะเบียนหรืออัปเดตข้อมูลและสิทธิ์ผู้ใช้ มจธ.'],
+      ['Account Role', 'บทบาทบัญชี'],
+      ['Teacher / Instructor', 'อาจารย์ผู้สอน'],
+      ['Student ID (11 Digits) *', 'รหัสนักศึกษา (11 หลัก) *'],
+      ['Faculty Code / Instructor ID *', 'รหัสประจำตัวอาจารย์ *'],
+      ['Account Status', 'สถานะบัญชี'],
+      ['🟢 Active', '🟢 ใช้งานอยู่'],
+      ['🔴 Suspended / Inactive', '🔴 ระงับใช้งานชั่วคราว'],
+      ['Full Name *', 'ชื่อ-นามสกุล *'],
+      ['Display Name', 'ชื่อแสดงผล'],
+      ['Linked KMUTT Email *', 'อีเมล มจธ. *'],
+      ['Major / Curriculum', 'สาขาวิชา / หลักสูตร'],
+      ['Academic Year', 'ชั้นปี'],
+      ['Year 2 (Cohort 67)', 'ปี 2 (รหัส 67)'],
+      ['Year 1 (Cohort 68)', 'ปี 1 (รหัส 68)'],
+      ['Year 3 (Cohort 66)', 'ปี 3 (รหัส 66)'],
+      ['Year 4 (Cohort 65)', 'ปี 4 (รหัส 65)'],
+      ['Academic Title', 'ตำแหน่งทางวิชาการ'],
+      ['Specialization', 'ความเชี่ยวชาญ'],
+      ['Assigned Courses', 'รายวิชาที่รับผิดชอบ'],
+      ['Save User Account', 'บันทึกบัญชีผู้ใช้'],
+      ['Create Student Account', 'สร้างบัญชีนักศึกษา'],
+      ['Save Student Changes', 'บันทึกการแก้ไขนักศึกษา'],
+      ['Create Teacher Account', 'สร้างบัญชีอาจารย์'],
+      ['Save Teacher Changes', 'บันทึกการแก้ไขอาจารย์'],
+      ['Add New Teacher / Instructor', 'เพิ่มอาจารย์ผู้สอนใหม่'],
+      ['Remove User Account?', 'ต้องการลบบัญชีผู้ใช้นี้?'],
+      ['Are you sure you want to remove this user from the KMUTT directory?', 'คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีนี้ออกจากระบบ มจธ.?'],
+      ['Yes, Remove', 'ยืนยันการลบ']
     ];
 
     const uiEnToTh = new Map(uiPhrasePairs);
@@ -142,6 +219,11 @@
       if (lang === 'th') {
         if (uiEnToTh.has(trimmed)) return uiEnToTh.get(trimmed);
         let m;
+        if ((m = trimmed.match(/^Showing\s+(\d+)\s+Students?$/i))) return `แสดงนักศึกษา ${m[1]} คน`;
+        if ((m = trimmed.match(/^Showing\s+(\d+)\s+Teachers?$/i))) return `แสดงอาจารย์ ${m[1]} ท่าน`;
+        if ((m = trimmed.match(/^Showing\s+(\d+)\s+Users?$/i))) return `แสดงผู้ใช้ทั้งหมด ${m[1]} คน`;
+        if ((m = trimmed.match(/^(\d+)\s+Enrolled\s+Courses?$/i))) return `ลงทะเบียน ${m[1]} รายวิชา`;
+        if ((m = trimmed.match(/^(\d+)\s+Users?$/i))) return `ผู้ใช้ ${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Students?$/i))) return `${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Tasks?$/i))) return `${m[1]} งาน`;
         if ((m = trimmed.match(/^(\d+)\s+Members?$/i))) return `${m[1]} สมาชิก`;
@@ -150,6 +232,11 @@
       } else {
         if (uiThToEn.has(trimmed)) return uiThToEn.get(trimmed);
         let m;
+        if ((m = trimmed.match(/^แสดงนักศึกษา\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Students`;
+        if ((m = trimmed.match(/^แสดงอาจารย์\s+(\d+)\s+ท่าน$/))) return `Showing ${m[1]} Teachers`;
+        if ((m = trimmed.match(/^แสดงผู้ใช้ทั้งหมด\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Users`;
+        if ((m = trimmed.match(/^ลงทะเบียน\s+(\d+)\s+รายวิชา$/))) return `${m[1]} Enrolled Courses`;
+        if ((m = trimmed.match(/^ผู้ใช้\s+(\d+)\s+คน$/))) return `${m[1]} Users`;
         if ((m = trimmed.match(/^ส่งแล้ว\s*\((\d+\/\d+)\s*งาน\)$/))) return `Submitted (${m[1]} Tasks)`;
         if ((m = trimmed.match(/^รอแก้\s*\((\d+\/\d+)\s*งาน\)$/))) return `Revision (${m[1]} Tasks)`;
         if ((m = trimmed.match(/^ยังไม่ส่ง\s*\((\d+\/\d+)\s*งาน\)$/))) return `Uncompleted (${m[1]} Tasks)`;
@@ -869,16 +956,21 @@
       const isStudent = !isTeacher && !isAdmin;
 
       if (headerRoleBadge) {
-        headerRoleBadge.innerText = isAdmin ? 'Admin' : (isTeacher ? 'Teacher' : 'Student');
+        headerRoleBadge.innerText = isAdmin
+          ? (currentLanguage === 'th' ? 'ผู้ดูแลระบบ' : 'Admin')
+          : (isTeacher ? (currentLanguage === 'th' ? 'อาจารย์' : 'Teacher') : (currentLanguage === 'th' ? 'นักศึกษา' : 'Student'));
       }
       const hdrThemeWrap = document.getElementById('headerFestivalThemeWrapper');
       if (hdrThemeWrap) {
-        hdrThemeWrap.classList.toggle('hidden', !isAdmin);
-        hdrThemeWrap.classList.toggle('flex', isAdmin);
+        hdrThemeWrap.className = isAdmin
+          ? 'hidden md:flex relative items-center'
+          : 'hidden relative items-center';
       }
       applyFestivalThemeToUI(getGlobalFestivalTheme());
       if (breadcrumbRolePrefix) {
-        breadcrumbRolePrefix.innerText = isAdmin ? 'Admin' : (isTeacher ? 'Teacher' : t('studentPrefix', 'Student'));
+        breadcrumbRolePrefix.innerText = isAdmin
+          ? (currentLanguage === 'th' ? 'ผู้ดูแลระบบ' : 'Admin')
+          : (isTeacher ? (currentLanguage === 'th' ? 'อาจารย์' : 'Teacher') : t('studentPrefix', 'Student'));
       }
 
       const studentHeaderNavLinks = document.getElementById('studentHeaderNavLinks');
@@ -1011,7 +1103,7 @@
       if (pendingCountBadge) {
         const totalUsersCount = Object.keys(studentDirectory).length + Object.keys(teacherDirectory).length;
         if (isAdmin) {
-          pendingCountBadge.innerText = `${totalUsersCount} Users`;
+          pendingCountBadge.innerText = currentLanguage === 'th' ? `ผู้ใช้ ${totalUsersCount} คน` : `${totalUsersCount} Users`;
         } else if (isTeacher) {
           pendingCountBadge.innerText = currentLanguage === 'th' ? `รอตรวจ ${liveDueCount}` : `${liveDueCount} To Review`;
         } else {
@@ -1186,23 +1278,26 @@
         const isCourses = activeScreenId === 'courses' || activeScreenId === 'course-detail';
         const isProject = activeScreenId === 'projects';
 
+        const pillActive = 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold shadow-xs';
+        const pillIdle = 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 font-medium';
+
         container.innerHTML = `
-          <button onclick="switchAdminTab('students'); navigateTo('admin')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isStdTab ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+          <button onclick="switchAdminTab('students'); navigateTo('admin')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable flex items-center gap-1.5 ${isStdTab ? pillActive : pillIdle}">
             <span>🎓</span>
             <span>Manage Students</span>
           </button>
-          <button onclick="switchAdminTab('teachers'); navigateTo('admin')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isTchTab ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+          <button onclick="switchAdminTab('teachers'); navigateTo('admin')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable flex items-center gap-1.5 ${isTchTab ? pillActive : pillIdle}">
             <span>👨‍🏫</span>
             <span>Manage Teachers</span>
           </button>
-          <button onclick="switchAdminTab('all'); navigateTo('admin')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isAllTab ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+          <button onclick="switchAdminTab('all'); navigateTo('admin')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable flex items-center gap-1.5 ${isAllTab ? pillActive : pillIdle}">
             <span>👥</span>
             <span>All Directory</span>
           </button>
-          <button onclick="navigateTo('projects')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isProject ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+          <button onclick="navigateTo('projects')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable ${isProject ? pillActive : pillIdle}">
             Projects
           </button>
-          <button onclick="navigateTo('courses')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isCourses ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+          <button onclick="navigateTo('courses')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable ${isCourses ? pillActive : pillIdle}">
             Courses
           </button>
         `;
