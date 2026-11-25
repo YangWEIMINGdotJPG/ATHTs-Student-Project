@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ATHT</title>
+  <link rel="icon" type="image/png" href="atht-logo.png">
+
+  
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['Prompt', 'sans-serif'],
+          },
+          colors: {
+            appHeader: '#1D4ED8',
+            appDarkCard: '#1E293B',
+            appOrange: '#38BDF8',
+          }
+        }
+      }
+    };
+
+    (function() {
+      const savedTheme = localStorage.getItem('atht_theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      const savedFest = localStorage.getItem('atht_festival_theme') || 'default';
+      document.documentElement.setAttribute('data-festival', savedFest);
+    })();
+  </script>
+
+    <link rel="stylesheet" href="styles.css?v=20261126d">
+</head>
+<body class="min-h-screen text-neutral-800 antialiased bg-white flex flex-col m-0 p-0 overflow-x-hidden">
+
+  <div class="w-full min-h-screen genz-shell flex flex-col relative">
+
+    <div id="festivalEffectsLayer" class="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden" aria-hidden="true"></div>
+
+    <header id="mainHeader" class="w-full bg-appHeader text-white sticky top-0 z-40 shadow-xs">
+      <div class="max-w-[1520px] mx-auto px-3 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-3 sm:py-3.5 flex items-center justify-between gap-2">
+
+        <div class="flex items-center gap-2 sm:gap-6 min-w-0">
+          <button onclick="handleLogoClick()" class="flex items-center gap-1.5 sm:gap-2.5 pressable focus:outline-none text-left group min-w-0">
+            <img src="atht-logo.png" onerror="this.onerror=null;this.src=ATHT_LOGO_URI;" alt="ATHT Logo" class="w-7 h-7 sm:w-9 sm:h-9 object-contain drop-shadow-md group-hover:scale-105 transition-transform shrink-0" />
+            <div class="min-w-0">
+              <div class="flex items-center gap-1 sm:gap-1.5 min-w-0">
+                <span class="text-xs sm:text-sm font-bold tracking-tight block leading-tight text-white shrink-0">ATHT</span>
+                <span id="headerRoleBadge" class="inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[11px] font-extrabold tracking-wide bg-white/20 backdrop-blur-md border border-white/35 text-white shadow-xs shrink-0 whitespace-nowrap max-w-[84px] sm:max-w-none truncate">Student</span>
+                <span id="headerFestivalBadge" class="hidden sm:inline-flex items-center gap-1 text-[10px] bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-white font-bold shrink-0">💙 Blue Vibe</span>
+              </div>
+            </div>
+          </button>
+
+          <div id="studentHeaderNavLinks" class="hidden md:flex items-center gap-1">
+            <button id="hdrTabCourses" data-i18n="courses" onclick="navigateTo('dashboard')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-black/25 hover:bg-black/35 transition pressable">
+              Courses
+            </button>
+            <button id="hdrTabAllTasks" data-i18n="allTasksNav" onclick="openAllTasksHub()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-neutral-300 hover:text-white hover:bg-black/15 transition pressable">
+              All Tasks
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1 sm:gap-2.5 shrink-0">
+
+          <div id="desktopUserProfile" onclick="openUserProfileModal()" class="hidden md:flex items-center gap-2 bg-white hover:bg-neutral-100 text-neutral-900 px-3.5 py-1.5 rounded-full shadow-xs text-left cursor-pointer transition pressable" title="Click to view User Profile">
+            <div id="desktopUserAvatar" class="w-6 h-6 rounded-lg bg-neutral-900/80 text-white flex items-center justify-center text-[10px] font-bold">
+              CS
+            </div>
+            <div>
+              <span id="desktopUserName" class="text-xs font-extrabold text-neutral-900 block leading-tight">Chonchanok S.</span>
+              <span id="desktopUserSub" class="text-[9px] text-neutral-500 font-mono block leading-tight">67080200501 • Student</span>
+            </div>
+          </div>
+
+          <div id="headerFestivalThemeWrapper" class="hidden relative items-center">
+            <select id="festivalThemeSelect" onchange="setFestivalTheme(this.value)" title="Admin: Switch System Festival Theme" class="h-7 sm:h-8 pl-2 sm:pl-2.5 pr-5 sm:pr-6 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-[10px] sm:text-[11px] border border-white/25 focus:outline-none cursor-pointer transition appearance-none">
+              <option value="default" class="text-neutral-900">💙 Blue &amp; White</option>
+              <option value="christmas" class="text-neutral-900">🎄 Christmas</option>
+              <option value="halloween" class="text-neutral-900">🎃 Halloween</option>
+              <option value="songkran" class="text-neutral-900">💦 Songkran</option>
+              <option value="loykrathong" class="text-neutral-900">🏮 Loy Krathong</option>
+              <option value="valentine" class="text-neutral-900">💖 Valentine</option>
+              <option value="cny" class="text-neutral-900">🧧 Chinese NY</option>
+            </select>
+            <span class="pointer-events-none absolute right-2 text-[9px] text-white/80">▼</span>
+          </div>
+
+          <button id="btnHeaderLang" onclick="toggleLanguage()" title="Switch Language / สลับภาษา" class="h-7 px-2 sm:h-8 sm:px-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-bold text-xs flex items-center justify-center transition pressable focus:outline-none gap-1 border border-white/10 shrink-0">
+            <span class="hidden sm:inline text-xs">🌐</span>
+            <span id="headerLangText" class="font-extrabold tracking-wider text-[10px] sm:text-[11px]">TH</span>
+          </button>
+
+          <button id="btnHeaderTheme" onclick="toggleTheme()" title="Toggle Dark/Light Mode" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#dcdcdc] hover:bg-neutral-200 active:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-800 dark:text-amber-300 flex items-center justify-center transition pressable focus:outline-none text-xs sm:text-sm shrink-0">
+            <span id="headerThemeIcon">🌙</span>
+          </button>
+
+          <button id="btnNotification" onclick="navigateTo('notifications')" title="Notifications" class="h-7 px-2 sm:h-8 sm:px-2.5 rounded-xl bg-[#dcdcdc] hover:bg-neutral-200 active:bg-neutral-300 text-neutral-700 flex items-center justify-center relative transition pressable focus:outline-none gap-1.5 shrink-0">
+            <div class="relative flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-700" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+              </svg>
+              <span id="headerNotificationDot" class="hidden absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-appOrange rounded-full border border-white"></span>
+            </div>
+            <span id="headerNotifLabel" class="hidden text-xs font-bold text-neutral-800">Notifications</span>
+          </button>
+
+          <button onclick="openLogoutModal()" title="Logout" class="h-7 px-2 sm:h-8 sm:px-3 rounded-xl bg-[#dcdcdc] hover:bg-neutral-200 active:bg-neutral-300 text-neutral-700 flex items-center justify-center transition pressable focus:outline-none gap-1.5 shrink-0">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-700 ml-0.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span data-i18n="signOut" class="hidden sm:inline text-xs font-semibold text-neutral-800">Sign Out</span>
+          </button>
+
+          <button onclick="toggleMobileDrawer()" class="md:hidden w-7 h-7 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white flex items-center justify-center transition pressable shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+        </div>
+      </div>
+    </header>
+
+    <div id="breadcrumbBar" class="w-full bg-neutral-100/95 dark:bg-[#0d1117]/95 border-b border-neutral-200 dark:border-neutral-800 sticky top-[52px] sm:top-[60px] z-30 backdrop-blur-sm">
+      <div class="max-w-[1520px] mx-auto px-3 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-2 flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs min-w-0 flex-1 overflow-x-auto hide-scrollbar whitespace-nowrap">
+          <span id="breadcrumbRolePrefix" class="text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:underline shrink-0" onclick="handleLogoClick()">Student</span>
+          <span class="text-neutral-400 dark:text-neutral-500 shrink-0">/</span>
+          <span id="breadcrumbCurrent" class="font-bold text-neutral-900 dark:text-white truncate">Home</span>
+        </div>
+
+        <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <button id="navBackBtn" onclick="navigateBack()" class="hidden text-[11px] sm:text-xs font-medium text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-2.5 py-1 rounded-lg shadow-2xs pressable whitespace-nowrap shrink-0">
+            <span data-i18n="back">← Back</span>
+          </button>
+
+          <button onclick="handleDuePillClick()" id="breadcrumbDuePill" class="text-[11px] sm:text-xs font-semibold bg-amber-100 text-amber-950 border border-amber-300/80 px-2.5 py-1 rounded-full flex items-center gap-1.5 pressable shadow-2xs whitespace-nowrap shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+            <span id="pendingCountBadge">3 Due</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav id="navPillsBar" class="w-full bg-white dark:bg-neutral-900 border-b border-neutral-200/90 dark:border-neutral-800 relative sm:sticky sm:top-[96px] z-20 sm:z-30 shadow-2xs">
+      <div class="max-w-[1520px] mx-auto px-3 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-2.5 flex items-center justify-between gap-3">
+
+        <div id="dynamicNavPillsContainer" class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 sm:overflow-x-auto hide-scrollbar w-full">
+
+        </div>
+
+        <div class="hidden lg:flex items-center gap-3 text-xs text-neutral-400 shrink-0 whitespace-nowrap">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="sqlStatusLabel" class="font-medium text-neutral-600 dark:text-neutral-300">SQL Server Connected</span>
+          </span>
+          <span>•</span>
+          <span data-i18n="academicTerm" class="text-neutral-500 font-mono">Academic Term 1/2026</span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="relative z-10 flex-1 w-full max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 py-6 sm:py-8 flex flex-col">
+
+      <div id="studentWireframeBreadcrumbRow" class="hidden items-center justify-between gap-2 pb-4">
+        <div class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-[11px] sm:text-xs shadow-2xs font-bold text-neutral-800 dark:text-neutral-200 max-w-full overflow-x-auto hide-scrollbar">
+          <span id="studentWireframeBreadcrumbIcon" class="inline-flex items-center justify-center shrink-0"><img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" /></span>
+          <span id="studentWireframeBreadcrumbText" class="flex items-center flex-wrap gap-y-0.5">Student / Courses</span>
+        </div>
+        <button id="studentWireframeBackBtn" onclick="navigateBack()" title="Back" class="w-11 h-8 rounded-full bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white flex items-center justify-center font-bold text-sm shadow-2xs transition pressable shrink-0">
+          ↩
+        </button>
+      </div>
+
+      <section id="screen-login" class="hidden screen-fade py-8 sm:py-14 max-w-5xl mx-auto w-full my-auto flex-1 flex flex-col justify-center items-center">
+
+        <div class="w-full flex items-center justify-end gap-2 mb-3 px-1 flex-wrap">
+          <button onclick="toggleLanguage()" title="Switch Language / สลับภาษา" class="h-8 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 font-bold text-xs flex items-center justify-center transition pressable border border-neutral-200 dark:border-neutral-700 gap-1.5 shadow-2xs">
+            <span class="text-xs">🌐</span>
+            <span id="loginLangText" class="font-extrabold text-[11px] tracking-wider">TH</span>
+          </button>
+          <button onclick="toggleTheme()" title="Toggle Dark/Light Mode" class="w-8 h-8 rounded-xl bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-amber-300 flex items-center justify-center transition pressable border border-neutral-200 dark:border-neutral-700 text-sm shadow-2xs">
+            <span id="loginThemeIcon">🌙</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-0 items-stretch w-full shadow-2xl rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+
+          <div class="md:col-span-6 genz-hero-panel relative overflow-hidden p-8 sm:p-10 lg:p-12 flex flex-col items-center justify-center text-center space-y-5 text-white">
+            <div class="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-white/15 blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+            <div class="relative z-10 p-4 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-md shadow-xl">
+              <img src="atht-logo.png" onerror="this.onerror=null;this.src=ATHT_LOGO_URI;" alt="ATHT Logo" class="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg" />
+            </div>
+            <div class="relative z-10 space-y-1.5 max-w-sm">
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">ATHT Student Project</h1>
+            </div>
+          </div>
+
+          <div class="md:col-span-6 bg-white dark:bg-neutral-900 p-8 sm:p-10 lg:p-12 flex flex-col justify-center space-y-5">
+            <div>
+              <div class="pb-3 mb-4">
+                <h2 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">LOGIN</h2>
+              </div>
+
+              <form onsubmit="handleLoginSubmit(event)" class="space-y-4 sm:space-y-5">
+                <div>
+                  <label data-i18n="emailOrStudentId" class="block text-sm font-semibold text-neutral-700 mb-1.5">Email / Student ID</label>
+                  <input type="text" id="loginEmail" value="" inputmode="text" autocomplete="username" required class="w-full px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-neutral-200 bg-neutral-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-800 transition" />
+                </div>
+
+                <div>
+                  <label data-i18n="password" class="block text-sm font-semibold text-neutral-700 mb-1.5">Password</label>
+                  <input type="password" id="loginPassword" value="" autocomplete="current-password" required class="w-full px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-neutral-200 bg-neutral-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-800 transition" />
+                </div>
+
+                <div class="flex items-center justify-between text-sm pt-1 text-neutral-500">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="rememberMeCheckbox" class="rounded border-neutral-300 text-neutral-900 focus:ring-0 w-4 h-4 cursor-pointer" />
+                    <span data-i18n="rememberMe" class="text-neutral-700 font-medium">Remember me</span>
+                  </label>
+                  <a href="javascript:void(0)" onclick="handleForgotPassword()" data-i18n="forgotPassword" class="text-blue-600 hover:underline font-semibold">Forgot Password?</a>
+                </div>
+
+                <button type="submit" data-i18n="signIn" class="w-full py-3.5 sm:py-4 genz-primary-btn font-bold text-sm sm:text-base rounded-2xl transition pressable flex items-center justify-center mt-4">
+                  Sign In
+                </button>
+              </form>
+
+              <div class="pt-5 mt-5 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
+                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">Quick Role Access (Demo Accounts)</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label for="loginDemoStudentSelect" class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 flex items-center gap-1 mb-1"><img src="student-icon.png" alt="Student" class="w-3.5 h-3.5 object-contain" /><span>เลือกนักศึกษา (81 คน)</span></label>
+                    <select id="loginDemoStudentSelect" onchange="onLoginDemoSelectChange('student', this.value)" class="w-full px-2.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                      <option value="67080200501">67080200501 - Chonchanok S.</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="loginDemoTeacherSelect" class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block mb-1">👨‍🏫 เลือกอาจารย์ผู้สอน</label>
+                    <select id="loginDemoTeacherSelect" onchange="onLoginDemoSelectChange('teacher', this.value)" class="w-full px-2.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                      <option value="suripong.ler">Prof. Suripong Lertkul (CMM321, CMM320)</option>
+                      <option value="nuttapong.pra">Assoc. Prof. Nuttapong Prasert (CMM349, CMM390)</option>
+                      <option value="akek.pat">Asst. Prof. Akek Patt (CMM310, GEN121)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" onclick="quickLoginAs('student')" class="p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 hover:bg-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-left transition pressable group">
+                    <div class="flex items-center justify-between">
+                      <span class="inline-flex items-center gap-1.5 text-xs font-extrabold text-neutral-900 dark:text-white group-hover:text-blue-600"><img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" /><span>Student</span></span>
+                      <span class="text-[9px] text-neutral-400">→</span>
+                    </div>
+                    <span id="loginDemoStudentPreview" class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono truncate block mt-0.5">67080200501</span>
+                  </button>
+                  <button type="button" onclick="quickLoginAs('teacher')" class="p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 hover:bg-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-left transition pressable group">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-extrabold text-neutral-900 dark:text-white group-hover:text-blue-600">👨‍🏫 Teacher</span>
+                      <span class="text-[9px] text-neutral-400">→</span>
+                    </div>
+                    <span id="loginDemoTeacherPreview" class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono truncate block mt-0.5">suripong.ler</span>
+                  </button>
+                  <button type="button" onclick="quickLoginAs('admin')" class="p-2.5 rounded-xl border border-neutral-900/20 dark:border-neutral-600 bg-neutral-900/5 hover:bg-neutral-900/10 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-left transition pressable group">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-extrabold text-neutral-900 dark:text-white group-hover:text-orange-600">🛡️ Admin</span>
+                      <span class="text-[9px] text-neutral-400">→</span>
+                    </div>
+                    <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono truncate block mt-0.5">admin@kmutt</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="screen-dashboard" class="hidden screen-fade space-y-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <div class="lg:col-span-8 space-y-5">
+
+            <div class="md:hidden bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex items-center justify-between gap-3">
+              <div>
+                <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">SEMESTER 1 / 2026</span>
+                <h2 id="studentMobileWelcomeName" class="text-sm font-black text-neutral-900 dark:text-white mt-0.5">Welcome, CHONCHANOK!</h2>
+              </div>
+              <span id="studentMobileDateBadge" class="text-[11px] font-bold text-neutral-700 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700 shrink-0">Sep 29, 2026</span>
+            </div>
+
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Courses</h1>
+                <p class="text-xs text-neutral-400 mt-0.5">Select a subject to view course projects & deliverables</p>
+              </div>
+              <button id="dashboardAllTasksBtn" onclick="openAllTasksHub()" class="text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-3.5 py-2 rounded-full transition pressable">
+                All Tasks →
+              </button>
+            </div>
+
+            <div id="dashboardCourseCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+
+            </div>
+          </div>
+
+          <div class="hidden lg:block lg:col-span-4 space-y-4">
+            <div class="bg-neutral-100 dark:bg-neutral-900 rounded-3xl p-5 sm:p-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-5">
+
+              <div class="flex flex-col items-center text-center space-y-2.5 pt-1">
+                <div id="dashboardStudentAvatar" class="w-24 h-24 rounded-full bg-neutral-300/90 dark:bg-neutral-800 text-neutral-800 dark:text-white flex items-center justify-center font-black text-2xl shadow-inner border-4 border-white dark:border-neutral-700">
+                  CS
+                </div>
+                <div>
+                  <h2 id="dashboardStudentName" class="text-base font-black text-neutral-900 dark:text-white leading-tight">CHONCHANOK!</h2>
+                  <span id="dashboardStudentIdBadge" class="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-0.5">Student ID: 67080200501</span>
+                </div>
+                <span id="dashboardDateToday" class="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-3 py-1 rounded-full shadow-2xs inline-block">
+                  Sep 29, 2026
+                </span>
+              </div>
+
+              <div class="bg-white dark:bg-neutral-800/70 rounded-2xl p-4 border border-neutral-200/80 dark:border-neutral-700 space-y-3">
+                <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-700 pb-2">
+                  <div>
+                    <span data-i18n="timetable" class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Timetable</span>
+                    <h4 id="calendarMonthYearTitle" class="text-xs font-bold text-neutral-900 dark:text-white">September 2026</h4>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button onclick="changeCalendarMonth(-1)" title="Previous Month" class="w-6 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center transition pressable">‹</button>
+                    <button onclick="resetCalendarToCurrentMonth()" title="Current Term" class="px-2 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-[10px] font-bold flex items-center justify-center transition pressable">
+                      <span data-i18n="calToday">Term</span>
+                    </button>
+                    <button onclick="changeCalendarMonth(1)" title="Next Month" class="w-6 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center transition pressable">›</button>
+                  </div>
+                </div>
+
+                <div id="calendarDaysHeader" class="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-neutral-400">
+                  <span class="py-1">Sun</span><span class="py-1">Mon</span><span class="py-1">Tue</span><span class="py-1">Wed</span><span class="py-1">Thu</span><span class="py-1">Fri</span><span class="py-1">Sat</span>
+                </div>
+
+                <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-[10px]"></div>
+
+                <div id="calendarTaskPreviewBox" class="hidden screen-fade bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl p-3 space-y-2 shadow-2xs"></div>
+
+                <div id="calendarEventsLegend" class="space-y-1.5 pt-2 border-t border-neutral-100 dark:border-neutral-700 text-[10px]"></div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section id="screen-courses" class="hidden screen-fade space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-neutral-100">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-neutral-900">Enrolled Courses</h2>
+            <p class="text-xs text-neutral-500">Semester 1 / 2026 Academic Term • Computer Multimedia</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="coursesScreenCountBadge" class="text-xs font-semibold bg-neutral-100 text-neutral-700 px-3 py-1 rounded-lg">
+              6 Active Subjects
+            </span>
+            <button type="button" id="btnCoursesScreenAdminAdd" onclick="openAdminCourseModal('create')" class="hidden px-3.5 py-1.5 rounded-xl genz-primary-btn text-xs font-bold shadow-xs transition pressable">
+              + Add Course
+            </button>
+          </div>
+        </div>
+
+        <div id="allCoursesListContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-5"></div>
+      </section>
+
+      <section id="screen-course-detail" class="hidden screen-fade space-y-5 lg:space-y-6">
+
+        <div class="lg:hidden grid grid-cols-12 gap-3 items-stretch">
+          <div class="col-span-5 bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-200/80 dark:border-neutral-800 shadow-xs flex flex-col justify-between">
+            <span class="text-xs font-semibold text-neutral-600 dark:text-neutral-400">Overview</span>
+            <div class="my-2">
+              <span id="mobileDetailOverviewPct" class="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">67 %</span>
+            </div>
+            <div class="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
+              <div id="mobileDetailOverviewBar" class="h-full rounded-full transition-all duration-500" style="width: 67%; background: linear-gradient(90deg, var(--gz-primary), var(--gz-secondary));"></div>
+            </div>
+          </div>
+          <div class="col-span-7 flex flex-col justify-between gap-2.5">
+            <div class="flex-1 bg-white dark:bg-neutral-900 rounded-2xl px-4 py-3 border border-neutral-200/80 dark:border-neutral-800 shadow-xs flex items-center justify-between gap-2">
+              <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider leading-tight">COMPLETED TASKS</span>
+              <span id="mobileDetailCompletedCount" class="text-2xl font-black text-neutral-900 dark:text-white leading-none">1</span>
+            </div>
+            <div class="flex-1 bg-white dark:bg-neutral-900 rounded-2xl px-4 py-3 border border-neutral-200/80 dark:border-neutral-800 shadow-xs flex items-center justify-between gap-2">
+              <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider leading-tight">COURSE TASKS</span>
+              <span id="mobileDetailTotalCount" class="text-2xl font-black text-neutral-900 dark:text-white leading-none">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <div class="hidden lg:block lg:col-span-4 xl:col-span-3 bg-neutral-100 dark:bg-neutral-900 rounded-3xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+
+            <div class="text-center pt-1">
+              <h1 id="detailCourseCode" class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">CMM321</h1>
+              <p id="detailCourseName" class="text-xs sm:text-sm font-semibold text-neutral-600 dark:text-neutral-400 mt-1">Graphics Mathematics</p>
+              <span id="detailTeacher" class="text-[10px] text-neutral-400 block mt-1">Teacher: Suripong Lertkul</span>
+              <span id="detailSchedule" class="hidden">Wednesday 09:30 - 12:30</span>
+            </div>
+
+            <div class="bg-white dark:bg-neutral-800 rounded-2xl p-5 border border-neutral-200/70 dark:border-neutral-700 shadow-2xs flex flex-col items-center justify-center">
+              <div class="relative w-28 h-28 flex items-center justify-center">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-neutral-200 dark:text-neutral-700" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path id="detailDonutPath" class="text-blue-600 dark:text-sky-400 transition-all duration-500" style="stroke: var(--gz-primary);" stroke-dasharray="67, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span id="detailDonutPercent" class="text-xl font-black text-neutral-900 dark:text-white leading-none">67%</span>
+                  <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mt-1">DONE</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200/70 dark:border-neutral-700 shadow-2xs text-center space-y-0.5">
+              <span class="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">COURSE TASKS</span>
+              <span id="detailTotalTasksCount" class="text-2xl font-black text-neutral-900 dark:text-white block">3</span>
+            </div>
+
+            <div class="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200/70 dark:border-neutral-700 shadow-2xs text-center space-y-0.5">
+              <span class="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">COMPLETED TASKS</span>
+              <span id="detailCompletedTasksCount" class="text-2xl font-black text-neutral-900 dark:text-white block">1</span>
+            </div>
+
+          </div>
+
+          <div class="lg:col-span-8 xl:col-span-9 space-y-5">
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Project</h2>
+                <span id="courseTaskCountBadge" class="text-xs text-neutral-400 font-medium">3 Tasks in this course</span>
+              </div>
+            </div>
+
+            <div id="detailTasksScrollContainer" class="space-y-3.5 max-h-[600px] overflow-y-auto pr-1">
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section id="screen-task-detail" class="hidden screen-fade space-y-4 lg:space-y-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+
+          <div class="order-1 lg:col-start-1 lg:col-span-7 bg-white dark:bg-neutral-900 rounded-3xl p-5 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-md space-y-4">
+
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-lg sm:text-xl font-black text-neutral-900 dark:text-white leading-tight">Project</span>
+                  <span id="taskCourseBadge" class="text-[11px] font-bold text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-0.5 rounded-full">CMM321</span>
+                  <span id="taskStatusBadge" class="text-[11px] font-semibold text-neutral-700 bg-neutral-200/80 px-2.5 py-0.5 rounded-full">Active</span>
+                </div>
+                <p id="taskDetailProjectSubtitle" class="text-sm sm:text-base font-extrabold text-neutral-900 dark:text-neutral-200 mt-0.5">Student project</p>
+              </div>
+
+              <button id="btnStudentEditTaskDetail" onclick="openStudentEditTaskModal(activeTaskId)" class="px-4 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white shadow-2xs transition pressable uppercase tracking-wider shrink-0">
+                EDIT
+              </button>
+            </div>
+
+            <div class="space-y-1.5">
+              <span class="text-xs font-extrabold text-neutral-800 dark:text-neutral-200 block">Task</span>
+              <div class="px-4 py-2.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/70 dark:bg-neutral-800/60 shadow-2xs">
+                <h1 id="taskDetailTitle" class="text-sm font-bold text-neutral-800 dark:text-white">Task 1: Matrix 3D Projection</h1>
+              </div>
+              <p id="taskDetailDescription" class="text-xs text-neutral-500 dark:text-neutral-400 pt-1 leading-relaxed">
+                Calculate affine transforms and projection matrices using 3D homogenous coordinates.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+              <div>
+                <span class="text-[11px] sm:text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Publish Date</span>
+                <span id="taskPublishDate" class="text-sm sm:text-lg font-black text-neutral-600 dark:text-neutral-300 mt-0.5 block">Sep 28 , 2026</span>
+              </div>
+              <div>
+                <span class="text-[11px] sm:text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Due Date</span>
+                <span id="taskDueDate" class="text-sm sm:text-lg font-black text-neutral-600 dark:text-neutral-300 mt-0.5 block">Sep 30 , 2026 23:00</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="order-2 lg:col-start-8 lg:col-span-5 lg:row-start-1 bg-white dark:bg-neutral-900 rounded-3xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-md space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs sm:text-sm font-extrabold text-neutral-900 dark:text-white">Team Members</h3>
+              <button id="btnEditInTaskMembers" class="px-4 py-1 rounded-full bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-700 text-neutral-800 dark:text-white text-[11px] font-bold transition pressable uppercase tracking-wider">
+                EDIT
+              </button>
+            </div>
+            <div id="inTaskMembersList" class="flex flex-wrap gap-2">
+
+            </div>
+          </div>
+
+          <div class="order-3 lg:col-start-1 lg:col-span-7 bg-white dark:bg-neutral-900 rounded-3xl p-5 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-md space-y-3">
+            <span class="text-xs font-extrabold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider block">UPLOAD ASSIGNMENT</span>
+
+            <input type="file" id="studentRealFileInput" class="hidden" onchange="handleRealFileSelected(this)" />
+            <div id="dropzoneBox" role="button" tabindex="0" onclick="triggerRealFilePicker()" class="border-2 border-dashed border-neutral-400 dark:border-neutral-600 hover:border-neutral-700 rounded-2xl p-5 sm:p-8 text-center cursor-pointer transition bg-neutral-50/40 dark:bg-neutral-800/40 hover:bg-neutral-50">
+              <svg class="w-7 h-7 sm:w-8 sm:h-8 text-neutral-500 mx-auto mb-1.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              <p id="uploadStatusText" class="text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-200">Attach assignment file</p>
+              <p id="submissionFileNameHint" class="text-[11px] text-neutral-400 mt-0.5">PDF, ZIP or PNG</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 pt-1">
+              <button id="btnStudentSubmitUpload" onclick="submitAssignment()" class="flex-1 py-2.5 sm:py-3 bg-neutral-950 hover:bg-black text-white text-xs sm:text-sm font-extrabold uppercase tracking-wider rounded-full transition pressable shadow-md">
+                UPLOAD FILES
+              </button>
+              <button id="btnStudentEditUpload" onclick="triggerRealFilePicker()" class="px-6 sm:px-8 py-2.5 sm:py-3 bg-neutral-400 hover:bg-neutral-500 text-white text-xs sm:text-sm font-bold rounded-full transition pressable shadow-xs uppercase tracking-wider">
+                EDIT
+              </button>
+            </div>
+          </div>
+
+          <div class="order-4 lg:col-start-8 lg:col-span-5 lg:row-start-2 bg-slate-900 dark:bg-neutral-900 text-white rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 border border-slate-800">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 id="taskDetailTeacherName" class="text-sm sm:text-base font-bold text-white">T. Suriyong Lertkul</h3>
+                <p class="text-[11px] text-neutral-400">Feedback Note</p>
+              </div>
+              <span class="text-xs font-semibold text-neutral-300">Teacher</span>
+            </div>
+
+            <div id="commentsFeed" class="space-y-2.5 min-h-[140px] max-h-72 overflow-y-auto pr-1">
+              <div class="bg-neutral-800/90 rounded-2xl p-4 space-y-1">
+                <div class="flex items-center justify-between text-[11px] text-neutral-400">
+                  <span class="font-bold text-neutral-200">T. Suriyong Lertkul</span>
+                  <span>Sep 20, 10:14 AM</span>
+                </div>
+                <p class="text-sm text-white font-medium leading-relaxed">
+                  Good Job!
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <input type="text" id="replyInput" onkeydown="if(event.key==='Enter'){event.preventDefault();postCommentReply();}" placeholder="Reply..." class="flex-1 px-4 py-2.5 text-xs bg-white text-neutral-900 dark:bg-neutral-900 dark:border dark:border-neutral-800 dark:text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-neutral-500 placeholder:text-neutral-400" />
+              <button onclick="postCommentReply()" class="px-5 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white text-xs font-bold rounded-xl transition pressable shrink-0">
+                Reply
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section id="screen-projects" class="hidden screen-fade space-y-6">
+
+        <div class="bg-white dark:bg-neutral-900 rounded-3xl p-4 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-start sm:items-center justify-between sm:justify-start gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/70 text-orange-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">📁</span>
+                <h2 id="projectsScreenTitle" class="text-lg sm:text-2xl font-black text-neutral-900 dark:text-white leading-tight">
+                  Course Projects & Milestone Tracking
+                </h2>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 shrink-0 whitespace-nowrap">Tracking v2</span>
+            </div>
+            <p id="projectsScreenSubtitle" class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5">
+              ระบบติดตามความก้าวหน้ารายขั้นตอน วางแผนเป้าหมายของกลุ่ม และส่งตรวจความคืบหน้ากับอาจารย์ที่ปรึกษา
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+
+            <div id="projFilterBar" class="flex flex-wrap sm:flex-nowrap items-center bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl text-[11px] sm:text-xs font-semibold gap-1">
+              <button onclick="setProjectsFilter('ALL')" id="projFilterALL" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition whitespace-nowrap">All</button>
+              <button onclick="setProjectsFilter('CMM321')" id="projFilterCMM321" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM321</button>
+              <button onclick="setProjectsFilter('CMM349')" id="projFilterCMM349" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM349</button>
+              <button onclick="setProjectsFilter('CMM310')" id="projFilterCMM310" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM310</button>
+              <button onclick="setProjectsFilter('CMM390')" id="projFilterCMM390" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM390</button>
+              <button onclick="setProjectsFilter('CMM320')" id="projFilterCMM320" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM320</button>
+              <button onclick="setProjectsFilter('GEN121')" id="projFilterGEN121" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">GEN121</button>
+            </div>
+
+            <button id="btnOpenCreateProject" onclick="openCreateProjectModal()" class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-neutral-900 hover:bg-black dark:bg-neutral-800 dark:hover:bg-neutral-700 text-white rounded-xl text-xs font-bold transition pressable flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap">
+              <span>+</span>
+              <span>Create Project</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="projectsCountBadge" class="text-xs font-bold text-neutral-600 dark:text-neutral-300 bg-neutral-200/70 dark:bg-neutral-800 px-3 py-1 rounded-full">
+              Showing 3 Projects
+            </span>
+
+            <button id="btnQuickFilterReview" onclick="toggleProjectsQuickFilter('review')" class="px-3 py-1 rounded-full text-xs font-bold transition border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 flex items-center gap-1.5 shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>รอตรวจด่วน (Needs Review)</span>
+            </button>
+
+            <button id="btnQuickFilterRevision" onclick="toggleProjectsQuickFilter('revision')" class="px-3 py-1 rounded-full text-xs font-bold transition border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300">
+              มีข้อแก้ไข
+            </button>
+
+            <span id="projectsRoleHint" class="text-xs text-neutral-400 hidden lg:inline">
+              • Students can create/remove projects; Teachers can review & inspect.
+            </span>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="projectsSearchInput" oninput="debouncedFilterProjectsList()" placeholder="Search projects or team..." class="w-full px-3.5 py-1.5 text-xs bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-800 dark:text-neutral-200 placeholder:text-neutral-400 shadow-2xs" />
+          </div>
+        </div>
+
+        <div id="projectsCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        </div>
+
+        <div id="projectDetailMilestoneView" class="hidden screen-fade space-y-6">
+
+          <div class="flex items-center justify-between">
+            <button onclick="closeProjectMilestoneDetail()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-200 transition">
+              <span>← กลับไปรายการโครงงาน (Back to Projects)</span>
+            </button>
+            <div class="flex items-center gap-2">
+              <span id="pdetailRoleBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">Student View</span>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+
+              <div class="space-y-2 max-w-2xl">
+                <div class="flex items-center gap-2.5">
+                  <span id="pdetailCourseCode" class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800">
+                    CMM321
+                  </span>
+                  <span id="pdetailStatusBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                    กำลังดำเนินการ
+                  </span>
+                </div>
+                <h1 id="pdetailTitle" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+                  Project Title
+                </h1>
+                <p id="pdetailDesc" class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  Project description here...
+                </p>
+              </div>
+
+              <div id="pdetailProgressBox" class="bg-neutral-50 dark:bg-neutral-800/60 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 min-w-[280px]">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
+                    <span class="text-emerald-500">✓</span> ความก้าวหน้าภาพรวม
+                  </span>
+                  <span id="pdetailProgressPct" class="text-sm font-black text-orange-600 dark:text-orange-400">50%</span>
+                </div>
+                <div class="w-full bg-neutral-200 dark:bg-neutral-700 h-2.5 rounded-full overflow-hidden mb-2">
+                  <div id="pdetailProgressBar" class="bg-gradient-to-r from-orange-500 to-amber-500 h-full rounded-full transition-all duration-500" style="width: 50%;"></div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
+                  <span id="pdetailStepsSummary">ผ่าน 2 จาก 4 ขั้นตอน</span>
+                  <span id="pdetailStatusHint" class="text-emerald-600 dark:text-emerald-400 font-semibold">อนุมัติแล้ว 2 Step</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-neutral-500 dark:text-neutral-400">สมาชิกกลุ่ม:</span>
+                <div id="pdetailMembersContainer" class="flex flex-wrap items-center gap-2"></div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button id="btnPdetailAddStep" onclick="openAddProjectStepModal()" class="px-3.5 py-1.5 rounded-xl bg-neutral-900 dark:bg-neutral-800 hover:bg-black text-white text-xs font-bold transition shadow-2xs flex items-center gap-1.5">
+                  <span>+ เพิ่มขั้นตอน (Add Step)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="pdetailMilestoneTasksSection" class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-6 bg-orange-500 rounded-full"></span>
+                <h3 class="text-base font-extrabold text-neutral-900 dark:text-white">
+                  แผนการทำงานและขั้นตอนโครงงาน (Milestone Tasks)
+                </h3>
+              </div>
+              <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                กลุ่มนักศึกษาสามารถเพิ่ม แก้ไข หรือส่งงานตาม Target Date ได้เอง
+              </span>
+            </div>
+
+            <div id="pdetailStepsListContainer" class="space-y-4">
+
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section id="screen-tasks-hub" class="hidden screen-fade pt-3 sm:pt-4 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-1">
+          <div class="min-w-0">
+            <h1 id="tasksHubHeading" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-tight">All Tasks</h1>
+            <p id="tasksHubSubtitle" class="text-xs text-neutral-400 mt-0.5 truncate"></p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" id="btnAllTasksAddTask" onclick="openStudentAddTaskModal()" class="hidden px-4 py-2 rounded-full genz-primary-btn text-xs font-bold transition pressable flex items-center gap-1.5 shrink-0 shadow-xs">
+              <span>+</span>
+              <span>Add Task</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="globalTasksListContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"></div>
+      </section>
+
+      <section id="screen-notifications" class="hidden screen-fade max-w-6xl mx-auto w-full space-y-5 py-2">
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-1">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 data-i18n="notifications" class="text-xl font-black text-neutral-900 dark:text-white">Notifications</h2>
+              <p data-i18n="announcementsDesc" class="text-xs text-neutral-400">Class announcements, grades published, & project team updates</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="notifUnreadCountBadge" class="hidden text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200 dark:border-amber-800">0 New</span>
+            <button type="button" id="btnNotifMarkAllRead" onclick="markAllNotificationsRead()" class="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold transition pressable flex items-center gap-1">
+              <span>✓</span>
+              <span id="btnNotifMarkAllReadText">อ่านทั้งหมดแล้ว</span>
+            </button>
+            <button type="button" id="btnNotifClearRead" onclick="clearReadNotifications()" class="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-rose-50 dark:bg-neutral-800 dark:hover:bg-rose-950/40 text-neutral-600 hover:text-rose-600 dark:text-neutral-300 text-xs font-bold transition pressable flex items-center gap-1">
+              <span>🗑</span>
+              <span id="btnNotifClearReadText">ล้างที่อ่านแล้ว</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="notificationsFilterBar" class="flex flex-wrap items-center gap-2">
+          <button type="button" id="notifTabAll" onclick="setNotificationFilterTab('all')" class="px-3.5 py-1.5 rounded-full bg-neutral-900 text-white text-xs font-bold transition pressable">
+            ทั้งหมด
+          </button>
+          <button type="button" id="notifTabSubmission" onclick="setNotificationFilterTab('submission')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            📦 ส่งงาน (รายโปรเจกต์)
+          </button>
+          <button type="button" id="notifTabComment" onclick="setNotificationFilterTab('comment')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            💬 ข้อความแชท
+          </button>
+          <button type="button" id="notifTabUnreadOnly" onclick="toggleNotifUnreadOnly()" class="ml-auto px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            เฉพาะยังไม่อ่าน
+          </button>
+        </div>
+
+        <div id="notificationsContainer" class="space-y-2.5"></div>
+
+      </section>
+
+      <section id="screen-teacher-dashboard" class="hidden screen-fade space-y-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <div class="lg:col-span-8 space-y-5">
+
+            <div class="md:hidden bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex items-center justify-between gap-3">
+              <div>
+                <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">SEMESTER 1 / 2026</span>
+                <h2 id="teacherMobileWelcomeName" class="text-sm font-black text-neutral-900 dark:text-white mt-0.5">Welcome, Prof. Suripong L.!</h2>
+              </div>
+              <span id="teacherMobileDateBadge" class="text-[11px] font-bold text-neutral-700 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700 shrink-0">Sep 29, 2026</span>
+            </div>
+
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Courses</h1>
+                <p class="text-xs text-neutral-400 mt-0.5">Select a subject to manage projects, due dates, and student submissions</p>
+              </div>
+              <button id="teacherDashboardMembersBtn" onclick="switchTeacherViewMode('students'); navigateTo('teacher-review')" class="text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-3.5 py-2 rounded-full transition pressable">
+                All Members (81) →
+              </button>
+            </div>
+
+            <div id="teacherCourseCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+
+            </div>
+
+            <div id="teacherProjectsContainer" class="hidden"></div>
+
+          </div>
+
+          <div class="hidden lg:block lg:col-span-4 space-y-4">
+            <div class="bg-neutral-100 dark:bg-neutral-900 rounded-3xl p-5 sm:p-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-5">
+
+              <div class="flex flex-col items-center text-center space-y-2.5 pt-1">
+                <div id="teacherDashboardAvatar" class="w-24 h-24 rounded-full bg-neutral-300/90 dark:bg-neutral-800 text-neutral-800 dark:text-white flex items-center justify-center font-black text-2xl shadow-inner border-4 border-white dark:border-neutral-700">
+                  SL
+                </div>
+                <div>
+                  <h2 id="teacherDashboardName" class="text-base font-black text-neutral-900 dark:text-white leading-tight">PROF. SURIPONG LERTKUL!</h2>
+                  <span id="teacherDashboardDept" class="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-0.5">Instructor • Computer Multimedia (CMM-01)</span>
+                </div>
+                <span id="teacherDashboardDateToday" class="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-3 py-1 rounded-full shadow-2xs inline-block">
+                  Sep 29, 2026
+                </span>
+              </div>
+
+              <div class="bg-white dark:bg-neutral-800/70 rounded-2xl p-4 border border-neutral-200/80 dark:border-neutral-700 space-y-3">
+                <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-700 pb-2">
+                  <div>
+                    <span data-i18n="timetable" class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Timetable</span>
+                    <h4 id="teacherCalendarMonthYearTitle" class="text-xs font-bold text-neutral-900 dark:text-white">September 2026</h4>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button onclick="changeCalendarMonth(-1)" title="Previous Month" class="w-6 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center transition pressable">‹</button>
+                    <button onclick="resetCalendarToCurrentMonth()" title="Current Term" class="px-2 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-[10px] font-bold flex items-center justify-center transition pressable">
+                      <span data-i18n="calToday">Term</span>
+                    </button>
+                    <button onclick="changeCalendarMonth(1)" title="Next Month" class="w-6 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center transition pressable">›</button>
+                  </div>
+                </div>
+
+                <div id="teacherCalendarDaysHeader" class="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-neutral-400">
+                  <span class="py-1">Sun</span><span class="py-1">Mon</span><span class="py-1">Tue</span><span class="py-1">Wed</span><span class="py-1">Thu</span><span class="py-1">Fri</span><span class="py-1">Sat</span>
+                </div>
+
+                <div id="teacherCalendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-[10px]"></div>
+
+                <div id="teacherCalendarTaskPreviewBox" class="hidden screen-fade bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl p-3 space-y-2 shadow-2xs"></div>
+
+                <div id="teacherCalendarEventsLegend" class="space-y-1.5 pt-2 border-t border-neutral-100 dark:border-neutral-700 text-[10px]"></div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section id="screen-teacher-review" class="hidden screen-fade space-y-6">
+
+        <span id="teacherMasterBreadcrumb" class="hidden">Teacher / Courses</span>
+
+        <div id="teacherAssessmentListView" class="space-y-6">
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <div class="lg:col-span-4 xl:col-span-3 bg-neutral-100 dark:bg-neutral-900 rounded-3xl p-4 sm:p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-3 sm:space-y-4">
+              <div class="flex items-baseline gap-2 lg:hidden px-1">
+                <span id="teacherReviewCourseCode" class="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">CMM321</span>
+                <span id="teacherReviewCourseName" class="text-xs font-bold text-neutral-600 dark:text-neutral-400">Graphics Mathematics</span>
+                <span id="teacherReviewInstructor" class="hidden">Instructor: Prof. Suripong Lertkul</span>
+              </div>
+
+              <div class="grid grid-cols-12 lg:grid-cols-1 gap-3 sm:gap-4 items-stretch">
+
+                <div class="col-span-5 lg:col-span-1 bg-white dark:bg-neutral-800 rounded-2xl p-3 sm:p-5 border border-neutral-200/70 dark:border-neutral-700 shadow-2xs flex flex-col items-center justify-center">
+                  <div class="relative w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path class="text-neutral-200 dark:text-neutral-700" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path id="teacherReviewDonutPath" class="text-blue-600 dark:text-sky-400 transition-all duration-500" style="stroke: var(--gz-primary);" stroke-dasharray="67, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <span id="teacherReviewDonutPercent" class="text-base sm:text-xl font-black text-neutral-900 dark:text-white leading-none">67%</span>
+                      <span class="text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider mt-0.5">DONE</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-span-7 lg:col-span-1 flex flex-col justify-between gap-2.5 sm:gap-4">
+
+                  <div class="bg-white dark:bg-neutral-800 rounded-2xl p-3 sm:p-4 border border-neutral-200/70 dark:border-neutral-700 shadow-2xs text-center flex-1 flex flex-col justify-center">
+                    <span class="text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">COURSE PROJECTS</span>
+                    <span id="teacherTotalTasksCount" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white block">3</span>
+                  </div>
+
+                  <div onclick="setTeacherProjSubTab('members')" title="คลิกเพื่อดูรายชื่อนักศึกษาทั้งหมด" class="bg-white dark:bg-neutral-800 hover:border-blue-500 rounded-2xl p-3 sm:p-4 border border-neutral-200/70 dark:border-neutral-700 shadow-2xs text-center flex-1 flex flex-col justify-center cursor-pointer transition pressable">
+                    <span class="text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">STUDENT MEMBERS</span>
+                    <span id="teacherTotalStudentsCount" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white block">81</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-8 xl:col-span-9 space-y-4">
+
+              <div class="bg-neutral-300/80 dark:bg-neutral-800 rounded-2xl py-5 px-6 text-center shadow-2xs">
+                <h1 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Project</h1>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <div class="inline-flex items-center bg-neutral-200/80 dark:bg-neutral-800 p-1 rounded-full text-xs font-bold">
+                    <button type="button" id="btnTeacherSubTabProjects" onclick="setTeacherProjSubTab('projects')" class="px-4 py-1.5 rounded-full bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-2xs transition pressable">
+                      📁 Projects
+                    </button>
+                    <button type="button" id="btnTeacherSubTabMembers" onclick="setTeacherProjSubTab('members')" class="px-4 py-1.5 rounded-full text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition pressable">
+                      👥 Members (<span id="teacherSubTabMembersCount">81</span>)
+                    </button>
+                  </div>
+                  <div id="teacherMemberFilterPill" class="hidden"></div>
+                  <div id="teacherTaskScopeToggle" class="hidden">
+                    <button id="btnTaskScopeAll" onclick="setTeacherTaskScope('all')"></button>
+                    <button id="btnTaskScopeMember" onclick="setTeacherTaskScope('member')"></button>
+                  </div>
+                </div>
+                <button id="btnTeacherCreateProject" onclick="openTeacherAddTaskModal()" class="px-5 py-2 rounded-full genz-primary-btn font-bold text-xs shadow-2xs transition pressable flex items-center gap-1.5">
+                  <span>+</span>
+                  <span>Create Project</span>
+                </button>
+              </div>
+
+              <div id="teacherAssessmentTasksContainer" class="space-y-3.5">
+
+              </div>
+
+              <div id="teacherCourseMembersPanel" class="hidden space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="w-full sm:w-72 relative">
+                    <input type="text" id="teacherCourseMembersSearchInput" oninput="debouncedRenderTeacherCourseMembers()" placeholder="ค้นหาชื่อนักศึกษา หรือรหัส ID..." class="w-full px-3.5 py-2 pl-9 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs" />
+                    <span class="absolute left-3.5 top-2.5 text-neutral-400 text-xs">🔍</span>
+                  </div>
+                  <select id="teacherCourseMembersSortSelect" onchange="renderTeacherCourseMembersPanel()" class="px-4 py-2 rounded-full bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-700 text-xs font-bold focus:outline-none shadow-2xs cursor-pointer">
+                    <option value="id-asc">Sort: ID น้อย → มาก</option>
+                    <option value="id-desc">Sort: ID มาก → น้อย</option>
+                    <option value="name-asc">Sort: ชื่อ A → Z</option>
+                  </select>
+                </div>
+
+                <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200/90 dark:border-neutral-800 shadow-xs overflow-hidden">
+                  <div class="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 font-bold text-xs py-3 px-4 grid grid-cols-12 items-center">
+                    <div class="col-span-5 sm:col-span-4">Student</div>
+                    <div class="col-span-5 sm:col-span-5 hidden sm:block">Email</div>
+                    <div class="col-span-7 sm:col-span-3 text-right">Status</div>
+                  </div>
+                  <div id="teacherCourseMembersBody" class="divide-y divide-neutral-200/70 dark:divide-neutral-800 max-h-[520px] overflow-y-auto">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div id="teacherProjectTasksView" class="hidden screen-fade space-y-5">
+
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-4 sm:p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <button type="button" onclick="switchTeacherViewMode('assessment')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-white text-xs font-bold transition pressable shrink-0">
+                ← Projects
+              </button>
+              <div class="min-w-0">
+                <h2 id="teacherProjectTasksTitle" class="text-base sm:text-xl font-black text-neutral-900 dark:text-white truncate">Project Tasks</h2>
+                <p id="teacherProjectTasksCourseSub" class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">CMM321 • Graphics Mathematics</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span id="teacherProjectTasksCountBadge" class="text-[11px] font-bold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50">0 Tasks</span>
+              <button type="button" onclick="switchTeacherViewMode('students')" class="px-3.5 py-1.5 rounded-full bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 text-xs font-bold transition pressable shrink-0">
+                👥 ดูสมาชิก (Members) →
+              </button>
+            </div>
+          </div>
+
+          <div id="teacherProjectTasksContainer" class="space-y-3.5">
+          </div>
+
+        </div>
+
+        <div id="teacherStudentListView" class="hidden screen-fade space-y-4">
+
+          <div class="bg-neutral-300/80 dark:bg-neutral-800 rounded-2xl py-3.5 px-4 sm:px-6 text-center shadow-2xs flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            <button type="button" onclick="switchTeacherViewMode('assessment')" class="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-neutral-900 dark:hover:bg-neutral-700 text-neutral-800 dark:text-white text-xs font-bold transition pressable shrink-0 shadow-2xs">
+              ← Projects
+            </button>
+            <select id="teacherMemberCourseSelect" onchange="handleTeacherMemberCourseChange(this.value)" class="bg-white/80 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-bold text-xs py-1.5 px-2.5 rounded-xl focus:outline-none">
+              <option value="CMM321">CMM321</option>
+              <option value="CMM349">CMM349</option>
+              <option value="CMM310">CMM310</option>
+              <option value="CMM390">CMM390</option>
+              <option value="CMM320">CMM320</option>
+              <option value="GEN121">GEN121</option>
+            </select>
+            <div class="relative flex-1 min-w-[180px] max-w-2xl mx-auto">
+              <select id="teacherMemberProjectSelect" onchange="handleTeacherMemberProjectChange(this.value)" title="เลือกโปรเจกต์เพื่อดูรายการ Task ของโปรเจกต์นั้น" class="w-full text-center appearance-none bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-xs sm:text-lg font-black text-neutral-900 dark:text-white py-1.5 px-7 rounded-xl cursor-pointer focus:outline-none truncate transition">
+                <option value="proj-1">Project : 3D Raymarching Volumetric Fog Engine</option>
+              </select>
+              <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-500 dark:text-neutral-300">▼</span>
+            </div>
+            <h2 id="teacherStudentListTaskBadge" class="hidden">Project : Math Shaders &amp; Matrix Pipeline</h2>
+            <span id="teacherStudentTotalBadge" class="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white/80 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-bold shrink-0">81 Students</span>
+            <span id="teacherStudentCourseName" class="hidden">Graphics Mathematics</span>
+            <span id="teacherStudentCourseCode" class="hidden">CMM321</span>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="w-full sm:w-72 relative">
+              <input type="text" id="teacherStudentSearchInput" oninput="debouncedFilterTeacherStudentTable()" placeholder="ค้นหาชื่อนักศึกษา หรือรหัส ID..." class="w-full px-3.5 py-2 pl-9 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-800 shadow-2xs" />
+              <span class="absolute left-3.5 top-2.5 text-neutral-400 text-xs">🔍</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="teacherStudentSortSelect" onchange="onTeacherSortDropdownChange(this.value)" class="px-4 py-2 rounded-full bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-700 text-xs font-bold focus:outline-none shadow-2xs cursor-pointer">
+                <option value="id-asc">Sort: ID น้อย → มาก</option>
+                <option value="id-desc">Sort: ID มาก → น้อย</option>
+                <option value="name-asc">Sort: ชื่อ A → Z</option>
+              </select>
+              <select id="teacherStudentStatusFilter" onchange="filterTeacherStudentTable()" class="px-4 py-2 rounded-full bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-700 text-xs font-bold focus:outline-none shadow-2xs cursor-pointer">
+                <option value="all">Filter: All Status</option>
+                <option value="submitted">Filter: ส่งแล้ว (Complete)</option>
+                <option value="revision">Filter: รอแก้ (Revision)</option>
+                <option value="pending">Filter: ยังไม่ส่ง (Uncompleted)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200/90 dark:border-neutral-800 shadow-xs overflow-hidden">
+
+            <div class="bg-neutral-300/80 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-xs sm:text-sm py-3 px-4 rounded-xl m-2 grid grid-cols-12 items-center">
+              <button type="button" onclick="toggleTeacherSortColumn('id')" title="คลิกเพื่อสลับการเรียงรหัสนักศึกษา (น้อย→มาก / มาก→น้อย)" class="col-span-4 sm:col-span-3 pl-2 flex items-center gap-1.5 text-left hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer select-none">
+                <span>Id</span>
+                <span id="teacherIdSortArrow" class="text-[11px] font-black opacity-80">↑</span>
+              </button>
+              <div class="col-span-3 sm:col-span-3 pl-2">Task</div>
+              <button type="button" onclick="toggleTeacherSortColumn('date')" title="คลิกเพื่อเรียงตาม Date modified" class="col-span-2 sm:col-span-2 hidden sm:flex items-center gap-1.5 text-left hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer select-none">
+                <span>Date modified</span>
+                <span id="teacherDateSortArrow" class="text-[11px] font-black opacity-60">↕</span>
+              </button>
+              <button type="button" onclick="toggleTeacherSortColumn('status')" title="คลิกเพื่อเรียงตาม Status" class="col-span-3 sm:col-span-2 flex items-center justify-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer select-none">
+                <span>Status</span>
+                <span id="teacherStatusSortArrow" class="text-[11px] font-black opacity-60">↕</span>
+              </button>
+              <div class="col-span-2 sm:col-span-2 text-center"></div>
+            </div>
+
+            <div id="teacherStudentTableBody" class="divide-y divide-neutral-200/80 dark:divide-neutral-800 max-h-[560px] overflow-y-auto px-2 pb-2">
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div id="teacherTaskEditView" class="hidden screen-fade space-y-5">
+
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-6 sm:p-8 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-6">
+
+            <div class="border-b border-neutral-100 dark:border-neutral-800 pb-3 flex items-center justify-between">
+              <div>
+                <h2 id="teacherEditTaskHeading" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white">Edit Task</h2>
+                <p class="text-xs text-neutral-400">Modify assessment guidelines, milestones, and submission deadline</p>
+              </div>
+              <span id="teacherEditTaskCourseCodeTag" class="text-xs font-bold px-3 py-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">CMM321</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+
+              <div class="md:col-span-6 space-y-2">
+                <label class="block text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">
+                  Name
+                </label>
+                <input type="text" id="teacherEditTaskTitleInput" placeholder="e.g. Task 1: Matrix 3D Projection" class="w-full p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-sm font-bold text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs" />
+              </div>
+
+              <div class="md:col-span-6 grid grid-cols-2 gap-3">
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">
+                    Due Date
+                  </label>
+                  <input type="date" id="teacherEditTaskDueDate" onchange="syncTeacherEditTaskDueCombined()" class="w-full p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs" />
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">
+                    Due Time
+                  </label>
+                  <input type="time" id="teacherEditTaskDueTime" onchange="syncTeacherEditTaskDueCombined()" class="w-full p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-sm font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs" />
+                </div>
+              </div>
+              <input type="hidden" id="teacherEditTaskDueInput" />
+
+              <div class="md:col-span-12 space-y-2">
+                <label class="block text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">
+                  Description
+                </label>
+                <textarea id="teacherEditTaskDescInput" rows="7" placeholder="Detailed assignment instructions and evaluation criteria..." class="w-full p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs resize-none leading-relaxed"></textarea>
+              </div>
+
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+              <button onclick="switchTeacherViewMode('assessment')" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-bold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition pressable">
+                Edit
+              </button>
+              <button onclick="saveTeacherEditedTask()" class="px-7 py-2.5 rounded-xl bg-neutral-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-xs shadow-xs transition pressable">
+                Submit
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div id="teacherGradingDetailView" class="hidden screen-fade space-y-5">
+
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-4 sm:px-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <button type="button" onclick="switchTeacherViewMode('students')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-white text-xs font-bold transition pressable shrink-0">
+                ← รายชื่อนักศึกษา
+              </button>
+              <div class="min-w-0">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">กำลังตรวจงานนักศึกษา</span>
+                <span id="teacherGradingStudentBadge" class="text-sm font-black text-neutral-900 dark:text-white truncate block">67080500208 • Student</span>
+              </div>
+            </div>
+            <span id="teacherGradingStudentStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">ส่งแล้ว</span>
+          </div>
+
+          <div id="teacherGradingTaskSelectorWrapper" class="bg-white dark:bg-neutral-900 rounded-2xl p-4 sm:px-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">รายการงานที่ส่งในรายวิชานี้ (Tasks)</span>
+              <span id="teacherGradingTaskCountBadge" class="text-[11px] font-bold text-blue-600 dark:text-sky-400">1 งาน</span>
+            </div>
+            <div id="teacherGradingTaskSelectorBar" class="flex flex-wrap items-center gap-2">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <div class="lg:col-span-7 space-y-4">
+
+              <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 sm:p-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+                <div>
+                  <div class="flex items-baseline gap-3">
+                    <span id="teacherGradingCourseCode" class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">CMM321</span>
+                    <span id="teacherGradingCourseTitle" class="text-sm sm:text-base font-bold text-neutral-600 dark:text-neutral-400">Graphics Mathematics</span>
+                  </div>
+                  <h2 id="teacherGradingTaskTitle" class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white mt-1">Task 1: Matrix 3D Projection</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                  <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700">
+                    <span class="text-[10px] font-bold text-neutral-400 block uppercase tracking-wider">Publish Date</span>
+                    <span id="teacherGradingPublishDate" class="font-bold text-neutral-800 dark:text-neutral-200">October 1, 2026 at 23:00</span>
+                  </div>
+                  <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700">
+                    <span class="text-[10px] font-bold text-neutral-400 block uppercase tracking-wider">Due Date</span>
+                    <span id="teacherGradingDueDate" class="font-bold text-neutral-800 dark:text-neutral-200">October 28, 2026 at 23:00</span>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                  <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">DESCRIPTION</span>
+                  <p id="teacherGradingTaskDesc" class="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed bg-neutral-50/70 dark:bg-neutral-800/40 p-3 rounded-xl border border-neutral-100 dark:border-neutral-750">
+                    Implement perspective 3D affine projection matrices and verify homogeneous coordinates transforms.
+                  </p>
+                </div>
+              </div>
+
+              <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-3">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">Team Members</h3>
+                  <span id="teacherGradingTeamCount" class="text-[10px] text-neutral-400 font-mono">3 Members</span>
+                </div>
+                <div id="teacherGradingTeamMembersList" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+
+                </div>
+              </div>
+
+              <div class="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+                <div class="space-y-2.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">FILES &amp; SUBMISSIONS</h3>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700 mt-2">
+                    <span class="text-2xl">📦</span>
+                    <div class="min-w-0 flex-1">
+                      <span id="teacherGradingFileName" class="text-xs font-bold text-neutral-900 dark:text-white font-mono truncate block">
+                        student_67080500208_task1_matrix.zip
+                      </span>
+                      <span id="teacherGradingFileMeta" class="text-[10px] text-neutral-400">14.2 MB • Submitted Sep 25, 2026</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-center pt-1">
+                  <button id="btnTeacherGradingDownload" onclick="downloadTeacherGradingFile()" class="w-full sm:w-auto px-10 py-3 genz-primary-btn font-black text-xs uppercase tracking-widest rounded-full transition shadow-md pressable inline-flex items-center justify-center gap-2">
+                    <span>⬇️</span>
+                    <span>DOWNLOAD FILE</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="lg:col-span-5 space-y-4">
+              <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-xl space-y-4">
+
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div>
+                    <h3 id="teacherGradingInstructorName" class="text-sm font-bold text-white">T. Suriyong Lertkul</h3>
+                    <p class="text-[11px] text-slate-400">Feedback Note</p>
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 text-slate-200 border border-slate-700">Teacher</span>
+                </div>
+
+                <div id="teacherFeedbackNotesContainer" class="bg-slate-800/80 rounded-2xl p-4 min-h-[220px] max-h-[300px] overflow-y-auto space-y-3 border border-slate-700/70">
+                  <div class="space-y-1">
+                    <span id="teacherFeedbackAuthor" class="text-[11px] font-bold text-slate-300 block">T. Suriyong Lertkul</span>
+                    <p class="text-xs text-white leading-relaxed font-medium">Good Job!</p>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-200">Grade Score</span>
+                  <div class="flex items-center gap-1.5">
+                    <input type="text" inputmode="decimal" id="teacherGradingScoreInput" value="" placeholder="0 - 10" onfocus="handleTeacherScoreFocus(this)" oninput="handleTeacherScoreTyping(this)" onblur="handleTeacherScoreBlur(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();handleTeacherScoreBlur(this);sendTeacherFeedbackNote();}" class="w-24 text-center py-1 rounded-lg bg-slate-900 text-white font-black text-xs border border-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-400" />
+                  </div>
+                </div>
+
+                <div class="space-y-2 pt-1 border-t border-slate-800">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <input type="text" id="teacherFeedbackNoteInput" onkeydown="if(event.key==='Enter'){event.preventDefault();sendTeacherFeedbackNote();}" placeholder="พิมพ์ข้อเสนอแนะหรือจุดที่ต้องแก้ไข..." class="flex-1 min-w-[160px] px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button type="button" onclick="requestTeacherRevision()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition pressable shrink-0">
+                      ส่งแก้ (รอแก้)
+                    </button>
+                    <button type="button" onclick="sendTeacherFeedbackNote()" class="px-5 py-2.5 genz-primary-btn font-bold text-xs rounded-xl shadow-xs transition pressable shrink-0">
+                      Send
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <section id="screen-admin" class="hidden screen-fade space-y-4 sm:space-y-6">
+
+        <div class="bg-white dark:bg-neutral-900 rounded-2xl p-4 sm:px-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-start sm:items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-300 flex items-center justify-center text-lg shrink-0">🎨</div>
+            <div class="min-w-0">
+              <h3 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white">System Festival Theme (Global)</h3>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-snug">เปลี่ยนธีมเว็บไซต์สำหรับทุกบทบาท — อาจารย์และนักศึกษาทุกคนจะเห็นธีมนี้เหมือนกัน</p>
+            </div>
+          </div>
+          <div class="relative flex items-center w-full sm:w-auto shrink-0">
+            <select id="adminGlobalThemeSelect" onchange="setFestivalTheme(this.value)" class="w-full sm:w-auto h-9 pl-3 pr-8 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-bold text-xs border border-neutral-200 dark:border-neutral-700 focus:outline-none cursor-pointer transition appearance-none">
+              <option value="default">💙 Blue &amp; White (Default)</option>
+              <option value="christmas">🎄 Christmas</option>
+              <option value="halloween">🎃 Halloween</option>
+              <option value="songkran">💦 Songkran</option>
+              <option value="loykrathong">🏮 Loy Krathong</option>
+              <option value="valentine">💖 Valentine</option>
+              <option value="cny">🧧 Chinese NY</option>
+            </select>
+            <span class="pointer-events-none absolute right-2.5 text-[10px] text-neutral-500">▼</span>
+          </div>
+        </div>
+
+        <div id="adminSqlBridgeCard" class="bg-white dark:bg-neutral-900 rounded-2xl p-4 sm:px-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div class="flex items-start sm:items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shrink-0">🗄️</div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white">SQL Server Realtime Bridge</h3>
+                <span id="adminSqlStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">● Connected to SQL Server</span>
+              </div>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-snug">เชื่อมหน้า GitHub Pages เข้ากับเซิร์ฟเวอร์ ATHT_devv3 (SQL Server) เช่น http://localhost:5080 หรือ URL Tunnel</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <input type="text" id="adminSqlApiUrlInput" placeholder="http://localhost:5080 หรือ https://...trycloudflare.com" class="w-full sm:w-64 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-mono text-neutral-900 dark:text-white focus:outline-none" />
+            <button type="button" onclick="connectAdminSqlBridge()" class="px-3.5 py-2 rounded-xl genz-primary-btn font-bold text-xs shadow-xs transition pressable whitespace-nowrap">Connect SQL</button>
+            <button type="button" onclick="copyGithubSqlShareLink()" class="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-bold text-xs transition pressable whitespace-nowrap">Copy Share Link</button>
+            <button type="button" onclick="disconnectAdminSqlBridge()" class="px-2.5 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 font-bold text-xs transition whitespace-nowrap">Disconnect</button>
+          </div>
+        </div>
+
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
+
+          <div class="lg:col-span-8 genz-hero-panel bg-appHeader text-white rounded-3xl p-4 sm:p-6 border border-white/15 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0">
+              <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-neutral-900/90 border border-white/15 text-white flex items-center justify-center text-lg sm:text-xl font-black shadow-lg shrink-0">
+                🛡️
+              </div>
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span class="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/30 whitespace-nowrap">System Administrator</span>
+                  <span class="text-[10px] font-mono text-neutral-300 whitespace-nowrap">KMUTT Directory Control</span>
+                </div>
+                <h1 class="text-lg sm:text-2xl font-black text-white tracking-tight mt-1" data-i18n="adminPortalTitle">User Management Portal</h1>
+                <p class="text-[11px] sm:text-xs text-neutral-300 mt-0.5 leading-snug" data-i18n="adminPortalSubtitle">Manage student rosters, faculty instructors, course assignments, and portal access permissions</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:flex sm:flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-white/15">
+              <button onclick="openAdminUserModal('create')" class="px-3.5 sm:px-4 py-2.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-xs shadow-md transition pressable flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span class="text-sm leading-none">+</span>
+                <span id="adminTopCreateBtnLabel">Add New User</span>
+              </button>
+              <button onclick="exportAdminUsersCSV()" class="px-3 py-2 sm:py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-[11px] border border-white/15 transition pressable flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span>⬇️</span>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 bg-white dark:bg-neutral-900 rounded-3xl p-4 sm:p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex items-center justify-between gap-4">
+            <div class="space-y-1.5 min-w-0">
+              <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Active Directory</span>
+              <div class="flex items-baseline gap-2">
+                <span id="adminStatTotalUsers" class="text-3xl font-black text-neutral-900 dark:text-white">84</span>
+                <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Total Users</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-500 dark:text-neutral-400 pt-1">
+                <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-neutral-900 dark:bg-white"></span> <strong id="adminStatStudentsCount" class="text-neutral-800 dark:text-neutral-200">81</strong> <span>Students</span></span>
+                <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-orange-500"></span> <strong id="adminStatTeachersCount" class="text-neutral-800 dark:text-neutral-200">3</strong> <span>Teachers</span></span>
+              </div>
+              <span id="adminLiveSyncStats" class="text-[10px] font-semibold text-blue-600 dark:text-sky-400 pt-0.5 block">6 Courses • 9 Projects • 243 Tasks</span>
+            </div>
+
+            <div class="relative w-20 h-20 flex items-center justify-center shrink-0">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-neutral-200 dark:text-neutral-800" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="adminActiveDonutPath" class="text-neutral-900 dark:text-white transition-all duration-500" style="stroke: var(--gz-primary);" stroke-dasharray="98, 100" stroke-width="3.8" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span id="adminActiveDonutPct" class="text-xs font-black text-neutral-900 dark:text-white leading-none">98%</span>
+                <span class="text-[8px] font-bold text-neutral-400 uppercase mt-0.5">ACTIVE</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
+          <div onclick="switchAdminTab('students')" class="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs hover:border-neutral-400 transition cursor-pointer pressable flex items-start sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+              <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block truncate">Enrolled Students</span>
+              <span id="adminKpiStudents" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-0.5 block">81</span>
+              <span class="text-[10px] text-neutral-500 truncate block">Undergraduate • CSM</span>
+            </div>
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center p-1.5 shrink-0"><img src="student-icon.png" alt="Student" class="w-full h-full object-contain" /></div>
+          </div>
+
+          <div onclick="switchAdminTab('teachers')" class="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs hover:border-neutral-400 transition cursor-pointer pressable flex items-start sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+              <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block truncate">Faculty Teachers</span>
+              <span id="adminKpiTeachers" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-0.5 block">3</span>
+              <span class="text-[10px] text-neutral-500 truncate block">Advisors & Coordinators</span>
+            </div>
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 flex items-center justify-center text-sm sm:text-base font-bold shrink-0">👨‍🏫</div>
+          </div>
+
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs flex items-start sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+              <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block truncate">Active Accounts</span>
+              <span id="adminKpiActive" class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">84</span>
+              <span class="text-[10px] text-neutral-500 truncate block">Verified KMUTT SSO</span>
+            </div>
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm sm:text-base font-bold shrink-0">✓</div>
+          </div>
+
+          <div onclick="scrollToAdminCoursesPanel()" class="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs hover:border-neutral-400 transition cursor-pointer pressable flex items-start sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+              <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block truncate">Active Courses</span>
+              <span id="adminKpiCourses" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-0.5 block">6</span>
+              <span id="adminKpiCoursesList" class="text-[10px] text-neutral-500 truncate block" title="CMM321 • CMM349 • CMM310 • CMM390 • CMM320 • GEN121">CMM321 • CMM349 • CMM310 • CMM390 • CMM320 • GEN121</span>
+            </div>
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm sm:text-base font-bold shrink-0">📚</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-neutral-900 rounded-3xl p-4 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4 sm:space-y-5">
+
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4 pb-4 border-b border-neutral-100 dark:border-neutral-800">
+
+            <div class="grid grid-cols-3 sm:inline-flex items-center bg-neutral-100 dark:bg-neutral-800 p-1 rounded-2xl border border-neutral-200/80 dark:border-neutral-700 w-full sm:w-auto sm:self-start gap-1">
+              <button id="adminTabBtnStudents" onclick="switchAdminTab('students')" class="px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition pressable bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-xs flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 min-w-0 text-center">
+                <span class="flex items-center justify-center gap-1 sm:contents">
+                  <img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain shrink-0" />
+                  <span id="adminTabBadgeStudents" class="sm:order-last px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 dark:bg-neutral-900/15 text-white dark:text-neutral-900 shrink-0">81</span>
+                </span>
+                <span class="truncate max-w-full leading-tight">Students</span>
+              </button>
+              <button id="adminTabBtnTeachers" onclick="switchAdminTab('teachers')" class="px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition pressable text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 min-w-0 text-center">
+                <span class="flex items-center justify-center gap-1 sm:contents">
+                  <span>👨‍🏫</span>
+                  <span id="adminTabBadgeTeachers" class="sm:order-last px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 shrink-0">3</span>
+                </span>
+                <span class="truncate max-w-full leading-tight">Teachers</span>
+              </button>
+              <button id="adminTabBtnAll" onclick="switchAdminTab('all')" class="px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition pressable text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 min-w-0 text-center">
+                <span class="flex items-center justify-center gap-1 sm:contents">
+                  <span>👥</span>
+                  <span id="adminTabBadgeAll" class="sm:order-last px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 shrink-0">84</span>
+                </span>
+                <span class="truncate max-w-full leading-tight">All Users</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto">
+
+              <div class="relative col-span-2 sm:flex-1 sm:w-64 sm:min-w-[200px]">
+                <input type="text" id="adminUserSearchInput" oninput="debouncedRenderAdminUsersTable()" placeholder="Search ID, Name, Email..." class="w-full pl-9 pr-3.5 py-2.5 sm:py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs text-neutral-900 dark:text-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-800 transition" />
+                <span class="absolute left-3 top-2.5 text-neutral-400 text-xs">🔍</span>
+              </div>
+
+              <select id="adminStatusFilterSelect" onchange="renderAdminUsersTable()" class="w-full sm:w-auto px-3 py-2.5 sm:py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none">
+                <option value="ALL">Status: All</option>
+                <option value="Active">Active Only</option>
+                <option value="Inactive">Suspended / Inactive</option>
+              </select>
+
+              <select id="adminCourseFilterSelect" onchange="renderAdminUsersTable()" class="w-full sm:w-auto px-3 py-2.5 sm:py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none">
+                <option value="ALL">All Courses (CMM)</option>
+                <option value="CMM321">CMM321 Graphics Math</option>
+                <option value="CMM349">CMM349 Web App Dev</option>
+                <option value="CMM310">CMM310 Game Design</option>
+                <option value="CMM390">CMM390 Project Management</option>
+                <option value="CMM320">CMM320 Light and Sound Physics</option>
+                <option value="GEN121">GEN121 Learning &amp; Problem Solving</option>
+              </select>
+
+              <button onclick="openAdminUserModal('create')" class="col-span-2 sm:col-span-1 w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 font-bold text-xs shadow-xs transition pressable flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span>+</span>
+                <span id="adminInlineAddBtnText">Add Student</span>
+              </button>
+            </div>
+
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-neutral-500 bg-neutral-50/80 dark:bg-neutral-800/40 px-3.5 py-2.5 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+              <span id="adminShowingCountText" class="font-bold text-neutral-800 dark:text-neutral-200 whitespace-nowrap">Showing 81 Students</span>
+              <span class="hidden sm:inline">•</span>
+              <span class="text-[11px] text-neutral-400 leading-snug">Click "View As" to preview the portal as that Student or Teacher, or "Edit" to modify details.</span>
+            </div>
+            <div class="flex items-center shrink-0">
+              <button onclick="resetAdminDirectoryToDefaults()" class="text-[11px] font-semibold text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 underline transition whitespace-nowrap">
+                Reset Directory to Default
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200/90 dark:border-neutral-800 shadow-2xs overflow-x-auto">
+
+            <div id="adminTableHeaderRow" class="hidden md:grid md:grid-cols-[112px_minmax(140px,1.4fr)_minmax(140px,1.25fr)_minmax(120px,1fr)_98px_132px] gap-3 bg-neutral-200/80 dark:bg-neutral-800/90 text-neutral-800 dark:text-neutral-200 font-bold text-xs py-3 px-4 rounded-xl m-2 items-center">
+              <div class="pl-1">ID / Code</div>
+              <div>Full Name & Role</div>
+              <div>Linked KMUTT Email</div>
+              <div>Department / Courses</div>
+              <div class="text-center">Status</div>
+              <div class="text-right pr-1">Actions</div>
+            </div>
+
+            <div id="adminUsersTableBody" class="space-y-2.5 md:space-y-0 md:divide-y md:divide-neutral-100 md:dark:divide-neutral-800 max-h-[540px] overflow-y-auto p-2.5 md:px-2 md:pb-2 md:pt-0">
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div id="adminCourseManagerSection" class="bg-white dark:bg-neutral-900 rounded-3xl p-4 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-300 flex items-center justify-center text-sm font-bold shrink-0">📚</span>
+                <h3 id="adminCoursesPanelTitle" class="text-sm sm:text-base font-black text-neutral-900 dark:text-white">Course Management &amp; Instructor Access</h3>
+              </div>
+              <p id="adminCoursesPanelDesc" class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">Create courses, control which instructors can view/manage each subject, and sync immediately with teachers &amp; students.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
+              <div class="relative flex-1 sm:w-52">
+                <input type="text" id="adminCourseSearchInput" oninput="renderAdminCoursesManager()" placeholder="Search course..." class="w-full pl-8 pr-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs text-neutral-900 dark:text-white focus:outline-none" />
+                <span class="absolute left-2.5 top-2 text-neutral-400 text-xs">🔍</span>
+              </div>
+              <button type="button" onclick="openAdminCourseModal('create')" class="px-4 py-2 rounded-xl genz-primary-btn font-bold text-xs shadow-xs transition pressable flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span>+</span>
+                <span id="adminAddCourseBtnLabel">Add Course</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="adminCoursesGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          <div class="lg:col-span-8 bg-white dark:bg-neutral-900 rounded-3xl p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-sm">📋</span>
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-neutral-800 dark:text-neutral-200">Recent Directory Audit Log</h3>
+              </div>
+              <button onclick="clearAdminAuditLogs()" class="text-[11px] text-neutral-400 hover:text-neutral-600 font-semibold">Clear Log</button>
+            </div>
+            <div id="adminAuditLogContainer" class="space-y-2 max-h-40 overflow-y-auto pr-1 text-xs">
+
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 bg-appDarkCard text-white rounded-3xl p-5 border border-neutral-700 shadow-xs flex flex-col justify-between space-y-4">
+            <div class="space-y-1.5">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-orange-400 block">Portal Role Inspector</span>
+              <h3 class="text-sm font-bold text-white">Preview Student & Teacher Views</h3>
+              <p class="text-[11px] text-neutral-300 leading-relaxed">
+                Test how changes to student rosters and instructor assignments appear in real time across the Student and Teacher portals.
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="switchRoleFromAdmin('student')" class="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 transition pressable flex items-center justify-center gap-1.5">
+                <span>🎓</span>
+                <span>Student View</span>
+              </button>
+              <button onclick="switchRoleFromAdmin('teacher')" class="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 transition pressable flex items-center justify-center gap-1.5">
+                <span>👨‍🏫</span>
+                <span>Teacher View</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <footer class="relative z-10 w-full bg-neutral-100 border-t border-neutral-200/90 py-5 mt-auto">
+      <div class="max-w-[1520px] mx-auto px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24 text-center text-xs text-neutral-400 space-y-2">
+        <div class="font-medium text-neutral-600">© 2026 ATHT Student Project System • King Mongkut's University of Technology Thonburi</div>
+        <div class="flex items-center justify-center gap-4 text-[11px]">
+          <a href="support.html" class="hover:text-neutral-700 underline">Contact Support</a>
+          <span>•</span>
+          <a href="javascript:void(0)" onclick="alertMessage('Student Privacy Policy is governed by KMUTT Academic Regulations 2026.')" class="hover:text-neutral-700 underline">Privacy Policy</a>
+          <span>•</span>
+          <a href="javascript:void(0)" onclick="alertMessage('KMUTT Academic Portal Version 2.4.0 (Build 2026.09)')" class="hover:text-neutral-700 underline">System Version 2.4</a>
+        </div>
+      </div>
+    </footer>
+
+    <div id="drawerOverlay" onclick="toggleMobileDrawer(false)" class="hidden fixed inset-0 bg-black/40 z-50 transition-opacity"></div>
+    <div id="mobileDrawer" class="fixed top-0 right-0 h-full w-72 bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-200 flex flex-col">
+
+      <div class="p-4 bg-appHeader text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <img src="atht-logo.png" onerror="this.onerror=null;this.src=ATHT_LOGO_URI;" alt="ATHT Logo" class="w-8 h-8 object-contain drop-shadow-sm" />
+          <div>
+            <span class="text-xs font-bold block">ATHT Navigation</span>
+            <span class="text-[9px] text-neutral-300">KMUTT Mobile Portal</span>
+          </div>
+        </div>
+        <button onclick="toggleMobileDrawer(false)" class="text-neutral-300 hover:text-white text-lg">✕</button>
+      </div>
+
+      <div id="drawerUserProfile" onclick="openUserProfileModal(); toggleMobileDrawer(false);" class="p-3 bg-neutral-50 dark:bg-neutral-800/80 border-b border-neutral-100 dark:border-neutral-700 flex items-center gap-3 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+        <div id="drawerUserAvatar" class="w-8 h-8 rounded-xl bg-neutral-900 dark:bg-neutral-700 text-white flex items-center justify-center text-xs font-bold shrink-0">
+          CS
+        </div>
+        <div class="min-w-0 flex-1">
+          <span id="drawerUserName" class="text-xs font-bold text-neutral-800 dark:text-white block truncate">Chonchanok S.</span>
+          <span id="drawerUserEmail" class="text-[10px] text-neutral-500 dark:text-neutral-400 block truncate">chonchanok.s@kmutt.ac.th</span>
+        </div>
+        <span class="text-neutral-400 text-xs">›</span>
+      </div>
+
+      <div class="p-4 space-y-1.5 flex-1 overflow-y-auto text-xs font-medium text-neutral-700">
+
+        <div id="dynamicDrawerNavLinks" class="space-y-1"></div>
+      </div>
+
+      <div class="p-3 border-t border-neutral-100 flex items-center justify-between gap-2">
+        <button onclick="toggleLanguage()" class="flex-1 py-2 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition pressable">
+          <span>🌐</span>
+          <span id="drawerLangText">ไทย (TH)</span>
+        </button>
+        <button onclick="toggleTheme()" class="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition pressable">
+          <span id="drawerThemeIcon">🌙</span>
+          <span id="drawerThemeText">Dark</span>
+        </button>
+      </div>
+
+      <div class="p-4 border-t border-neutral-100">
+        <button onclick="openLogoutModal(); toggleMobileDrawer(false);" class="w-full py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-semibold transition">
+          <span data-i18n="signOut">Sign Out</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="modalMemberEdit" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-md sm:max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-200 dark:border-neutral-800 space-y-5 screen-fade">
+
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-300 flex items-center justify-center font-bold text-sm">👥</span>
+            <div>
+              <h2 data-i18n="editTeamMembers" class="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight">Edit Team Members</h2>
+              <p id="modalTaskTargetSubtitle" class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Project Team</p>
+            </div>
+          </div>
+          <button onclick="closeMemberEditModal()" class="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-sm transition">✕</button>
+        </div>
+
+        <div id="modalMembersList" class="bg-neutral-50 dark:bg-neutral-800/60 rounded-2xl p-3.5 space-y-2.5 max-h-72 overflow-y-auto border border-neutral-200/80 dark:border-neutral-700/60"></div>
+
+        <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button onclick="addMemberToModal()" class="px-3.5 py-2 text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50 rounded-xl transition pressable">
+              <span data-i18n="addMember">+ Add</span>
+            </button>
+            <button onclick="removeLastMemberFromModal()" class="px-3.5 py-2 text-xs font-bold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/50 rounded-xl transition pressable">
+              <span data-i18n="removeMember">Remove</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="closeMemberEditModal()" class="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition">
+              <span data-i18n="cancel">Cancel</span>
+            </button>
+            <button onclick="saveMembersFromModal()" class="px-5 py-2 text-xs font-bold genz-primary-btn rounded-xl transition pressable">
+              <span data-i18n="saveTeam">Save</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="modalAddTask" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl border border-neutral-200 dark:border-neutral-700 space-y-4 screen-fade">
+        <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2.5">
+          <div>
+            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Add New Assessment Task</h3>
+            <p class="text-xs text-neutral-400">Create a task milestone for this course</p>
+          </div>
+          <button onclick="closeAddTaskModal()" class="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-500 text-xs flex items-center justify-center">✕</button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Task Title</label>
+            <input type="text" id="addTaskTitleInput" placeholder="e.g. Task 4: Inverse Kinematics" class="w-full p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Due Date</label>
+              <input type="text" id="addTaskDueInput" placeholder="e.g. October 25, 2026 at 23:00" class="w-full p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Publish Date</label>
+              <input type="text" id="addTaskPublishInput" placeholder="e.g. October 01, 2026 at 09:00" class="w-full p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Assignment Type</label>
+            <select id="addTaskTypeSelect" class="w-full p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none">
+              <option value="Individual">Individual (1 Member)</option>
+              <option value="Pair (2 Members)">Pair (2 Members)</option>
+              <option value="Group Project (4 Members)">Group Project (4 Members)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Description</label>
+            <textarea id="addTaskDescInput" rows="2" placeholder="Task requirements and submission guidelines..." class="w-full p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+          <button onclick="closeAddTaskModal()" class="px-4 py-2 text-xs font-semibold text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200">
+            Cancel
+          </button>
+          <button onclick="saveNewAssessmentTask()" class="px-4 py-2 bg-neutral-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-xs transition pressable">
+            Save Task
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalStudentAddTask" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-5 animate-scaleIn">
+
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">📝</span>
+            <div>
+              <h3 class="font-bold text-lg text-neutral-900 dark:text-white leading-tight">Add Project Task</h3>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">Add a deliverable milestone or assignment to this project</p>
+            </div>
+          </div>
+          <button onclick="closeStudentAddTaskModal()" class="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-sm transition">✕</button>
+        </div>
+
+        <form id="studentAddTaskForm" onsubmit="handleStudentAddTaskSubmit(event)" class="space-y-4">
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Task Title *</label>
+            <input type="text" id="studentNewTaskTitle" required placeholder="e.g. Task 6: Interactive 3D Demo" class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Task Type</label>
+            <select id="studentNewTaskType" onchange="toggleStudentAddTaskMembersSection()" class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white">
+              <option value="Group Project">Group Project</option>
+              <option value="Individual">Individual</option>
+            </select>
+          </div>
+
+          <div id="studentAddTaskMembersSection" class="space-y-2 p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/70 border border-neutral-200/80 dark:border-neutral-700/70">
+            <div class="flex items-center justify-between gap-2">
+              <label class="text-xs font-bold text-neutral-800 dark:text-neutral-200">Team Members (Group Project)</label>
+              <span id="studentAddTaskMembersCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300">1 Member</span>
+            </div>
+            <div id="studentAddTaskMembersChips" class="flex flex-wrap gap-1.5"></div>
+            <div class="flex items-center gap-2 pt-1">
+              <select id="studentAddTaskMemberSelect" class="flex-1 px-3 py-1.5 text-xs bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white focus:outline-none">
+              </select>
+              <button type="button" onclick="addStudentAddTaskMember()" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50 text-xs font-bold transition pressable shrink-0">
+                + Add
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Description</label>
+            <textarea id="studentNewTaskDesc" rows="3" placeholder="Describe the task scope, rubric, and deliverables..." class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white resize-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <button type="button" onclick="closeStudentAddTaskModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold genz-primary-btn transition pressable">Add Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="modalStudentEditTask" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-5 animate-scaleIn">
+
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-sm">✏️</span>
+            <div>
+              <h3 class="font-bold text-lg text-neutral-900 dark:text-white leading-tight">Edit Task</h3>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">Update task title and description</p>
+            </div>
+          </div>
+          <button onclick="closeStudentEditTaskModal()" class="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-sm transition">✕</button>
+        </div>
+
+        <form id="studentEditTaskForm" onsubmit="handleStudentEditTaskSubmit(event)" class="space-y-4">
+          <input type="hidden" id="studentEditTaskId" />
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Task Title *</label>
+            <input type="text" id="studentEditTaskTitle" required placeholder="e.g. Task 1: Matrix 3D Projection" class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white" />
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+            <span>ℹ️</span>
+            <span>Due date is set by the course instructor. Task status is updated automatically upon submission and grading.</span>
+          </div>
+
+          <input type="hidden" id="studentEditTaskDueDate" />
+          <input type="hidden" id="studentEditTaskDueTime" />
+          <input type="hidden" id="studentEditTaskDue" />
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Description</label>
+            <textarea id="studentEditTaskDesc" rows="3" placeholder="Describe the task scope, rubric, and deliverables..." class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white resize-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <button type="button" onclick="closeStudentEditTaskModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold genz-primary-btn transition pressable">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="createProjectModal" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-5 animate-scaleIn">
+
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">📁</span>
+            <div>
+              <h3 class="font-bold text-lg text-neutral-900 dark:text-white leading-tight">Create New Project</h3>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">Initiate a team project for grading and review</p>
+            </div>
+          </div>
+          <button onclick="closeCreateProjectModal()" class="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-sm transition">✕</button>
+        </div>
+
+        <form id="createProjectForm" onsubmit="handleCreateProjectSubmit(event)" class="space-y-4">
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Project Title *</label>
+            <input type="text" id="newProjectTitle" required placeholder="e.g. 3D Raymarching Shader Engine" class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Course *</label>
+            <select id="newProjectCourse" required class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white">
+              <option value="CMM321">CMM321 - Graphics Mathematics</option>
+              <option value="CMM349">CMM349 - Web & Cloud Development</option>
+              <option value="CMM310">CMM310 - Multimedia Authoring & Design</option>
+              <option value="CMM390">CMM390 - Project Management</option>
+              <option value="CMM320">CMM320 - Light and Sound Physics</option>
+              <option value="GEN121">GEN121 - Learning and Problem Solving Skills</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Project Summary / Scope</label>
+            <textarea id="newProjectDesc" rows="3" placeholder="Brief explanation of technical objectives and deliverables..." class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white"></textarea>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Repository or Figma URL</label>
+            <input type="url" id="newProjectUrl" placeholder="https://github.com/... or https://figma.com/..." class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">Team Members</label>
+            <input type="text" id="newProjectMembers" placeholder="67080500208 Chonchanok C., 67080500210 Naptanut C." class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white" />
+            <span class="text-[10px] text-neutral-400">Defaults to your active student ID. You can add more teammates.</span>
+          </div>
+
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+            <button type="button" onclick="closeCreateProjectModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">Cancel</button>
+            <button type="submit" class="px-5 py-2 genz-primary-btn font-bold text-xs rounded-xl transition pressable">Create Project</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <div id="modalTeacherAddTask" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-md sm:max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-200 dark:border-neutral-800 space-y-5 screen-fade">
+        <input type="hidden" id="teacherModalEditingTaskId" value="" />
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-300 flex items-center justify-center font-bold text-sm">📁</span>
+            <div>
+              <h3 class="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight">Project</h3>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">Create or update course project details</p>
+            </div>
+          </div>
+          <button onclick="closeTeacherAddTaskModal()" class="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-sm flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div class="space-y-1.5">
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300">Project Name *</label>
+            <input type="text" id="teacherAddTaskTitleInput" placeholder="Student Project" class="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label for="teacherAddTaskDueInput" class="block font-bold text-neutral-700 dark:text-neutral-300">Due Date</label>
+              <input type="date" id="teacherAddTaskDueInput" value="2026-09-30" class="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white font-semibold text-xs cursor-pointer dark:[color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div class="space-y-1.5">
+              <label for="teacherAddTaskTimeInput" class="block font-bold text-neutral-700 dark:text-neutral-300">Time</label>
+              <input type="time" id="teacherAddTaskTimeInput" value="22:59" class="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white font-semibold text-xs cursor-pointer dark:[color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+
+          <div class="hidden">
+            <input type="text" id="teacherAddTaskPublishInput" value="Sep 28, 2026" />
+            <select id="teacherAddTaskTypeSelect"><option value="Group Project (3 Members)">Group Project</option></select>
+            <textarea id="teacherAddTaskDescInput">Course project deliverable</textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-800">
+          <button type="button" id="teacherModalRemoveTaskBtn" onclick="removeSelectedTeacherTaskFromModal()" class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white dark:bg-rose-950/60 dark:hover:bg-rose-600 dark:text-rose-300 font-bold text-xs border border-rose-200/70 dark:border-rose-800/50 transition pressable">
+            Remove
+          </button>
+          <div class="flex items-center gap-2.5">
+            <button type="button" onclick="closeTeacherAddTaskModal()" class="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition">
+              Cancel
+            </button>
+            <button type="button" onclick="saveTeacherNewAssessmentTask()" class="px-5 py-2 genz-primary-btn font-bold text-xs rounded-xl transition pressable">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalStepComment" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white text-neutral-900 w-full max-w-md sm:max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl border border-neutral-200 space-y-4 screen-fade">
+
+        <div class="flex items-center justify-between border-b border-neutral-100 pb-2.5">
+          <div>
+            <span id="modalStepNumberTag" class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Step Evaluation</span>
+            <h3 id="modalStepTitleText" class="text-sm font-bold text-neutral-900">Step 1: Formula Derivation</h3>
+            <div class="flex items-center gap-2 flex-wrap mt-0.5">
+              <span id="modalStepFileName" class="text-xs text-neutral-500 font-mono">Attachment: matrix_slerp.pdf</span>
+              <span id="modalStepStudentBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+                <span>👤</span>
+                <span id="modalStepStudentText">Chonchanok Suksomboon (67080200501)</span>
+              </span>
+            </div>
+          </div>
+          <button onclick="closeStepCommentModal()" class="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 flex items-center justify-center text-xs">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 mb-1">Step Status</label>
+            <select id="modalStepStatusSelect" class="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 font-medium focus:outline-none">
+              <option value="Approved">Approved / Passed</option>
+              <option value="Revision Requested">Revision Requested</option>
+              <option value="In Review">In Review</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 mb-1">Score (Out of 10)</label>
+            <input type="number" id="modalStepScoreInput" min="0" max="10" step="0.5" value="9.0" class="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 font-bold focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-600 mb-1">Feedback History</label>
+          <div id="modalStepCommentsHistory" class="max-h-36 overflow-y-auto space-y-2 p-1"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-600 mb-1">Add Instructor Comment</label>
+          <textarea id="modalStepCommentText" rows="3" placeholder="Provide actionable feedback for this step milestone..." class="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-neutral-800 resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-neutral-100">
+          <button onclick="closeStepCommentModal()" class="px-3.5 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-800">
+            Cancel
+          </button>
+          <button onclick="saveStepEvaluation()" class="px-5 py-2 text-xs font-bold bg-neutral-900 hover:bg-black text-white rounded-xl shadow-xs transition pressable">
+            Save & Publish Feedback
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="modalUserProfile" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl border border-neutral-200 dark:border-neutral-700 space-y-4 screen-fade">
+
+        <div class="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 pb-3">
+          <div class="flex items-center gap-2">
+            <span id="userProfileModalIcon" class="inline-flex items-center justify-center shrink-0"><img src="student-icon.png" alt="Student" class="w-5 h-5 object-contain" /></span>
+            <h3 id="userProfileModalTitle" class="text-sm font-bold text-neutral-900 dark:text-white">Student Profile</h3>
+          </div>
+          <button onclick="closeUserProfileModal()" class="w-6 h-6 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-xs flex items-center justify-center font-bold">✕</button>
+        </div>
+
+        <div class="flex items-center gap-3.5 bg-neutral-50 dark:bg-neutral-800/60 p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700">
+          <div id="userProfileModalAvatar" class="w-12 h-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center text-base font-extrabold shadow-sm shrink-0">
+            CS
+          </div>
+          <div class="min-w-0 flex-1">
+            <h4 id="userProfileModalName" class="text-sm font-extrabold text-neutral-900 dark:text-white truncate">Chonchanok Suksomboon</h4>
+            <p id="userProfileModalRoleBadge" class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">Undergraduate Student • Multimedia</p>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-700">
+            <span id="userProfileModalIdLabel" class="text-neutral-500 dark:text-neutral-400 font-medium">Student ID</span>
+            <span id="userProfileModalId" class="font-mono font-bold text-neutral-900 dark:text-white text-xs">67080200501</span>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-700 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-neutral-500 dark:text-neutral-400 font-medium" data-i18n="linkedEmail">Linked KMUTT Email</span>
+              <button onclick="copyStudentEmail()" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-1">
+                <span>📋</span> Copy
+              </button>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span id="userProfileModalEmail" class="font-mono text-xs text-blue-600 dark:text-blue-400 font-bold truncate">chonchanok.s@kmutt.ac.th</span>
+              <a id="userProfileModalMailto" href="mailto:chonchanok.s@kmutt.ac.th" class="shrink-0 text-[10px] bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 px-2 py-0.5 rounded text-neutral-700 dark:text-neutral-200 font-semibold">Mail ↗</a>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-700 space-y-1">
+            <span class="text-neutral-500 dark:text-neutral-400 font-medium block" data-i18n="majorDept">Department & Major</span>
+            <span id="userProfileModalDept" class="text-neutral-800 dark:text-neutral-200 font-bold block text-[11px]">Department of Applied Computer Science - Multimedia</span>
+            <span id="userProfileModalMajor" class="text-neutral-500 dark:text-neutral-400 block text-[10px]">Applied Computer Science - Multimedia (CSM)</span>
+          </div>
+        </div>
+
+        <div id="userProfileModalSwitcherContainer" class="pt-1 border-t border-neutral-200 dark:border-neutral-700 space-y-1.5">
+          <label data-i18n="switchStudentPrompt" class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">
+            Switch / Test Student ID (81 Students)
+          </label>
+          <select id="userProfileStudentSelect" onchange="switchStudentAccount(this.value)" class="w-full text-xs p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 focus:outline-none">
+          </select>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="closeUserProfileModal()" data-i18n="closeBtn" class="w-full py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl transition pressable">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalLogout" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div class="bg-white text-neutral-900 w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl border border-neutral-200 text-center space-y-4 screen-fade">
+        <div class="w-12 h-12 rounded-full bg-neutral-100 text-neutral-800 mx-auto flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+          </svg>
+        </div>
+        <div>
+          <h3 data-i18n="confirmSignOutTitle" class="text-base font-bold">Sign Out Confirmation</h3>
+          <p data-i18n="confirmSignOutDesc" class="text-xs text-neutral-500 mt-1">Are you sure you want to end your current session?</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button onclick="closeLogoutModal()" data-i18n="cancel" class="py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold rounded-xl transition">
+            Cancel
+          </button>
+          <button onclick="confirmSignOut()" data-i18n="signOut" class="py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-semibold rounded-xl transition">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastMessage" class="hidden fixed bottom-14 left-1/2 transform -translate-x-1/2 bg-neutral-900 text-white text-xs font-medium px-3.5 py-1.5 rounded-full shadow-lg z-50 pointer-events-none transition-opacity duration-300">
+      Notification text
+    </div>
+
+  </div>
+
+  <div id="modalProjectStep" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+
+      <div class="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-xl bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 font-bold">
+            ✓
+          </div>
+          <div>
+            <h3 id="modalProjectStepHeading" class="text-base font-bold text-neutral-900 dark:text-white">เพิ่มขั้นตอนโครงงาน (Add Milestone Step)</h3>
+            <p class="text-xs text-neutral-500">วางแผนขั้นตอนและเป้าหมายวันที่เสร็จของกลุ่ม</p>
+          </div>
+        </div>
+        <button onclick="closeProjectStepModal()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1 rounded-lg text-lg font-bold">
+          ✕
+        </button>
+      </div>
+
+      <form id="formProjectStep" onsubmit="handleSaveProjectStep(event)" class="p-6 space-y-4">
+        <input type="hidden" id="projectStepEditId" value="">
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">ลำดับขั้นตอน (Step Number)</label>
+          <input id="projectStepNumberInput" type="number" min="1" max="20" required value="1"
+            class="w-24 px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-bold focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">ชื่อขั้นตอน (Milestone Title)</label>
+          <input id="projectStepTitleInput" type="text" required placeholder="เช่น Step 1: เสนอหัวข้อและขอบเขต หรือ Step 2: ออกแบบ UI/UX"
+            class="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:ring-2 focus:ring-orange-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+            แผนเป้าหมายของกลุ่ม (Target Date)
+            <span class="text-neutral-400 font-normal">(กำหนดเองโดยกลุ่ม ไม่ใช่เส้นตายทางการของวิชา)</span>
+          </label>
+          <input id="projectStepTargetDateInput" type="date" required
+            class="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:ring-2 focus:ring-orange-500 focus:outline-none font-semibold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">รายละเอียดงาน & สิ่งที่ต้องส่ง (Task Details)</label>
+          <textarea id="projectStepDescInput" rows="3" required placeholder="ระบุสิ่งที่กลุ่มต้องส่งในขั้นตอนนี้ เช่น เล่ม Proposal, สไลด์นำเสนอ, Figma Link..."
+            class="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:ring-2 focus:ring-orange-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeProjectStepModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-4 py-2 bg-neutral-900 hover:bg-black dark:bg-orange-600 dark:hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-2xs">
+            บันทึกขั้นตอน
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <div id="modalSubmitStepProgress" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+
+      <div class="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-xl bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 font-bold">
+            ☁️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-neutral-900 dark:text-white">ส่งตรวจความคืบหน้า (Submit for Review)</h3>
+            <p class="text-xs text-neutral-500" id="submitStepModalSubtitle">Step 1: เสนอหัวข้อและขอบเขต</p>
+          </div>
+        </div>
+        <button onclick="closeSubmitStepProgressModal()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1 rounded-lg text-lg font-bold">
+          ✕
+        </button>
+      </div>
+
+      <form id="formSubmitStepProgress" onsubmit="handleConfirmSubmitStepProgress(event)" class="p-6 space-y-4">
+        <input type="hidden" id="submitStepTaskId" value="">
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-neutral-700 dark:text-neutral-300">ระบุความคืบหน้าของขั้นตอนนี้ (%)</label>
+            <span id="sliderStepPctLabel" class="text-sm font-black text-orange-600 dark:text-orange-400">100%</span>
+          </div>
+          <input id="submitStepPctSlider" type="range" min="10" max="100" step="5" value="100"
+            oninput="document.getElementById('sliderStepPctLabel').textContent = this.value + '%'"
+            class="w-full accent-orange-500 cursor-pointer">
+          <div class="flex justify-between text-[10px] text-neutral-400">
+            <span>เริ่มต้น (10%)</span>
+            <span>กึ่งหนึ่ง (50%)</span>
+            <span>เสร็จสมบูรณ์ (100%)</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+            แนบไฟล์รายงาน / ผลงาน (Deliverables)
+          </label>
+          <div class="border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 text-center hover:border-orange-500 transition cursor-pointer relative bg-neutral-50 dark:bg-neutral-800/50">
+            <input type="file" id="submitStepFileInput" onchange="handleStepFileSelected(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+            <div class="text-2xl mb-1">📄</div>
+            <p id="submitStepFileLabel" class="text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+              คลิกเพื่อเลือกไฟล์ (PDF, ZIP, DOCX, PNG)
+            </p>
+            <p class="text-[10px] text-neutral-400 mt-0.5">ขนาดไฟล์ไม่เกิน 50MB</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+            แนบลิงก์ผลงาน (GitHub / Figma / Google Drive / Live Demo)
+          </label>
+          <input id="submitStepLinkInput" type="url" placeholder="https://github.com/... หรือ https://figma.com/..."
+            class="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:ring-2 focus:ring-orange-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+            หมายเหตุหรือข้อความถึงอาจารย์ (Note / Summary)
+          </label>
+          <textarea id="submitStepNotesInput" rows="2" placeholder="เช่น ขอส่งเล่มโครงงานฉบับปรับปรุงตามข้อเสนอแนะรอบที่แล้วครับ..."
+            class="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:ring-2 focus:ring-orange-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/80 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+          <span>ℹ️</span>
+          <span>
+            เมื่อกดส่ง สถานะจะเปลี่ยนเป็น <strong>"Submitted / Needs Review (รออาจารย์ตรวจ)"</strong> โดยอัตโนมัติ และจะแจ้งเตือนไปยังแดชบอร์ดของอาจารย์
+          </span>
+        </div>
+
+        <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeSubmitStepProgressModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-4 py-2 bg-neutral-900 hover:bg-black dark:bg-orange-600 dark:hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-2xs">
+            ส่งตรวจความคืบหน้า (Submit)
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <div id="modalTeacherStepInspect" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+
+      <div class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50 dark:bg-neutral-850">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="teacherInspectCourseBadge" class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-amber-400">
+              CMM321
+            </span>
+            <span class="text-xs text-neutral-400">ตรวจความก้าวหน้าโครงงาน (Teacher Evaluation)</span>
+          </div>
+          <h2 id="teacherInspectProjectTitle" class="text-lg font-black text-neutral-900 dark:text-white mt-1">
+            Project Title
+          </h2>
+        </div>
+        <button onclick="closeTeacherStepInspectModal()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1 rounded-lg text-lg font-bold">
+          ✕
+        </button>
+      </div>
+
+      <div id="teacherInspectStepsContainer" class="flex-1 overflow-y-auto p-6 space-y-6">
+
+      </div>
+
+      <div class="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-850 flex items-center justify-between">
+        <span class="text-xs text-neutral-500">อาจารย์สามารถให้คำแนะนำและประเมินผลแยกตามแต่ละขั้นตอนได้ทันที</span>
+        <button onclick="closeTeacherStepInspectModal()" class="px-4 py-2 bg-neutral-900 text-white rounded-xl text-xs font-bold hover:bg-black">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <button type="button" id="floatingMobileCalendarBtn" onclick="openMobileCalendarModal()" title="Open Calendar" class="hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-neutral-800 hover:bg-black text-white shadow-xl border border-neutral-500/40 flex items-center justify-center text-xl transition pressable touch-manipulation cursor-pointer">
+    📅
+  </button>
+
+  <div id="modalMobileCalendar" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="if(event.target===this) closeMobileCalendarModal()">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-sm w-full max-h-[90vh] overflow-y-auto p-5 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-3.5 screen-fade">
+      <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2.5">
+        <div>
+          <span data-i18n="timetableTitle" class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Timetable &amp; Due Dates</span>
+          <h4 id="mobileCalendarMonthYearTitle" class="text-sm font-black text-neutral-900 dark:text-white">September 2026</h4>
+        </div>
+        <div class="flex items-center gap-1">
+          <button onclick="changeCalendarMonth(-1)" class="w-7 h-7 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center">‹</button>
+          <button type="button" data-i18n="calToday" onclick="resetCalendarToCurrentMonth()" class="px-2 h-7 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-[10px] font-bold flex items-center justify-center touch-manipulation">Term</button>
+          <button onclick="changeCalendarMonth(1)" class="w-7 h-7 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center">›</button>
+          <button onclick="closeMobileCalendarModal()" class="ml-1 w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 text-neutral-500 text-xs font-bold flex items-center justify-center">✕</button>
+        </div>
+      </div>
+
+      <div id="mobileCalendarDaysHeader" class="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-neutral-400">
+        <span class="py-1">Sun</span><span class="py-1">Mon</span><span class="py-1">Tue</span><span class="py-1">Wed</span><span class="py-1">Thu</span><span class="py-1">Fri</span><span class="py-1">Sat</span>
+      </div>
+      <div id="mobileCalendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+      <div id="mobileCalendarTaskPreviewBox" class="hidden screen-fade bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-3 space-y-2 shadow-2xs"></div>
+      <div id="mobileCalendarEventsLegend" class="space-y-1.5 pt-2 border-t border-neutral-100 dark:border-neutral-800 text-[10px] max-h-52 overflow-y-auto pr-0.5"></div>
+    </div>
+  </div>
+
+  <div id="modalAdminUserForm" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-neutral-200 dark:border-neutral-800 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+
+      <div class="p-5 sm:p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="adminModalRoleIcon" class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-white flex items-center justify-center p-1.5 shadow-xs">
+            <img src="student-icon.png" alt="Student" class="w-full h-full object-contain" />
+          </div>
+          <div>
+            <h3 id="adminModalTitle" class="text-base font-black text-neutral-900 dark:text-white leading-tight">Add New Student</h3>
+            <p id="adminModalSubtitle" class="text-xs text-neutral-500 dark:text-neutral-400">Register or update KMUTT user identity & permissions</p>
+          </div>
+        </div>
+        <button onclick="closeAdminUserModal()" class="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-xs font-bold">
+          ✕
+        </button>
+      </div>
+
+      <form id="formAdminUser" onsubmit="handleSaveAdminUser(event)" class="p-5 sm:p-6 space-y-4 text-xs">
+        <input type="hidden" id="adminFormMode" value="create" />
+        <input type="hidden" id="adminFormOriginalId" value="" />
+
+        <div id="adminFormRoleSelectorGroup">
+          <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1.5 uppercase tracking-wider text-[10px]">Account Role</label>
+          <div class="grid grid-cols-2 gap-2 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <button type="button" id="adminFormRoleBtnStudent" onclick="setAdminModalRoleType('student')" class="py-2 rounded-lg font-extrabold text-xs transition bg-neutral-900 text-white shadow-2xs flex items-center justify-center gap-1.5">
+              <img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" />
+              <span>Student</span>
+            </button>
+            <button type="button" id="adminFormRoleBtnTeacher" onclick="setAdminModalRoleType('teacher')" class="py-2 rounded-lg font-bold text-xs transition text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 flex items-center justify-center gap-1.5">
+              <span>👨‍🏫</span>
+              <span>Teacher / Instructor</span>
+            </button>
+          </div>
+          <input type="hidden" id="adminFormRoleInput" value="student" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-7">
+            <label id="adminFormIdLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Student ID (11 Digits) *</label>
+            <input type="text" id="adminFormIdInput" required placeholder="e.g. 67080500281" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-neutral-800" />
+          </div>
+          <div class="sm:col-span-5">
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Account Status</label>
+            <select id="adminFormStatusInput" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-bold focus:outline-none">
+              <option value="Active">🟢 Active</option>
+              <option value="Inactive">🔴 Suspended / Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-8">
+            <label id="adminFormNameLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Full Name *</label>
+            <input type="text" id="adminFormFullNameInput" required oninput="autoFillAdminShortNameAndEmail()" placeholder="e.g. Somchai Prasert" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-800" />
+          </div>
+          <div class="sm:col-span-4">
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Display Name</label>
+            <input type="text" id="adminFormShortNameInput" placeholder="e.g. Somchai P." class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Linked KMUTT Email *</label>
+          <input type="email" id="adminFormEmailInput" required placeholder="e.g. somchai.pra@mail.kmutt.ac.th" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-neutral-800" />
+        </div>
+
+        <div id="adminStudentFieldsGroup" class="space-y-3 pt-1 border-t border-neutral-100 dark:border-neutral-800">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Major / Curriculum</label>
+              <input type="text" id="adminFormMajorInput" value="Applied Computer Science - Multimedia" class="w-full px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Academic Year</label>
+              <select id="adminFormYearInput" class="w-full px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none">
+                <option value="Year 2 (ID 67)">Year 2 (Cohort 67)</option>
+                <option value="Year 1 (ID 68)">Year 1 (Cohort 68)</option>
+                <option value="Year 3 (ID 66)">Year 3 (Cohort 66)</option>
+                <option value="Year 4 (ID 65)">Year 4 (Cohort 65)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="adminTeacherFieldsGroup" class="hidden space-y-3 pt-1 border-t border-neutral-100 dark:border-neutral-800">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Academic Title</label>
+              <input type="text" id="adminFormTeacherTitleInput" placeholder="e.g. Associate Professor" value="Assistant Professor" class="w-full px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Specialization</label>
+              <input type="text" id="adminFormSpecializationInput" placeholder="e.g. Computer Graphics & AI" value="Computer & Multimedia Systems" class="w-full px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">Assigned Courses</label>
+            <div id="adminFormCourseCheckboxes" class="flex flex-wrap items-center gap-3 p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+              <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+                <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="CMM321" checked />
+                <span>CMM321 (Graphics Math)</span>
+              </label>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+                <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="CMM349" />
+                <span>CMM349 (Web Dev)</span>
+              </label>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+                <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="CMM310" />
+                <span>CMM310 (Game Design)</span>
+              </label>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+                <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="CMM390" />
+                <span>CMM390 (Project Management)</span>
+              </label>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+                <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="CMM320" />
+                <span>CMM320 (Light &amp; Sound Physics)</span>
+              </label>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+                <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="GEN121" />
+                <span>GEN121 (Learning &amp; Problem Solving)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-2.5">
+          <button type="button" onclick="closeAdminUserModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+            Cancel
+          </button>
+          <button type="submit" id="adminFormSubmitBtn" class="px-5 py-2.5 rounded-xl bg-neutral-900 hover:bg-black text-white font-extrabold text-xs shadow-xs transition pressable">
+            Save User Account
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <div id="modalAdminDeleteConfirm" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-sm w-full p-6 border border-neutral-200 dark:border-neutral-800 shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center text-xl font-bold">
+        🗑️
+      </div>
+      <div>
+        <h3 class="text-base font-black text-neutral-900 dark:text-white">Remove User Account?</h3>
+        <p id="adminDeleteConfirmText" class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+          Are you sure you want to remove this user from the KMUTT directory?
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 pt-2">
+        <button type="button" onclick="closeAdminDeleteModal()" class="py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-bold transition">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmAdminDeleteUser()" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold transition shadow-xs pressable">
+          Yes, Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalAdminCourseForm" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="if(event.target===this) closeAdminCourseModal()">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-7 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-lg shadow-xs">📚</div>
+          <div>
+            <h3 id="adminCourseModalTitle" class="text-base font-black text-neutral-900 dark:text-white">Add New Course</h3>
+            <p class="text-[11px] text-neutral-400">Sync course details with Teachers &amp; Students</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAdminCourseModal()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveAdminCourse(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="adminCourseFormMode" value="create" />
+        <input type="hidden" id="adminCourseOrigCode" value="" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label id="adminCourseCodeLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Course Code *</label>
+            <input type="text" id="adminCourseCodeInput" required placeholder="e.g. CMM450" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label id="adminCourseScheduleLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Class Schedule *</label>
+            <input type="text" id="adminCourseScheduleInput" required placeholder="e.g. Wednesday (13:30 - 16:30)" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <div>
+          <label id="adminCourseTitleLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Course Title *</label>
+          <input type="text" id="adminCourseTitleInput" required placeholder="e.g. Interactive AI & Multimedia Studio" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label id="adminCourseTeachersLabel" class="font-bold text-neutral-700 dark:text-neutral-300">Visible to Instructors (กำหนดอาจารย์ที่เห็นรายวิชานี้)</label>
+            <div class="flex items-center gap-2 text-[11px]">
+              <button type="button" onclick="toggleAdminCourseAllTeachers(true)" class="font-bold text-blue-600 dark:text-sky-400 hover:underline">Select All</button>
+              <span class="text-neutral-300">|</span>
+              <button type="button" onclick="toggleAdminCourseAllTeachers(false)" class="font-semibold text-neutral-500 hover:underline">Clear</button>
+            </div>
+          </div>
+          <div id="adminCourseTeachersCheckboxes" class="space-y-2 max-h-44 overflow-y-auto p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"></div>
+        </div>
+
+        <div>
+          <label id="adminCourseStudentVisLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Student Visibility (การมองเห็นฝั่งนักศึกษา)</label>
+          <select id="adminCourseStudentVisibilitySelect" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold focus:outline-none">
+            <option value="all">Sync & Visible to All Students (แสดงให้นักศึกษาทุกคนเห็นทันที)</option>
+            <option value="hidden">Hidden from Students (ซ่อนจากนักศึกษา — เห็นเฉพาะ Admin & อาจารย์ที่เลือก)</option>
+          </select>
+        </div>
+
+        <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2.5">
+          <button type="button" id="adminCourseDeleteBtn" onclick="triggerDeleteFromCourseModal()" class="hidden px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition pressable flex items-center gap-1.5">
+            <span>🗑</span>
+            <span id="adminCourseDeleteBtnLabel">Delete Course</span>
+          </button>
+          <div class="flex items-center gap-2.5 ml-auto">
+            <button type="button" onclick="closeAdminCourseModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+              Cancel
+            </button>
+            <button type="submit" id="adminCourseFormSubmitBtn" class="px-5 py-2.5 rounded-xl genz-primary-btn font-extrabold text-xs shadow-xs transition pressable">
+              Save Course
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/api/bootstrap.js" onerror="window.__ATHT_SQL_BOOTSTRAP=null"></script>
+  <script src="js/00-sql-sync.js?v=20261126b"></script>
+  <script src="js/01-data.js"></script>
+  <script src="js/02-core-i18n-auth-nav.js"></script>
+  <script src="js/03-student-projects-tasks.js"></script>
+  <script src="js/04-teacher-drawer-init.js"></script>
+  <script src="js/05-admin.js?v=20261126b"></script>
+</body>
+</html>
