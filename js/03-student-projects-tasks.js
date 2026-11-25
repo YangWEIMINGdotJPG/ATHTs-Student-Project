@@ -3047,6 +3047,7 @@
       try {
         localStorage.setItem('atht_v2_notifications', JSON.stringify((list || []).slice(0, 120)));
       } catch (e) {}
+      if (typeof syncHeaderNotificationDot === 'function') syncHeaderNotificationDot();
     }
 
     function loadStoredNotifications() {
@@ -3098,7 +3099,14 @@
     }
 
     function hasUnreadNotifications() {
+      if (currentUserRole === 'admin') return false;
       return getVisibleNotificationsForCurrentUser().some(n => n && n.isNew);
+    }
+
+    function syncHeaderNotificationDot() {
+      const dot = document.getElementById('headerNotificationDot');
+      if (!dot) return;
+      dot.classList.toggle('hidden', !hasUnreadNotifications());
     }
 
     function markAllNotificationsRead() {
@@ -3232,6 +3240,7 @@
       const subCount = displaySource.filter(isSubmissionKind).length;
       const chatCount = displaySource.filter(isCommentKind).length;
       const unreadCount = displaySource.filter(x => x.isNew).length;
+      syncHeaderNotificationDot();
 
       const unreadBadge = document.getElementById('notifUnreadCountBadge');
       if (unreadBadge) {

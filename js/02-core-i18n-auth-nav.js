@@ -1538,6 +1538,7 @@
     }
 
     function renderDynamicPills(activeScreenId) {
+      if (typeof syncHeaderNotificationDot === 'function') syncHeaderNotificationDot();
       const container = document.getElementById('dynamicNavPillsContainer');
       if (!container) return;
 
