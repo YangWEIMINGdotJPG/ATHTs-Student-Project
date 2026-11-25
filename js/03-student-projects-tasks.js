@@ -1092,14 +1092,23 @@
         revisions: existingRevs
       });
       if (typeof pushAppNotification === 'function') {
+        const groupIds = typeof getGroupSyncStudentIds === 'function' ? getGroupSyncStudentIds(task, curStd.id) : [curStd.id];
+        const memberCount = groupIds.length;
+        const resolvedProjId = typeof resolveTaskProjectId === 'function'
+          ? resolveTaskProjectId(course.code, task, curStd.id)
+          : (task.projectId || '');
         pushAppNotification({
           type: 'submission',
           targetRole: 'teacher',
           course: course.code,
-          title: `${curStd.shortName} ส่งงานแล้ว`,
+          title: memberCount > 1
+            ? `${curStd.shortName} ส่งงานแล้ว (กลุ่ม ${memberCount} คน)`
+            : `${curStd.shortName} ส่งงานแล้ว`,
           taskTitle: task.title,
           taskId: task.id,
+          projectId: resolvedProjId,
           studentId: curStd.id,
+          memberCount,
           time: 'Just now',
           isNew: true
         });
@@ -1186,6 +1195,9 @@
         });
 
         if (typeof pushAppNotification === 'function') {
+          const resolvedProjId = typeof resolveTaskProjectId === 'function'
+            ? resolveTaskProjectId(course.code, task, curStd.id)
+            : (task.projectId || '');
           pushAppNotification({
             type: 'comment',
             targetRole: 'teacher',
@@ -1193,6 +1205,7 @@
             title: `${curStd.shortName} ส่งข้อความในงาน`,
             taskTitle: text,
             taskId: task.id,
+            projectId: resolvedProjId,
             studentId: curStd.id,
             time: msgTime,
             isNew: true
@@ -2800,6 +2813,39 @@
       } catch (e) {}
     }
 
+    function resolveTaskProjectId(courseCode, taskObj, studentId) {
+      if (taskObj && taskObj.projectId) return taskObj.projectId;
+      const cCode = courseCode || 'CMM321';
+      const courseProjs = typeof getStoredProjects === 'function'
+        ? getStoredProjects().filter(p => p.course === cCode)
+        : [];
+      if (studentId) {
+        const matched = courseProjs.find(p => Array.isArray(p.members) && p.members.some(m => String(m).includes(String(studentId))));
+        if (matched) return matched.id;
+      }
+      return courseProjs[0] ? courseProjs[0].id : '';
+    }
+
+    function openTeacherNotificationTarget(courseCode, taskId, studentId, projectId) {
+      const cCode = courseCode || 'CMM321';
+      const courseObj = coursesCatalog[cCode];
+      const taskObj = (courseObj && Array.isArray(courseObj.tasks) && taskId)
+        ? courseObj.tasks.find(t => t.id === taskId)
+        : null;
+      const resolvedProjId = projectId || resolveTaskProjectId(cCode, taskObj, studentId);
+
+      activeCourseId = cCode;
+      activeProjectsFilter = cCode;
+      if (resolvedProjId) activeProjectId = resolvedProjId;
+      if (taskId) selectedTeacherAssessmentTaskId = taskId;
+      if (studentId) activeReviewStudentId = studentId;
+      if (typeof teacherTaskScope !== 'undefined') teacherTaskScope = 'all';
+      const searchEl = document.getElementById('teacherStudentSearchInput');
+      if (searchEl) searchEl.value = '';
+      teacherReviewViewMode = 'students';
+      navigateTo('teacher-review');
+    }
+
     function renderNotificationsScreen() {
       const container = document.getElementById('notificationsContainer');
       if (!container) return;
@@ -2828,16 +2874,17 @@
 
         const tId = item.taskId || item.targetTaskId || 'cmm321-t1';
         const sId = item.studentId || curStd.id;
-        const actionLabel = currentLanguage === 'th' ? (isTeacher ? 'ตรวจงาน →' : 'ดูรายละเอียดงาน →') : (isTeacher ? 'Review Work →' : 'View Task →');
+        const pId = item.projectId || '';
+        const actionLabel = currentLanguage === 'th' ? (isTeacher ? 'ดูสมาชิกโปรเจกต์ →' : 'ดูรายละเอียดงาน →') : (isTeacher ? 'Project Members →' : 'View Task →');
         const actionFn = isTeacher
-          ? `activeCourseId='${escapeHtml(item.course || 'CMM321')}'; teacherReviewViewMode='grading'; navigateTo('teacher-review'); gradeStudentTask('${escapeHtml(sId)}', '${escapeHtml(tId)}');`
+          ? `openTeacherNotificationTarget('${escapeHtml(item.course || 'CMM321')}', '${escapeHtml(tId)}', '${escapeHtml(sId)}', '${escapeHtml(pId)}')`
           : `openTaskDetails('${escapeHtml(tId)}')`;
         const btnClass = item.isNew
           ? 'bg-neutral-900 hover:bg-black text-white dark:bg-neutral-800 dark:hover:bg-neutral-700'
           : 'bg-neutral-700 hover:bg-neutral-900 text-white';
 
         card.innerHTML = `
-          <div class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+          <div onclick="${actionFn}" class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 cursor-pointer">
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 text-base sm:text-xl mt-0.5 sm:mt-0">
               ${item.type === 'grade' ? '🏅' : item.type === 'comment' ? '🔔' : '🏅'}
             </div>

@@ -2604,7 +2604,29 @@
       }
 
       const isTeacher = currentUserRole === 'teacher';
+      const isAdmin = currentUserRole === 'admin';
+      const isTh = typeof currentLanguage !== 'undefined' ? currentLanguage === 'th' : true;
       const curStudent = getCurrentStudent();
+      const resolveProjMembers = (proj) => {
+        if (Array.isArray(proj.members) && proj.members.length > 0) return proj.members;
+        const cObj = typeof coursesCatalog !== 'undefined' ? coursesCatalog[proj.course] : null;
+        const seen = new Set();
+        const out = [];
+        if (cObj && Array.isArray(cObj.tasks)) {
+          cObj.tasks.filter(t => t.projectId === proj.id).forEach(t => {
+            const rawList = Array.isArray(t.assignees) && t.assignees.length ? t.assignees : (Array.isArray(t.memberIds) ? t.memberIds : []);
+            rawList.forEach(item => {
+              const idStr = String(item || '');
+              const idMatch = idStr.match(/\d{11}/);
+              const stuId = idMatch ? idMatch[0] : idStr;
+              const stu = typeof studentDirectory !== 'undefined' ? studentDirectory[stuId] : null;
+              const label = stu ? `${stu.id} ${stu.shortName || stu.fullName}` : idStr;
+              if (label && !seen.has(label)) { seen.add(label); out.push(label); }
+            });
+          });
+        }
+        return out;
+      };
 
       displayList.forEach(p => {
         const tasks = p.tasks || [];
@@ -2613,12 +2635,19 @@
         const pendingReviewTask = tasks.find(t => t.status === 'Needs Review');
         const revisionTask = tasks.find(t => t.status === 'Revision Requested');
         const pct = totalTasks > 0 ? Math.round((approvedTasks / totalTasks) * 100) : 0;
+        const projMembers = resolveProjMembers(p);
 
         const card = document.createElement('div');
         card.className = 'bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition space-y-4';
 
         let statusBadgeHtml = '';
-        if (pendingReviewTask) {
+        if (isAdmin) {
+          statusBadgeHtml = `
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+              ${isTh ? 'โปรเจกต์' : 'Project'}
+            </span>
+          `;
+        } else if (pendingReviewTask) {
           statusBadgeHtml = `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 animate-pulse">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -2664,6 +2693,7 @@
               </p>
             </div>
 
+            ${!isAdmin ? `
             <div class="space-y-1.5 pt-1">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-neutral-500">ความก้าวหน้ารวม</span>
@@ -2677,26 +2707,27 @@
                 <span>${totalTasks - approvedTasks} คงเหลือ</span>
               </div>
             </div>
+            ` : ''}
 
             <div class="pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
               <div class="flex flex-wrap gap-1">
-                ${(p.members || []).slice(0, 3).map(m => `
+                ${projMembers.slice(0, 3).map(m => `
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
                     👤 ${escapeHtml(m.split(' ')[1] || m)}
                   </span>
                 `).join('')}
               </div>
-              <span class="text-[10px] text-neutral-400">${(p.members || []).length} คน</span>
+              <span class="text-[10px] text-neutral-400">${projMembers.length} คน</span>
             </div>
           </div>
 
           <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2">
             <button onclick="openProjectMilestoneDetail('${p.id}')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-              pendingReviewTask
+              (!isAdmin && pendingReviewTask)
                 ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs'
                 : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200'
             }">
-              <span>${isTeacher ? (pendingReviewTask ? 'ตรวจงาน (รอตรวจ)' : 'ตรวจความคืบหน้า') : 'เปิดแผนงาน & ส่งงาน'}</span>
+              <span>${isAdmin ? (isTh ? 'ดูรายละเอียดโปรเจกต์' : 'View Project Details') : (isTeacher ? (pendingReviewTask ? 'ตรวจงาน (รอตรวจ)' : 'ตรวจความคืบหน้า') : 'เปิดแผนงาน & ส่งงาน')}</span>
               <span>→</span>
             </button>
             ${!isTeacher ? `
@@ -2728,57 +2759,96 @@
       document.getElementById('pdetailDesc').textContent = p.description;
 
       const isTeacher = currentUserRole === 'teacher';
+      const isAdmin = currentUserRole === 'admin';
+      const isTh = typeof currentLanguage !== 'undefined' ? currentLanguage === 'th' : true;
       const roleBadge = document.getElementById('pdetailRoleBadge');
       if (roleBadge) {
-        roleBadge.textContent = isTeacher ? '👨‍🏫 Teacher Mode' : '🎓 Student Mode';
-        roleBadge.className = isTeacher ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300';
+        if (isAdmin) {
+          roleBadge.textContent = isTh ? '🛡️ โหมดผู้ดูแลระบบ' : '🛡️ Admin Mode';
+          roleBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900';
+        } else {
+          roleBadge.textContent = isTeacher ? '👨‍🏫 Teacher Mode' : '🎓 Student Mode';
+          roleBadge.className = isTeacher ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300';
+        }
       }
 
       const btnAddStep = document.getElementById('btnPdetailAddStep');
-      if (btnAddStep) {
-        if (isTeacher) btnAddStep.classList.add('hidden');
-        else btnAddStep.classList.remove('hidden');
-      }
+      if (btnAddStep) btnAddStep.classList.toggle('hidden', isTeacher || isAdmin);
 
-      const tasks = p.tasks || [];
-      const totalTasks = tasks.length;
-      const approvedTasks = tasks.filter(t => t.status === 'Approved').length;
-      const pct = totalTasks > 0 ? Math.round((approvedTasks / totalTasks) * 100) : 0;
+      const progressBox = document.getElementById('pdetailProgressBox');
+      if (progressBox) progressBox.classList.toggle('hidden', isAdmin);
 
-      document.getElementById('pdetailProgressPct').textContent = pct + '%';
-      document.getElementById('pdetailProgressBar').style.width = pct + '%';
-      document.getElementById('pdetailStepsSummary').textContent = 'ผ่าน ' + approvedTasks + ' จาก ' + totalTasks + ' ขั้นตอน';
+      const milestoneSection = document.getElementById('pdetailMilestoneTasksSection');
+      if (milestoneSection) milestoneSection.classList.toggle('hidden', isAdmin);
 
-      const pendingReviewTask = tasks.find(t => t.status === 'Needs Review');
-      const revisionTask = tasks.find(t => t.status === 'Revision Requested');
-      const hint = document.getElementById('pdetailStatusHint');
-      if (pendingReviewTask) {
-        hint.textContent = 'มีขั้นตอนรออาจารย์ตรวจ';
-        hint.className = 'text-amber-500 font-semibold';
-      } else if (revisionTask) {
-        hint.textContent = 'มีงานต้องปรับปรุงแก้ไข';
-        hint.className = 'text-rose-500 font-semibold';
-      } else if (pct === 100) {
-        hint.textContent = 'โครงงานเสร็จสมบูรณ์';
-        hint.className = 'text-emerald-500 font-semibold';
-      } else {
-        hint.textContent = 'กำลังดำเนินการ';
-        hint.className = 'text-neutral-500 font-semibold';
+      if (!isAdmin) {
+        const tasks = p.tasks || [];
+        const totalTasks = tasks.length;
+        const approvedTasks = tasks.filter(t => t.status === 'Approved').length;
+        const pct = totalTasks > 0 ? Math.round((approvedTasks / totalTasks) * 100) : 0;
+
+        document.getElementById('pdetailProgressPct').textContent = pct + '%';
+        document.getElementById('pdetailProgressBar').style.width = pct + '%';
+        document.getElementById('pdetailStepsSummary').textContent = 'ผ่าน ' + approvedTasks + ' จาก ' + totalTasks + ' ขั้นตอน';
+
+        const pendingReviewTask = tasks.find(t => t.status === 'Needs Review');
+        const revisionTask = tasks.find(t => t.status === 'Revision Requested');
+        const hint = document.getElementById('pdetailStatusHint');
+        if (pendingReviewTask) {
+          hint.textContent = 'มีขั้นตอนรออาจารย์ตรวจ';
+          hint.className = 'text-amber-500 font-semibold';
+        } else if (revisionTask) {
+          hint.textContent = 'มีงานต้องปรับปรุงแก้ไข';
+          hint.className = 'text-rose-500 font-semibold';
+        } else if (pct === 100) {
+          hint.textContent = 'โครงงานเสร็จสมบูรณ์';
+          hint.className = 'text-emerald-500 font-semibold';
+        } else {
+          hint.textContent = 'กำลังดำเนินการ';
+          hint.className = 'text-neutral-500 font-semibold';
+        }
       }
 
       const membersContainer = document.getElementById('pdetailMembersContainer');
       membersContainer.innerHTML = '';
-      (p.members || []).forEach(m => {
-        const idMatch = m.match(/\d{11}/);
-        const stuId = idMatch ? idMatch[0] : '';
-        const stu = studentDirectory[stuId] || { initials: 'ST', shortName: m };
-        const el = document.createElement('span');
-        el.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-200';
-        el.innerHTML = `<span class="w-4 h-4 rounded-md bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center">${stu.initials}</span> ${stu.shortName || m}`;
-        membersContainer.appendChild(el);
-      });
+      let resolvedMembers = Array.isArray(p.members) && p.members.length > 0 ? p.members : [];
+      if (resolvedMembers.length === 0 && typeof coursesCatalog !== 'undefined' && coursesCatalog[p.course] && Array.isArray(coursesCatalog[p.course].tasks)) {
+        const seenM = new Set();
+        coursesCatalog[p.course].tasks.filter(t => t.projectId === p.id).forEach(t => {
+          const rawList = Array.isArray(t.assignees) && t.assignees.length ? t.assignees : (Array.isArray(t.memberIds) ? t.memberIds : []);
+          rawList.forEach(item => {
+            const idStr = String(item || '');
+            const idMatch = idStr.match(/\d{11}/);
+            const stuId = idMatch ? idMatch[0] : idStr;
+            const stu = studentDirectory[stuId];
+            const label = stu ? `${stu.id} ${stu.shortName || stu.fullName}` : idStr;
+            if (label && !seenM.has(label)) { seenM.add(label); resolvedMembers.push(label); }
+          });
+        });
+      }
+      if (resolvedMembers.length === 0) {
+        const emptyEl = document.createElement('span');
+        emptyEl.className = 'text-xs text-neutral-400';
+        emptyEl.textContent = isTh ? 'ยังไม่มีสมาชิกในโปรเจกต์นี้' : 'No members assigned yet';
+        membersContainer.appendChild(emptyEl);
+      } else {
+        resolvedMembers.forEach(m => {
+          const idMatch = m.match(/\d{11}/);
+          const stuId = idMatch ? idMatch[0] : '';
+          const stu = studentDirectory[stuId] || { initials: 'ST', shortName: m };
+          const el = document.createElement('span');
+          el.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-200';
+          el.innerHTML = `<span class="w-4 h-4 rounded-md bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center">${stu.initials}</span> ${stu.shortName || m}`;
+          membersContainer.appendChild(el);
+        });
+      }
 
-      renderProjectMilestoneSteps(p);
+      if (isAdmin) {
+        const stepsEl = document.getElementById('pdetailStepsListContainer');
+        if (stepsEl) stepsEl.innerHTML = '';
+      } else {
+        renderProjectMilestoneSteps(p);
+      }
     }
 
     function closeProjectMilestoneDetail() {
