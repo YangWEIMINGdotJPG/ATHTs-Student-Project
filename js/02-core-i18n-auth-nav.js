@@ -1,0 +1,1645 @@
+    const uiPhrasePairs = [
+      ['ATHT Student Project', 'ระบบจัดการโครงงานนักศึกษา ATHT'],
+      ['LOGIN', 'เข้าสู่ระบบ'],
+      ['Email / Student ID', 'อีเมล / รหัสนักศึกษา'],
+      ['Password', 'รหัสผ่าน'],
+      ['Remember me', 'จดจำฉันไว้'],
+      ['Forgot Password?', 'ลืมรหัสผ่าน?'],
+      ['Quick Role Access (Demo Accounts)', 'เข้าสู่ระบบด่วน (บัญชีทดลอง)'],
+      ['🎓 Student', '🎓 นักศึกษา'],
+      ['👨‍🏫 Teacher', '👨‍🏫 อาจารย์'],
+      ['🛡️ Admin', '🛡️ ผู้ดูแลระบบ'],
+      ['Notifications', 'การแจ้งเตือน'],
+      ['Notification', 'การแจ้งเตือน'],
+      ['Sign Out', 'ออกจากระบบ'],
+      ['Home', 'หน้าหลัก'],
+      ['← Back', '← ย้อนกลับ'],
+      ['KMUTT Connected', 'เชื่อมต่อ มจธ. แล้ว'],
+      ['Academic Term 1/2026', 'ภาคการศึกษา 1/2569'],
+      ['SEMESTER 1 / 2026', 'ภาคการศึกษาที่ 1 / 2569'],
+      ['Courses', 'รายวิชา'],
+      ['All Tasks', 'งานทั้งหมด'],
+      ['Projects', 'โปรเจกต์'],
+      ['Project', 'โปรเจกต์'],
+      ['Select a subject to view course projects & deliverables', 'เลือกรายวิชาเพื่อดูโปรเจกต์และงานที่ต้องส่ง'],
+      ['Enrolled Courses', 'รายวิชาที่ลงทะเบียน'],
+      ['Semester 1 / 2026 Academic Term • Computer Multimedia', 'ภาคการศึกษา 1/2569 • สาขาวิชาคอมพิวเตอร์และสื่อมัลติมีเดีย'],
+      ['Overview', 'ภาพรวม'],
+      ['COMPLETED TASKS', 'งานที่ส่งแล้ว'],
+      ['Completed Tasks', 'งานที่ส่งแล้ว'],
+      ['COURSE TASKS', 'งานในรายวิชา'],
+      ['Course Tasks', 'งานในรายวิชา'],
+      ['Publish Date', 'วันที่ประกาศ'],
+      ['Due Date', 'กำหนดส่ง'],
+      ['Team Members', 'สมาชิกในทีม'],
+      ['UPLOAD ASSIGNMENT', 'ส่งงาน / อัปโหลดไฟล์'],
+      ['Attach assignment file', 'แนบไฟล์งาน'],
+      ['Click or drag & drop solution files here to upload', 'คลิกหรือลากไฟล์งานมาวางที่นี่เพื่ออัปโหลด'],
+      ['PDF, ZIP or PNG', 'รองรับไฟล์ PDF, ZIP หรือ PNG'],
+      ['UPLOAD FILES', 'ส่งงาน'],
+      ['FILES', 'ไฟล์งาน'],
+      ['FILES & SUBMISSIONS', 'ไฟล์งานและประวัติการส่ง'],
+      ['DOWNLOAD FILE', 'ดาวน์โหลดไฟล์'],
+      ['DESCRIPTION', 'รายละเอียด'],
+      ['Description', 'รายละเอียด'],
+      ['Feedback Note', 'ข้อเสนอแนะจากอาจารย์'],
+      ['Grade Score', 'คะแนน'],
+      ['Send', 'บันทึกคะแนน'],
+      ['Create Project', '+ สร้างโปรเจกต์'],
+      ['+ Create Project', '+ สร้างโปรเจกต์'],
+      ['Add Task', 'เพิ่มงาน'],
+      ['+ Add Task', '+ เพิ่มงาน'],
+      ['Edit Task', 'แก้ไขงาน'],
+      ['Submit', 'บันทึก'],
+      ['Cancel', 'ยกเลิก'],
+      ['Close', 'ปิด'],
+      ['Save', 'บันทึก'],
+      ['Delete', 'ลบ'],
+      ['View', 'ดูงาน'],
+      ['EDIT', 'แก้ไข'],
+      ['Edit', 'แก้ไข'],
+      ['Task', 'ชื่องาน'],
+      ['Tasks', 'รายการงาน'],
+      ['Date modified', 'วันที่แก้ไขล่าสุด'],
+      ['Status', 'สถานะ'],
+      ['Email', 'อีเมล'],
+      ['Student', 'นักศึกษา'],
+      ['Teacher', 'อาจารย์'],
+      ['Admin', 'ผู้ดูแลระบบ'],
+      ['Timetable', 'ตารางเรียนและกำหนดส่ง'],
+      ['Timetable & Due Dates', 'ตารางเรียนและกำหนดส่ง'],
+      ['Project Due Dates & Timetable', 'กำหนดส่งโปรเจกต์และตารางสอน'],
+      ['Term', 'เทอมนี้'],
+      ['Active Courses', 'รายวิชาที่เปิดสอน'],
+      ['Students', 'นักศึกษา'],
+      ['Teachers', 'อาจารย์ผู้สอน'],
+      ['All Users', 'ผู้ใช้ทั้งหมด'],
+      ['Active Only', 'ใช้งานอยู่เท่านั้น'],
+      ['Suspended / Inactive', 'ระงับการใช้งาน'],
+      ['Add Student', 'เพิ่มนักศึกษา'],
+      ['Add Teacher', 'เพิ่มอาจารย์'],
+      ['Course Projects', 'โปรเจกต์ในรายวิชา'],
+      ['Student Projects', 'โปรเจกต์นักศึกษา'],
+      ['← Projects', '← กลับหน้าโปรเจกต์'],
+      ['← รายชื่อนักศึกษา', '← รายชื่อนักศึกษา'],
+      ['← กลับหน้ารายชื่อนักศึกษา', '← กลับหน้ารายชื่อนักศึกษา'],
+      ['📁 Projects', '📁 โปรเจกต์'],
+      ['Filter: All Status', 'ตัวกรอง: ทุกสถานะ'],
+      ['Filter: ส่งแล้ว (Complete)', 'ตัวกรอง: ส่งแล้ว'],
+      ['Filter: รอแก้ (Revision)', 'ตัวกรอง: รอแก้'],
+      ['Filter: ยังไม่ส่ง (Uncompleted)', 'ตัวกรอง: ยังไม่ส่ง'],
+      ['Sort: ID น้อย → มาก', 'เรียง: รหัส น้อย → มาก'],
+      ['Sort: ID มาก → น้อย', 'เรียง: รหัส มาก → น้อย'],
+      ['Sort: ชื่อ A → Z', 'เรียง: ชื่อ A → Z'],
+      ['ส่งแก้ (รอแก้)', 'ส่งแก้ (รอแก้)'],
+      ['กำลังตรวจงานนักศึกษา', 'กำลังตรวจงานนักศึกษา'],
+      ['รายการงานที่ส่งในรายวิชานี้ (Tasks)', 'รายการงานที่ส่งในรายวิชานี้ (Tasks)'],
+      ['ยังไม่มีไฟล์ส่งงาน', 'ยังไม่มีไฟล์ส่งงาน'],
+      ['นักศึกษายังไม่ได้อัปโหลดไฟล์งาน', 'นักศึกษายังไม่ได้อัปโหลดไฟล์งาน'],
+      ['ยังไม่มีประวัติการส่งงาน', 'ยังไม่มีประวัติการส่งงาน'],
+      ['System Festival Theme (Global)', 'ธีมเทศกาลทั้งระบบ (ใช้ร่วมกันทุกบทบาท)'],
+      ['Notifications & Announcements', 'การแจ้งเตือนและประกาศ'],
+      ['Class announcements, grades published, & project team updates', 'ประกาศจากชั้นเรียน ผลคะแนน และความคืบหน้าของทีม'],
+      ['Track and filter assignments across all enrolled subjects', 'ติดตามและคัดกรองงานที่ได้รับมอบหมายในทุกรายวิชา'],
+      ['All Course Tasks', 'งานในรายวิชาทั้งหมด']
+    ];
+
+    const uiEnToTh = new Map(uiPhrasePairs);
+    const uiThToEn = new Map();
+    uiPhrasePairs.forEach(([en, th]) => {
+      if (!uiThToEn.has(th)) uiThToEn.set(th, en);
+    });
+    // Extra reverse mappings for mixed strings
+    uiThToEn.set('ตัวกรอง: ทุกสถานะ', 'Filter: All Status');
+    uiThToEn.set('ตัวกรอง: ส่งแล้ว', 'Filter: Complete');
+    uiThToEn.set('ตัวกรอง: รอแก้', 'Filter: Revision');
+    uiThToEn.set('ตัวกรอง: ยังไม่ส่ง', 'Filter: Uncompleted');
+    uiThToEn.set('Filter: ส่งแล้ว (Complete)', 'Filter: Complete');
+    uiThToEn.set('Filter: รอแก้ (Revision)', 'Filter: Revision');
+    uiThToEn.set('Filter: ยังไม่ส่ง (Uncompleted)', 'Filter: Uncompleted');
+    uiThToEn.set('เรียง: รหัส น้อย → มาก', 'Sort: ID Asc');
+    uiThToEn.set('เรียง: รหัส มาก → น้อย', 'Sort: ID Desc');
+    uiThToEn.set('เรียง: ชื่อ A → Z', 'Sort: Name A → Z');
+    uiThToEn.set('Sort: ID น้อย → มาก', 'Sort: ID Asc');
+    uiThToEn.set('Sort: ID มาก → น้อย', 'Sort: ID Desc');
+    uiThToEn.set('Sort: ชื่อ A → Z', 'Sort: Name A → Z');
+    uiThToEn.set('ส่งแก้ (รอแก้)', 'Request Revision');
+    uiThToEn.set('กำลังตรวจงานนักศึกษา', 'Reviewing Student Submission');
+    uiThToEn.set('รายการงานที่ส่งในรายวิชานี้ (Tasks)', 'Submitted Tasks History (Tasks)');
+    uiThToEn.set('← รายชื่อนักศึกษา', '← Student List');
+    uiThToEn.set('ยังไม่มีไฟล์ส่งงาน', 'No file submitted yet');
+    uiThToEn.set('นักศึกษายังไม่ได้อัปโหลดไฟล์งาน', 'Student has not uploaded a file yet');
+    uiThToEn.set('ยังไม่มีประวัติการส่งงาน', 'No submission history yet');
+    uiThToEn.set('ยังไม่มีข้อเสนอแนะ', 'No feedback yet');
+    uiThToEn.set('ส่งแล้ว', 'Submitted');
+    uiThToEn.set('รอแก้', 'Revision');
+    uiThToEn.set('ยังไม่ส่ง', 'Uncompleted');
+
+    function findPhraseTranslation(text, lang) {
+      if (!text) return null;
+      const trimmed = text.trim();
+      if (!trimmed) return null;
+      if (lang === 'th') {
+        if (uiEnToTh.has(trimmed)) return uiEnToTh.get(trimmed);
+        let m;
+        if ((m = trimmed.match(/^(\d+)\s+Students?$/i))) return `${m[1]} คน`;
+        if ((m = trimmed.match(/^(\d+)\s+Tasks?$/i))) return `${m[1]} งาน`;
+        if ((m = trimmed.match(/^(\d+)\s+Members?$/i))) return `${m[1]} สมาชิก`;
+        if ((m = trimmed.match(/^(\d+)\s+Projects?$/i))) return `${m[1]} โปรเจกต์`;
+        return null;
+      } else {
+        if (uiThToEn.has(trimmed)) return uiThToEn.get(trimmed);
+        let m;
+        if ((m = trimmed.match(/^ส่งแล้ว\s*\((\d+\/\d+)\s*งาน\)$/))) return `Submitted (${m[1]} Tasks)`;
+        if ((m = trimmed.match(/^รอแก้\s*\((\d+\/\d+)\s*งาน\)$/))) return `Revision (${m[1]} Tasks)`;
+        if ((m = trimmed.match(/^ยังไม่ส่ง\s*\((\d+\/\d+)\s*งาน\)$/))) return `Uncompleted (${m[1]} Tasks)`;
+        if ((m = trimmed.match(/^ส่งแล้ว\s*\((\d+)\s*ครั้ง\)$/))) return `Submitted (${m[1]})`;
+        if ((m = trimmed.match(/^รอแก้\s*\((\d+)\s*ครั้ง\)$/))) return `Revision (${m[1]})`;
+        if ((m = trimmed.match(/^ครั้งที่\s*(\d+)\s*\(([^)]+)\)$/))) {
+          const tag = m[2] === 'รอแก้' ? 'Revision' : 'Submitted';
+          return `Attempt #${m[1]} (${tag})`;
+        }
+        if ((m = trimmed.match(/^ส่งงานทั้งหมด\s*(\d+)\s*ครั้ง$/))) return `${m[1]} Submissions`;
+        if ((m = trimmed.match(/^(\d+)\s+คน$/))) return `${m[1]} Students`;
+        if ((m = trimmed.match(/^(\d+)\s+งาน$/))) return `${m[1]} Tasks`;
+        if ((m = trimmed.match(/^(\d+)\s+สมาชิก$/))) return `${m[1]} Members`;
+        if ((m = trimmed.match(/^(\d+)\s+โปรเจกต์$/))) return `${m[1]} Projects`;
+        return null;
+      }
+    }
+
+    function translateDOM(lang) {
+      if (typeof document === 'undefined' || !document.querySelectorAll) return;
+      const nodes = document.querySelectorAll('h1,h2,h3,h4,h5,p,span,label,button,option,th,a');
+      nodes.forEach(el => {
+        if (!el || el.children.length > 0) return;
+        if (el.hasAttribute && el.hasAttribute('data-i18n')) return;
+        const cur = (el.innerText || '').trim();
+        if (!cur) return;
+
+        // Only translate if current text (or previously translated text matching what we wrote) is a known UI phrase!
+        let mapped = findPhraseTranslation(cur, lang);
+        if (mapped === null && el.dataset && el.dataset.i18nLastApplied === cur && el.dataset.i18nOrig) {
+          mapped = findPhraseTranslation(el.dataset.i18nOrig, lang);
+          if (mapped === null && (el.dataset.i18nOrig === cur || uiEnToTh.has(el.dataset.i18nOrig) || uiThToEn.has(el.dataset.i18nOrig))) {
+            mapped = el.dataset.i18nOrig;
+          }
+        }
+        if (mapped !== null) {
+          if (el.dataset) {
+            if (!el.dataset.i18nOrig || el.dataset.i18nLastApplied !== cur) {
+              el.dataset.i18nOrig = cur;
+            }
+            el.dataset.i18nLastApplied = mapped;
+          }
+          if (mapped !== cur) {
+            el.innerText = mapped;
+          }
+        }
+      });
+
+      const placeholderPairs = [
+        ['Search ID, Name, Email...', 'ค้นหารหัส, ชื่อ, อีเมล...'],
+        ['ค้นหาชื่อนักศึกษา หรือรหัส ID...', 'Search student name or ID...'],
+        ['พิมพ์ข้อเสนอแนะหรือจุดที่ต้องแก้ไข...', 'Write feedback or revision notes...'],
+        ['Reply to instructor...', 'ตอบกลับอาจารย์ผู้สอน...']
+      ];
+      document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(inp => {
+        if (!inp.dataset) return;
+        if (!inp.dataset.i18nPhOrig) inp.dataset.i18nPhOrig = inp.placeholder || '';
+        const origPh = inp.dataset.i18nPhOrig;
+        for (const [enPh, thPh] of placeholderPairs) {
+          if (origPh === enPh || origPh === thPh) {
+            inp.placeholder = lang === 'th' ? thPh : enPh;
+            break;
+          }
+        }
+      });
+    }
+
+    function applyLanguage(lang) {
+      currentLanguage = lang || 'en';
+      localStorage.setItem('atht_lang', currentLanguage);
+
+      const headerLangText = document.getElementById('headerLangText');
+      const loginLangText = document.getElementById('loginLangText');
+      const drawerLangText = document.getElementById('drawerLangText');
+
+      if (headerLangText) headerLangText.innerText = currentLanguage === 'en' ? 'EN' : 'TH';
+      if (loginLangText) loginLangText.innerText = currentLanguage === 'en' ? 'EN' : 'TH';
+      if (drawerLangText) drawerLangText.innerText = currentLanguage === 'en' ? 'English (EN)' : 'ไทย (TH)';
+
+      const elements = document.querySelectorAll('[data-i18n]');
+      elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLanguage] && translations[currentLanguage][key]) {
+          el.innerText = translations[currentLanguage][key];
+        }
+      });
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const drawerThemeText = document.getElementById('drawerThemeText');
+      if (drawerThemeText) {
+        drawerThemeText.innerText = isDark
+          ? (currentLanguage === 'th' ? 'โหมดสว่าง' : 'Light')
+          : (currentLanguage === 'th' ? 'โหมดมืด' : 'Dark');
+      }
+
+      if (currentScreen) {
+        updateBreadcrumbUI(currentScreen);
+        renderDrawerLinks();
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (currentScreen === 'dashboard' && typeof renderDashboardCourses === 'function') renderDashboardCourses();
+        if (currentScreen === 'teacher-dashboard' && typeof renderTeacherDashboard === 'function') renderTeacherDashboard();
+        if (currentScreen === 'teacher-review' && typeof renderTeacherReviewScreen === 'function') renderTeacherReviewScreen();
+        if (currentScreen === 'projects' && typeof renderProjectsScreen === 'function') renderProjectsScreen();
+        if (currentScreen === 'tasks-hub' && typeof renderGlobalTasksHub === 'function') renderGlobalTasksHub();
+        if (currentScreen === 'course-detail' && typeof renderCourseDetailPage === 'function') renderCourseDetailPage();
+        if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
+        if (currentScreen === 'admin' && typeof renderAdminScreen === 'function') renderAdminScreen();
+      }
+      translateDOM(currentLanguage);
+    }
+
+    function toggleLanguage() {
+      const nextLang = currentLanguage === 'en' ? 'th' : 'en';
+      applyLanguage(nextLang);
+      alertMessage(nextLang === 'th' ? 'สลับภาษา: ไทย 🇹🇭' : 'Language: English 🇺🇸');
+    }
+
+    function updateThemeIcons(isDark) {
+      const headerIcon = document.getElementById('headerThemeIcon');
+      const loginIcon = document.getElementById('loginThemeIcon');
+      const drawerIcon = document.getElementById('drawerThemeIcon');
+      const drawerThemeText = document.getElementById('drawerThemeText');
+
+      const icon = isDark ? '☀️' : '🌙';
+      if (headerIcon) headerIcon.innerText = icon;
+      if (loginIcon) loginIcon.innerText = icon;
+      if (drawerIcon) drawerIcon.innerText = icon;
+
+      if (drawerThemeText) {
+        drawerThemeText.innerText = isDark
+          ? (currentLanguage === 'th' ? 'โหมดสว่าง' : 'Light')
+          : (currentLanguage === 'th' ? 'โหมดมืด' : 'Dark');
+      }
+    }
+
+    const FESTIVAL_META = {
+      default: { badge: '💙 Blue Vibe', pill: '💙 Blue & White Edition • Gen Z' },
+      christmas: { badge: '🎄 Merry Xmas', pill: '🎄 Christmas Festival Theme' },
+      halloween: { badge: '🎃 Spooky Mode', pill: '🎃 Halloween Festival Theme' },
+      songkran: { badge: '💦 Songkran Splash', pill: '💦 Songkran Water Festival' },
+      loykrathong: { badge: '🏮 Loy Krathong', pill: '🏮 Loy Krathong Moonlight' },
+      valentine: { badge: '💖 Sweet Vibe', pill: '💖 Valentine\'s Festival Theme' },
+      cny: { badge: '🧧 Happy CNY', pill: '🧧 Chinese New Year Theme' }
+    };
+
+    const FESTIVAL_EFFECTS = {
+      christmas: { icons: ['❄️', '❅', '🎄', '✨'], mode: 'fall', count: 22 },
+      halloween: { icons: ['🎃', '👻', '🦇', '✨'], mode: 'float', count: 16 },
+      songkran: { icons: ['💧', '💦', '🫧', '✨'], mode: 'fall', count: 22 },
+      loykrathong: { icons: ['🏮', '✨', '🪷', '🌕'], mode: 'rise', count: 18 },
+      valentine: { icons: ['💖', '💕', '🌸', '✨'], mode: 'rise', count: 20 },
+      cny: { icons: ['🧧', '🏮', '✨', '🪙'], mode: 'fall', count: 20 }
+    };
+
+    function renderFestivalEffects(themeKey) {
+      const layer = document.getElementById('festivalEffectsLayer');
+      if (!layer) return;
+      layer.innerHTML = '';
+      if (!themeKey || themeKey === 'default' || !FESTIVAL_EFFECTS[themeKey]) {
+        layer.classList.add('hidden');
+        return;
+      }
+      layer.classList.remove('hidden');
+      const cfg = FESTIVAL_EFFECTS[themeKey];
+      for (let i = 0; i < cfg.count; i++) {
+        const el = document.createElement('span');
+        el.className = 'fest-particle';
+        el.innerText = cfg.icons[i % cfg.icons.length];
+        const left = ((i * 37 + (i % 5) * 11) % 96) + 2;
+        const size = 14 + (i % 4) * 5;
+        const duration = 7 + (i % 6) * 2.2;
+        const delay = -((i * 1.37) % duration);
+        el.style.left = left + '%';
+        el.style.fontSize = size + 'px';
+        if (cfg.mode === 'fall') {
+          el.style.top = '-8%';
+          el.style.animation = `festFall ${duration}s linear ${delay}s infinite`;
+        } else if (cfg.mode === 'rise') {
+          el.style.top = '0';
+          el.style.animation = `festRise ${duration}s linear ${delay}s infinite`;
+        } else {
+          const top = ((i * 29 + 11) % 82) + 8;
+          el.style.top = top + '%';
+          el.style.opacity = '0.55';
+          el.style.animation = `festFloat ${4 + (i % 3) * 1.5}s ease-in-out ${delay}s infinite`;
+        }
+        layer.appendChild(el);
+      }
+    }
+
+    function getGlobalFestivalTheme() {
+      try {
+        return localStorage.getItem('atht_global_festival_theme') || localStorage.getItem('atht_festival_theme') || 'default';
+      } catch (e) {
+        return 'default';
+      }
+    }
+
+    function applyFestivalThemeToUI(themeKey) {
+      const key = FESTIVAL_META[themeKey] ? themeKey : 'default';
+      document.documentElement.setAttribute('data-festival', key);
+      const hdrSel = document.getElementById('festivalThemeSelect');
+      if (hdrSel && hdrSel.value !== key) hdrSel.value = key;
+      const adminSel = document.getElementById('adminGlobalThemeSelect');
+      if (adminSel && adminSel.value !== key) adminSel.value = key;
+      const badge = document.getElementById('headerFestivalBadge');
+      if (badge) badge.innerText = FESTIVAL_META[key].badge;
+      renderFestivalEffects(key);
+    }
+
+    function setFestivalTheme(themeKey) {
+      if (currentUserRole !== 'admin') {
+        alertMessage('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถเปลี่ยนธีมทั้งระบบได้');
+        applyFestivalThemeToUI(getGlobalFestivalTheme());
+        return;
+      }
+      const key = FESTIVAL_META[themeKey] ? themeKey : 'default';
+      try {
+        localStorage.setItem('atht_global_festival_theme', key);
+        localStorage.setItem('atht_festival_theme', key);
+      } catch (e) {}
+      applyFestivalThemeToUI(key);
+      alertMessage(`อัปเดตธีมระบบเป็น ${FESTIVAL_META[key].badge} สำหรับอาจารย์และนักศึกษาทุกคนแล้ว`);
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'atht_global_festival_theme' || e.key === 'atht_festival_theme') {
+        applyFestivalThemeToUI(e.newValue || 'default');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applyFestivalThemeToUI(getGlobalFestivalTheme());
+    });
+
+    function spawnInteractiveClickEffect(x, y) {
+      const ripple = document.createElement('span');
+      ripple.className = 'gz-click-ripple';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 550);
+
+      const activeTheme = document.documentElement.getAttribute('data-festival') || 'default';
+      const cfg = FESTIVAL_EFFECTS[activeTheme];
+      if (!cfg) return;
+
+      const burstCount = 6;
+      for (let i = 0; i < burstCount; i++) {
+        const p = document.createElement('span');
+        p.className = 'gz-click-burst';
+        p.innerText = cfg.icons[i % cfg.icons.length];
+        const angle = (Math.PI * 2 * i) / burstCount + (Math.random() * 0.4 - 0.2);
+        const dist = 28 + Math.random() * 26;
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        p.style.setProperty('--tx', Math.round(Math.cos(angle) * dist) + 'px');
+        p.style.setProperty('--ty', Math.round(Math.sin(angle) * dist - 10) + 'px');
+        p.style.setProperty('--rot', Math.round(Math.random() * 140 - 70) + 'deg');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 650);
+      }
+    }
+
+    document.addEventListener('pointerdown', (e) => {
+      if (e.button !== undefined && e.button !== 0) return;
+      spawnInteractiveClickEffect(e.clientX, e.clientY);
+    }, { passive: true });
+
+    function toggleTheme() {
+      const isCurrentlyDark = document.documentElement.classList.contains('dark');
+      const willBeDark = !isCurrentlyDark;
+
+      if (willBeDark) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('atht_theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('atht_theme', 'light');
+      }
+
+      updateThemeIcons(willBeDark);
+      alertMessage(willBeDark
+        ? (currentLanguage === 'th' ? 'เปิดโหมดมืด (Dark Mode) 🌙' : 'Dark Mode enabled 🌙')
+        : (currentLanguage === 'th' ? 'เปิดโหมดสว่าง (Light Mode) ☀️' : 'Light Mode enabled ☀️')
+      );
+    }
+
+    function handleForgotPassword() {
+      alertMessage(t('pwdResetSent', 'Password reset link sent to registered KMUTT mail.'));
+    }
+
+    function setLoginRole(role) {
+      currentUserRole = role;
+      const emailInput = document.getElementById('loginEmail');
+      if (emailInput) {
+        emailInput.value = role === 'teacher' ? 'suripong.ler@kmutt.ac.th' : 'chonchanok.s@kmutt.ac.th';
+      }
+    }
+
+    function toggleUserRole() {
+      if (currentUserRole === 'student') {
+        currentUserRole = 'teacher';
+        localStorage.setItem('atht_user_role', 'teacher');
+        const teacher = getCurrentTeacher();
+        navigateTo('teacher-dashboard');
+        alertMessage(`Switched to Teacher View (${teacher.shortName})`);
+      } else {
+        currentUserRole = 'student';
+        localStorage.setItem('atht_user_role', 'student');
+        const curStd = getCurrentStudent();
+        navigateTo('dashboard');
+        alertMessage(`Switched to Student View (${curStd.shortName})`);
+      }
+    }
+
+    function handleDuePillClick() {
+      if (currentUserRole === 'admin') {
+        navigateTo('admin');
+      } else if (currentUserRole === 'teacher') {
+        navigateTo('teacher-dashboard');
+      } else {
+        navigateTo('tasks-hub');
+      }
+    }
+
+    function handleLogoClick() {
+      if (currentUserRole === 'admin') {
+        navigateTo('admin');
+      } else if (currentUserRole === 'teacher') {
+        navigateTo('teacher-dashboard');
+      } else {
+        navigateTo('dashboard');
+      }
+    }
+
+    function populateLoginDemoDropdowns() {
+      const stuSel = document.getElementById('loginDemoStudentSelect');
+      if (stuSel && typeof studentDirectory === 'object') {
+        const curVal = stuSel.value || '67080200501';
+        stuSel.innerHTML = Object.values(studentDirectory)
+          .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
+          .map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.id)} - ${escapeHtml(s.fullName)}</option>`)
+          .join('');
+        if (studentDirectory[curVal]) stuSel.value = curVal;
+      }
+      const tchSel = document.getElementById('loginDemoTeacherSelect');
+      if (tchSel && typeof teacherDirectory === 'object') {
+        const curVal = tchSel.value || 'suripong.ler';
+        tchSel.innerHTML = Object.values(teacherDirectory)
+          .map(t => {
+            const cText = Array.isArray(t.courses) && t.courses.length ? ` (${t.courses.join(', ')})` : '';
+            return `<option value="${escapeHtml(t.id)}">${escapeHtml(t.fullName)}${escapeHtml(cText)}</option>`;
+          })
+          .join('');
+        if (teacherDirectory[curVal]) tchSel.value = curVal;
+      }
+    }
+
+    function onLoginDemoSelectChange(role, val) {
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+      if (role === 'teacher') {
+        const t = teacherDirectory[val];
+        if (emailInput) emailInput.value = t ? t.email : `${val}@kmutt.ac.th`;
+        if (passInput) passInput.value = 'teacher1234';
+        const prev = document.getElementById('loginDemoTeacherPreview');
+        if (prev) prev.innerText = val;
+      } else {
+        if (emailInput) emailInput.value = val;
+        if (passInput) passInput.value = 'student1234';
+        const prev = document.getElementById('loginDemoStudentPreview');
+        if (prev) prev.innerText = val;
+      }
+    }
+
+    function quickLoginAs(role) {
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+      if (role === 'admin') {
+        if (emailInput) emailInput.value = 'admin@kmutt.ac.th';
+        if (passInput) passInput.value = 'admin1234';
+      } else if (role === 'teacher') {
+        const tchVal = document.getElementById('loginDemoTeacherSelect')?.value || 'suripong.ler';
+        const t = teacherDirectory[tchVal];
+        if (emailInput) emailInput.value = t ? t.email : `${tchVal}@kmutt.ac.th`;
+        if (passInput) passInput.value = 'teacher1234';
+      } else {
+        const stuVal = document.getElementById('loginDemoStudentSelect')?.value || '67080200501';
+        if (emailInput) emailInput.value = stuVal;
+        if (passInput) passInput.value = 'student1234';
+      }
+      handleLoginSubmit({ preventDefault: () => {} });
+    }
+
+    function handleLoginSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+
+      const rawInput = (document.getElementById('loginEmail')?.value || '').trim();
+      const rawPass = (document.getElementById('loginPassword')?.value || '').trim();
+      const inputVal = rawInput.toLowerCase();
+      const isThai = currentLanguage === 'th';
+
+      if (!rawInput) {
+        alertMessage(isThai ? 'กรุณากรอกอีเมลหรือรหัสนักศึกษา' : 'Please enter your email or student ID.');
+        return;
+      }
+      if (!rawPass) {
+        alertMessage(isThai ? 'กรุณากรอกรหัสผ่าน' : 'Please enter your password.');
+        return;
+      }
+
+      const isAdminInput = inputVal === 'admin' ||
+                           inputVal.startsWith('admin@') ||
+                           inputVal.includes('sysadmin') ||
+                           inputVal.includes('administrator');
+
+      const isTeacherInput = !isAdminInput && (
+                             inputVal.includes('teacher') ||
+                             inputVal.includes('prof') ||
+                             inputVal.includes('ajarn') ||
+                             inputVal.includes('suripong') ||
+                             inputVal.includes('nuttapong') ||
+                             inputVal.includes('akek') ||
+                             inputVal.includes('sl@') ||
+                             Boolean(teacherDirectory[inputVal]) ||
+                             Object.values(teacherDirectory).some(t => t.email.toLowerCase() === inputVal || t.facultyCode.toLowerCase() === inputVal) ||
+                             (inputVal.includes('@kmutt.ac.th') && !inputVal.includes('mail.kmutt.ac.th') && !inputVal.match(/\d{9,11}/))
+      );
+
+      if (isAdminInput) {
+        if (rawPass !== 'admin1234') {
+          alertMessage(isThai ? 'รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง (รหัสทดลอง: admin1234)' : 'Invalid administrator password (Demo: admin1234).');
+          return;
+        }
+        currentUserRole = 'admin';
+        localStorage.setItem('atht_user_role', 'admin');
+      } else if (isTeacherInput) {
+        const teacherProfile = getTeacherProfile(rawInput);
+        const tchRec = teacherDirectory[teacherProfile.id];
+        if (!tchRec) {
+          alertMessage(isThai ? 'ไม่พบบัญชีอาจารย์นี้ในระบบ (อาจถูกลบโดยผู้ดูแลระบบ)' : 'Instructor account not found or removed by Administrator.');
+          return;
+        }
+        const expectedTchPass = tchRec.password || 'teacher1234';
+        if (rawPass !== expectedTchPass && rawPass !== 'teacher1234') {
+          alertMessage(isThai ? 'รหัสผ่านอาจารย์ไม่ถูกต้อง (รหัสทดลอง: teacher1234)' : 'Invalid instructor password (Demo: teacher1234).');
+          return;
+        }
+        if ((tchRec.status || 'Active') === 'Inactive') {
+          alertMessage(isThai ? 'บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin' : 'This account has been suspended by Administrator.');
+          return;
+        }
+        currentUserRole = 'teacher';
+        localStorage.setItem('atht_teacher_id', teacherProfile.id);
+        localStorage.setItem('atht_user_role', 'teacher');
+      } else {
+        const studentProfile = getStudentProfile(rawInput);
+        const stuRec = studentDirectory[studentProfile.id];
+        if (!stuRec) {
+          alertMessage(isThai ? 'ไม่พบบัญชีนักศึกษานี้ในระบบ (อาจถูกลบโดยผู้ดูแลระบบ)' : 'Student account not found or removed by Administrator.');
+          return;
+        }
+        const expectedStuPass = stuRec.password || 'student1234';
+        if (rawPass !== expectedStuPass && rawPass !== 'student1234') {
+          alertMessage(isThai ? 'รหัสผ่านนักศึกษาไม่ถูกต้อง (รหัสทดลอง: student1234)' : 'Invalid student password (Demo: student1234).');
+          return;
+        }
+        if ((stuRec.status || 'Active') === 'Inactive') {
+          alertMessage(isThai ? 'บัญชีนักศึกษานี้ถูกระงับการใช้งาน กรุณาติดต่อ Admin' : 'This student account has been suspended by Administrator.');
+          return;
+        }
+        currentUserRole = 'student';
+        localStorage.setItem('atht_student_id', studentProfile.id);
+        localStorage.setItem('atht_user_role', 'student');
+      }
+
+      localStorage.setItem('atht_is_logged_in', 'true');
+
+      const rememberCheckbox = document.getElementById('rememberMeCheckbox');
+      if (rememberCheckbox && rememberCheckbox.checked) {
+        localStorage.setItem('atht_remember_me', 'true');
+      } else {
+        localStorage.removeItem('atht_remember_me');
+      }
+
+      if (currentUserRole === 'admin') {
+        navigateTo('admin');
+        alertMessage(isThai ? 'ยินดีต้อนรับเข้าสู่ระบบจัดการผู้ใช้ (System Administrator)' : 'Welcome, System Administrator! (User Management Portal)');
+      } else if (currentUserRole === 'teacher') {
+        const teacher = getCurrentTeacher();
+        navigateTo('teacher-dashboard');
+        alertMessage(isThai ? `ยินดีต้อนรับ ${teacher.fullName}! (${teacher.email})` : `Welcome back, ${teacher.fullName}! (${teacher.email})`);
+      } else {
+        navigateTo('dashboard');
+        const student = getCurrentStudent();
+        alertMessage(isThai ? `ยินดีต้อนรับ ${student.fullName}! (รหัส: ${student.id})` : `Welcome back, ${student.fullName}! (ID: ${student.id})`);
+      }
+    }
+
+    function buildRouteHash(screenId) {
+      if (screenId === 'login') return '#/login';
+      const role = currentUserRole || 'student';
+      const cCode = encodeURIComponent(activeCourseId || 'CMM321');
+      if (role === 'admin' || screenId === 'admin') return '#/admin/users';
+      if (role === 'teacher') {
+        if (screenId === 'teacher-dashboard' || screenId === 'courses') return '#/teacher/courses';
+        if (screenId === 'teacher-review') {
+          if (teacherReviewViewMode === 'projectTasks') return `#/teacher/courses/${cCode}/project/tasks`;
+          if (teacherReviewViewMode === 'students') return `#/teacher/courses/${cCode}/project/tasks/members`;
+          if (teacherReviewViewMode === 'grading') return `#/teacher/courses/${cCode}/project/tasks/members/grading`;
+          return `#/teacher/courses/${cCode}/project`;
+        }
+        if (screenId === 'notifications') return '#/teacher/notifications';
+        return `#/teacher/${screenId}`;
+      }
+      if (screenId === 'dashboard' || screenId === 'courses') return '#/student/courses';
+      if (screenId === 'course-detail') return `#/student/courses/${cCode}/project`;
+      if (screenId === 'tasks-hub') {
+        return activeTasksCourseFilter
+          ? `#/student/courses/${encodeURIComponent(activeTasksCourseFilter)}/tasks`
+          : '#/student/all-tasks';
+      }
+      if (screenId === 'task-detail') {
+        return `#/student/courses/${cCode}/project/tasks/${encodeURIComponent(activeTaskId || '')}`;
+      }
+      if (screenId === 'notifications') return '#/student/notifications';
+      return `#/student/${screenId}`;
+    }
+
+    function parseRouteHash(rawHash) {
+      const clean = (rawHash || '').replace(/^#\/?/, '').trim();
+      if (!clean) return null;
+      const parts = clean.split('/').map(p => decodeURIComponent(p));
+      if (parts[0] === 'login') return { screenId: 'login' };
+      if (parts[0] === 'admin') return { screenId: 'admin' };
+      if (parts[0] === 'teacher') {
+        if (parts[1] === 'notifications') return { screenId: 'notifications' };
+        if (parts[1] === 'courses' && parts[2]) {
+          let mode = 'assessment';
+          if (parts[3] === 'project' && parts[4] === 'tasks') {
+            if (parts[5] === 'members') {
+              mode = parts[6] === 'grading' ? 'grading' : 'students';
+            } else {
+              mode = 'projectTasks';
+            }
+          } else if (parts[3] === 'members') {
+            mode = parts[4] === 'tasks' ? 'grading' : 'students';
+          }
+          return { screenId: 'teacher-review', activeCourseId: parts[2], teacherReviewViewMode: mode };
+        }
+        return { screenId: 'teacher-dashboard' };
+      }
+      if (parts[0] === 'student') {
+        if (parts[1] === 'notifications') return { screenId: 'notifications' };
+        if (parts[1] === 'all-tasks') return { screenId: 'tasks-hub', activeTasksCourseFilter: null, activeTasksProjectFilter: null };
+        if (parts[1] === 'courses' && parts[2]) {
+          if (parts[3] === 'tasks') return { screenId: 'tasks-hub', activeTasksCourseFilter: parts[2], activeCourseId: parts[2] };
+          if (parts[3] === 'project' && parts[4] === 'tasks') {
+            return { screenId: 'task-detail', activeCourseId: parts[2], activeTaskId: parts[5] || activeTaskId };
+          }
+          if (parts[3] === 'project') return { screenId: 'course-detail', activeCourseId: parts[2] };
+        }
+        return { screenId: 'dashboard' };
+      }
+      return null;
+    }
+
+    let isRestoringFromHistory = false;
+
+    function syncBrowserHistory(screenId, pushHistory) {
+      if (isRestoringFromHistory) return;
+      const nextHash = buildRouteHash(screenId);
+      const stateObj = {
+        screenId,
+        activeCourseId,
+        activeProjectId,
+        activeTaskId,
+        activeTasksCourseFilter,
+        teacherReviewViewMode
+      };
+      try {
+        if (pushHistory) {
+          if (window.location.hash !== nextHash) {
+            window.history.pushState(stateObj, '', nextHash);
+          }
+        } else {
+          window.history.replaceState(stateObj, '', nextHash);
+        }
+      } catch (e) {
+        if (window.location.hash !== nextHash) {
+          window.location.hash = nextHash;
+        }
+      }
+    }
+
+    window.addEventListener('popstate', (event) => {
+      const st = event.state;
+      if (st && st.screenId) {
+        isRestoringFromHistory = true;
+        if (st.activeCourseId !== undefined) activeCourseId = st.activeCourseId;
+        if (st.activeProjectId !== undefined) activeProjectId = st.activeProjectId;
+        if (st.activeTaskId !== undefined) activeTaskId = st.activeTaskId;
+        if (st.activeTasksCourseFilter !== undefined) activeTasksCourseFilter = st.activeTasksCourseFilter;
+        if (st.teacherReviewViewMode !== undefined) teacherReviewViewMode = st.teacherReviewViewMode;
+        navigateTo(st.screenId, false);
+        isRestoringFromHistory = false;
+        return;
+      }
+      const parsed = parseRouteHash(window.location.hash);
+      if (parsed && parsed.screenId) {
+        isRestoringFromHistory = true;
+        if (parsed.activeCourseId !== undefined) activeCourseId = parsed.activeCourseId;
+        if (parsed.activeTaskId !== undefined) activeTaskId = parsed.activeTaskId;
+        if (parsed.activeTasksCourseFilter !== undefined) activeTasksCourseFilter = parsed.activeTasksCourseFilter;
+        if (parsed.teacherReviewViewMode !== undefined) teacherReviewViewMode = parsed.teacherReviewViewMode;
+        navigateTo(parsed.screenId, false);
+        isRestoringFromHistory = false;
+      }
+    });
+
+    function navigateTo(screenId, pushHistory = true) {
+      if (screenId === 'admin' && currentUserRole !== 'admin') {
+        screenId = currentUserRole === 'teacher' ? 'teacher-dashboard' : 'dashboard';
+      } else if ((screenId === 'teacher-dashboard' || screenId === 'teacher-review') && currentUserRole === 'student') {
+        screenId = 'dashboard';
+      }
+      if (pushHistory && currentScreen && currentScreen !== screenId) {
+        navigationHistory.push(currentScreen);
+      }
+      currentScreen = screenId;
+      syncBrowserHistory(screenId, pushHistory);
+
+      if (screenId !== 'login') {
+        localStorage.setItem('atht_current_screen', screenId);
+        if (activeCourseId) localStorage.setItem('atht_active_course', activeCourseId);
+        if (activeTaskId) localStorage.setItem('atht_active_task', activeTaskId);
+      }
+
+      const screens = [
+        'login', 'dashboard', 'courses', 'course-detail', 'task-detail',
+        'projects', 'tasks-hub', 'notifications', 'teacher-dashboard', 'teacher-review', 'admin'
+      ];
+      screens.forEach(s => {
+        const el = document.getElementById(`screen-${s}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(`screen-${screenId}`);
+      if (target) target.classList.remove('hidden');
+
+      updateBreadcrumbUI(screenId);
+
+      if (screenId === 'dashboard') {
+        renderDashboardCourses();
+      } else if (screenId === 'courses') {
+        renderCoursesCatalog();
+      } else if (screenId === 'course-detail') {
+        renderCourseDetailPage();
+      } else if (screenId === 'task-detail') {
+        renderTaskDetailPage();
+      } else if (screenId === 'projects') {
+        renderProjectsScreen();
+      } else if (screenId === 'tasks-hub') {
+        renderGlobalTasksHub();
+      } else if (screenId === 'notifications') {
+        renderNotificationsScreen();
+      } else if (screenId === 'teacher-dashboard') {
+        renderTeacherDashboard();
+      } else if (screenId === 'teacher-review') {
+        renderTeacherReviewScreen();
+      } else if (screenId === 'admin') {
+        renderAdminScreen();
+      }
+
+      const main = document.querySelector('main');
+      if (main) main.scrollTop = 0;
+      translateDOM(currentLanguage);
+    }
+
+    function navigateBack() {
+      if (navigationHistory.length > 0) {
+        const prev = navigationHistory.pop();
+        navigateTo(prev, false);
+      } else {
+        handleLogoClick();
+      }
+    }
+
+    function updateBreadcrumbUI(screenId) {
+      const breadcrumbCurrent = document.getElementById('breadcrumbCurrent');
+      const breadcrumbRolePrefix = document.getElementById('breadcrumbRolePrefix');
+      const navBackBtn = document.getElementById('navBackBtn');
+      const breadcrumbBar = document.getElementById('breadcrumbBar');
+      const navPillsBar = document.getElementById('navPillsBar');
+      const mainHeader = document.getElementById('mainHeader');
+      const headerRoleBadge = document.getElementById('headerRoleBadge');
+      const pendingCountBadge = document.getElementById('pendingCountBadge');
+
+      if (screenId === 'login') {
+        if (breadcrumbBar) breadcrumbBar.classList.add('hidden');
+        if (navPillsBar) navPillsBar.classList.add('hidden');
+        if (mainHeader) mainHeader.classList.add('hidden');
+        const wfRow = document.getElementById('studentWireframeBreadcrumbRow');
+        if (wfRow) { wfRow.classList.add('hidden'); wfRow.classList.remove('flex'); }
+        const calBtn = document.getElementById('floatingMobileCalendarBtn');
+        if (calBtn) calBtn.className = 'hidden';
+        return;
+      }
+
+      if (breadcrumbBar) breadcrumbBar.classList.remove('hidden');
+      if (navPillsBar) navPillsBar.classList.remove('hidden');
+      if (mainHeader) mainHeader.classList.remove('hidden');
+
+      const isTeacher = currentUserRole === 'teacher';
+      const isAdmin = currentUserRole === 'admin';
+      const isStudent = !isTeacher && !isAdmin;
+
+      if (headerRoleBadge) {
+        headerRoleBadge.innerText = isAdmin ? 'Admin' : (isTeacher ? 'Teacher' : 'Student');
+      }
+      const hdrThemeWrap = document.getElementById('headerFestivalThemeWrapper');
+      if (hdrThemeWrap) {
+        hdrThemeWrap.classList.toggle('hidden', !isAdmin);
+        hdrThemeWrap.classList.toggle('flex', isAdmin);
+      }
+      applyFestivalThemeToUI(getGlobalFestivalTheme());
+      if (breadcrumbRolePrefix) {
+        breadcrumbRolePrefix.innerText = isAdmin ? 'Admin' : (isTeacher ? 'Teacher' : t('studentPrefix', 'Student'));
+      }
+
+      const studentHeaderNavLinks = document.getElementById('studentHeaderNavLinks');
+      const studentWireframeBreadcrumbRow = document.getElementById('studentWireframeBreadcrumbRow');
+      const headerNotifLabel = document.getElementById('headerNotifLabel');
+      const desktopUserProfileEl = document.getElementById('desktopUserProfile');
+
+      const hdrTabCourses = document.getElementById('hdrTabCourses');
+      const hdrTabAllTasks = document.getElementById('hdrTabAllTasks');
+
+      const floatingCalBtn = document.getElementById('floatingMobileCalendarBtn');
+      if (floatingCalBtn) {
+        const showCal = (isStudent || isTeacher) && screenId !== 'login';
+        floatingCalBtn.className = showCal
+          ? 'lg:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-neutral-800 hover:bg-black text-white shadow-xl border border-neutral-500/40 flex items-center justify-center text-xl transition pressable touch-manipulation cursor-pointer'
+          : 'hidden';
+      }
+
+      if ((isStudent || isTeacher) && screenId !== 'login') {
+        if (breadcrumbBar) breadcrumbBar.classList.add('hidden');
+        if (navPillsBar) navPillsBar.classList.add('hidden');
+        if (studentHeaderNavLinks) studentHeaderNavLinks.className = 'hidden md:flex items-center gap-1';
+        if (studentWireframeBreadcrumbRow) { studentWireframeBreadcrumbRow.classList.remove('hidden'); studentWireframeBreadcrumbRow.classList.add('flex'); }
+        if (headerNotifLabel) headerNotifLabel.className = 'hidden md:inline text-xs font-bold text-neutral-800';
+        if (desktopUserProfileEl) {
+          desktopUserProfileEl.className = 'hidden md:flex items-center gap-2 bg-white hover:bg-neutral-100 text-neutral-900 px-3.5 py-1.5 rounded-full shadow-xs text-left cursor-pointer transition pressable';
+        }
+
+        if (isTeacher) {
+          if (hdrTabAllTasks) hdrTabAllTasks.classList.add('hidden');
+          if (hdrTabCourses) {
+            hdrTabCourses.onclick = () => navigateTo('teacher-dashboard');
+            hdrTabCourses.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-black/25 hover:bg-black/35 transition pressable';
+          }
+        } else {
+          if (hdrTabAllTasks) hdrTabAllTasks.classList.remove('hidden');
+          const isAllTasksActive = screenId === 'tasks-hub' && !activeTasksCourseFilter && !activeTasksProjectFilter;
+          if (hdrTabCourses) {
+            hdrTabCourses.onclick = () => navigateTo('dashboard');
+            hdrTabCourses.className = !isAllTasksActive
+              ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-black/25 hover:bg-black/35 transition pressable'
+              : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-neutral-300 hover:text-white hover:bg-black/15 transition pressable';
+          }
+          if (hdrTabAllTasks) {
+            hdrTabAllTasks.className = isAllTasksActive
+              ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-black/25 hover:bg-black/35 transition pressable'
+              : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-neutral-300 hover:text-white hover:bg-black/15 transition pressable';
+          }
+        }
+      } else {
+        if (studentHeaderNavLinks) studentHeaderNavLinks.className = 'hidden';
+        if (studentWireframeBreadcrumbRow) { studentWireframeBreadcrumbRow.classList.add('hidden'); studentWireframeBreadcrumbRow.classList.remove('flex'); }
+        if (headerNotifLabel) headerNotifLabel.className = 'hidden';
+        if (desktopUserProfileEl) {
+          desktopUserProfileEl.className = 'hidden md:flex items-center gap-2.5 bg-white/10 hover:bg-white/20 active:bg-white/25 px-3.5 py-1.5 rounded-xl border border-white/10 text-left cursor-pointer transition pressable';
+        }
+      }
+
+      const desktopUserAvatar = document.getElementById('desktopUserAvatar');
+      const desktopUserName = document.getElementById('desktopUserName');
+      const desktopUserSub = document.getElementById('desktopUserSub');
+      if (desktopUserAvatar && desktopUserName && desktopUserSub) {
+        if (isAdmin) {
+          desktopUserAvatar.innerText = 'AD';
+          desktopUserName.innerText = 'System Admin';
+          desktopUserName.className = 'text-xs font-extrabold text-neutral-900 dark:text-white block leading-tight';
+          desktopUserName.title = 'System Administrator (admin@kmutt.ac.th)';
+          desktopUserSub.innerText = 'Super Admin • KMUTT';
+          desktopUserSub.className = 'text-[9px] text-neutral-500 dark:text-neutral-400 block leading-tight';
+        } else if (isTeacher) {
+          const teacher = getCurrentTeacher();
+          desktopUserAvatar.innerText = teacher.initials;
+          desktopUserName.innerText = teacher.shortName;
+          desktopUserName.className = 'text-xs font-extrabold text-neutral-900 block leading-tight';
+          desktopUserName.title = `${teacher.fullName} (${teacher.email})`;
+          desktopUserSub.innerText = teacher.facultyCode || teacher.id;
+          desktopUserSub.className = 'text-[9px] text-neutral-500 font-mono block leading-tight';
+        } else {
+          const student = getCurrentStudent();
+          desktopUserAvatar.innerText = student.initials;
+          desktopUserName.innerText = student.shortName;
+          desktopUserName.className = 'text-xs font-extrabold text-neutral-900 block leading-tight';
+          desktopUserName.title = `${student.fullName} (${student.email})`;
+          desktopUserSub.innerText = student.id;
+          desktopUserSub.className = 'text-[9px] text-neutral-500 font-mono block leading-tight';
+        }
+
+        const drawerUserAvatar = document.getElementById('drawerUserAvatar');
+        const drawerUserName = document.getElementById('drawerUserName');
+        const drawerUserEmail = document.getElementById('drawerUserEmail');
+        if (drawerUserAvatar && drawerUserName && drawerUserEmail) {
+          if (isAdmin) {
+            drawerUserAvatar.innerText = 'AD';
+            drawerUserName.innerText = 'System Admin';
+            drawerUserEmail.innerText = 'admin@kmutt.ac.th';
+          } else if (isTeacher) {
+            const teacher = getCurrentTeacher();
+            drawerUserAvatar.innerText = teacher.initials;
+            drawerUserName.innerText = teacher.shortName;
+            drawerUserEmail.innerText = teacher.email;
+          } else {
+            const student = getCurrentStudent();
+            drawerUserAvatar.innerText = student.initials;
+            drawerUserName.innerText = student.shortName;
+            drawerUserEmail.innerText = `${student.id} • ${student.email}`;
+          }
+        }
+      }
+
+      let liveDueCount = 0;
+      if (isStudent && typeof getStudentTasksInCourse === 'function' && typeof getCurrentStudent === 'function') {
+        const curStd = getCurrentStudent();
+        Object.keys(coursesCatalog || {}).forEach(cCode => {
+          const tList = getStudentTasksInCourse(curStd.id, cCode);
+          tList.forEach(tObj => {
+            const revs = typeof ensureStudentSubmissionRevisions === 'function' ? ensureStudentSubmissionRevisions(tObj, curStd.id, cCode) : [];
+            const lastRev = revs.length > 0 ? revs[revs.length - 1] : null;
+            if (!lastRev || lastRev.status === 'revision') liveDueCount++;
+          });
+        });
+      } else if (isTeacher && typeof getTeacherAssignedCourseCodes === 'function' && typeof getStudentCourseTaskInfo === 'function') {
+        const tCodes = getTeacherAssignedCourseCodes();
+        const firstCode = tCodes[0] || 'CMM321';
+        Object.keys(studentDirectory || {}).forEach(sid => {
+          const info = getStudentCourseTaskInfo(sid, firstCode, null, null);
+          if (info.submissionStatus === 'revision' || info.submissionStatus === 'pending') liveDueCount++;
+        });
+      }
+
+      if (pendingCountBadge) {
+        const totalUsersCount = Object.keys(studentDirectory).length + Object.keys(teacherDirectory).length;
+        if (isAdmin) {
+          pendingCountBadge.innerText = `${totalUsersCount} Users`;
+        } else if (isTeacher) {
+          pendingCountBadge.innerText = currentLanguage === 'th' ? `รอตรวจ ${liveDueCount}` : `${liveDueCount} To Review`;
+        } else {
+          pendingCountBadge.innerText = currentLanguage === 'th' ? `ค้างส่ง ${liveDueCount}` : `${liveDueCount} Due`;
+        }
+      }
+      const dashAllTasksBtn = document.getElementById('dashboardAllTasksBtn');
+      if (dashAllTasksBtn && isStudent) {
+        dashAllTasksBtn.innerText = currentLanguage === 'th'
+          ? `งานทั้งหมด (ค้าง ${liveDueCount}) →`
+          : `All Tasks (${liveDueCount} Due) →`;
+      }
+
+      renderDynamicPills(screenId);
+
+      if (navBackBtn) {
+        const homeScreens = ['dashboard', 'teacher-dashboard', 'admin'];
+        if (navigationHistory.length > 0 && !homeScreens.includes(screenId)) {
+          navBackBtn.classList.remove('hidden');
+        } else {
+          navBackBtn.classList.add('hidden');
+        }
+      }
+
+      if (!breadcrumbCurrent) return;
+
+      const sep = `<span class="text-neutral-400 dark:text-neutral-500 font-normal">/</span>`;
+      const homeLink = `<button onclick="handleLogoClick()" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Home</button>`;
+      const coursesLink = `<button onclick="navigateTo('courses')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Courses</button>`;
+      const projectsLink = `<button onclick="navigateTo('projects')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Projects</button>`;
+      const tasksHubLink = `<button onclick="openAllTasksHub()" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">All Tasks</button>`;
+
+      if (screenId === 'dashboard') {
+        breadcrumbCurrent.innerHTML = `<span class="font-bold text-neutral-900 dark:text-white">${t('home', 'Home')}</span>`;
+      } else if (screenId === 'teacher-dashboard') {
+        breadcrumbCurrent.innerHTML = `<span class="font-bold text-neutral-900 dark:text-white">${t('home', 'Home')}</span>`;
+      } else if (screenId === 'teacher-review') {
+        const proj = studentProjectsList.find(p => p.id === activeProjectId) || (activeCourseId && studentProjectsList.find(p => p.course === activeCourseId));
+        const projTitle = proj ? (proj.title.length > 22 ? proj.title.slice(0, 22) + '...' : proj.title) : null;
+        const targetCode = activeTasksCourseFilter || activeCourseId || 'CMM321';
+      const course = coursesCatalog[targetCode] || coursesCatalog['CMM321'];
+        const courseCode = course ? course.code : 'Course';
+        const courseLink = `<button onclick="selectCourse('${courseCode}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${escapeHtml(courseCode)}</button>`;
+        const projLink = proj ? `<button onclick="openProjectTasks('${proj.id}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${escapeHtml(projTitle)}</button>` : '';
+
+        if (teacherReviewViewMode === 'assessment') {
+          breadcrumbCurrent.innerHTML = proj
+            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Tasks</span>`
+            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Tasks</span>`;
+        } else if (teacherReviewViewMode === 'editTask') {
+          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} ${courseLink} ${sep} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Tasks</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">Edit Task</span>`;
+        } else if (teacherReviewViewMode === 'students') {
+          breadcrumbCurrent.innerHTML = proj
+            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Members</span>`
+            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Members</span>`;
+        } else if (teacherReviewViewMode === 'grading') {
+          breadcrumbCurrent.innerHTML = proj
+            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Tasks</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">Review & Grade</span>`
+            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Review & Grade</span>`;
+        } else {
+          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${courseCode}</span>`;
+        }
+      } else if (screenId === 'courses') {
+        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Courses</span>`;
+      } else if (screenId === 'course-detail') {
+        const c = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
+        const proj = studentProjectsList.find(p => p.id === activeProjectId) || studentProjectsList.find(p => p.course === activeCourseId);
+        const projTitle = proj ? (proj.title.length > 20 ? proj.title.slice(0, 20) + '...' : proj.title) : null;
+        const cCode = c ? c.code : 'Course';
+
+        breadcrumbCurrent.innerHTML = proj
+          ? `${homeLink} ${sep} ${coursesLink} ${sep} <span class="text-neutral-600 dark:text-neutral-400">${cCode}</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${escapeHtml(projTitle)}</span>`
+          : `${homeLink} ${sep} ${coursesLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${cCode}</span>`;
+      } else if (screenId === 'projects') {
+        const isFiltered = activeProjectsFilter && activeProjectsFilter !== 'ALL';
+        breadcrumbCurrent.innerHTML = isFiltered
+          ? `${homeLink} ${sep} <button onclick="setProjectsFilter('ALL')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Projects</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${activeProjectsFilter}</span>`
+          : `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Projects</span>`;
+      } else if (screenId === 'tasks-hub') {
+        const isProjTaskMode = !!(activeTasksCourseFilter || activeTasksProjectFilter);
+        if (isProjTaskMode) {
+          const c = coursesCatalog[activeTasksCourseFilter || activeCourseId] || coursesCatalog['CMM321'];
+          const cCode = c ? c.code : (activeTasksCourseFilter || 'CMM321');
+          const proj = studentProjectsList.find(p => p.id === (activeTasksProjectFilter || activeProjectId)) || studentProjectsList.find(p => p.course === cCode);
+          const projTitle = proj ? (proj.title.length > 20 ? proj.title.slice(0, 20) + '...' : proj.title) : null;
+          const courseBtn = `<button onclick="selectCourse('${cCode}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${escapeHtml(cCode)}</button>`;
+          breadcrumbCurrent.innerHTML = projTitle
+            ? `${homeLink} ${sep} ${coursesLink} ${sep} ${courseBtn} ${sep} <span class="text-neutral-600 dark:text-neutral-400">${escapeHtml(projTitle)}</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">Task</span>`
+            : `${homeLink} ${sep} ${coursesLink} ${sep} ${courseBtn} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Task</span>`;
+        } else {
+          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">All Tasks</span>`;
+        }
+      } else if (screenId === 'task-detail') {
+        const c = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
+        const cCode = c ? c.code : 'Course';
+        const taskTitle = document.getElementById('taskDetailTitle')?.innerText || 'Task Details';
+        const shortTaskTitle = taskTitle.length > 20 ? taskTitle.slice(0, 20) + '...' : taskTitle;
+
+        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} ${tasksHubLink} ${sep} <button onclick="selectCourse('${cCode}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${cCode}</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${escapeHtml(shortTaskTitle)}</span>`;
+      } else if (screenId === 'notifications') {
+        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Notifications</span>`;
+      } else if (screenId === 'admin') {
+        const subLabel = activeAdminTab === 'teachers' ? 'Teachers' : (activeAdminTab === 'all' ? 'All Users' : 'Students');
+        breadcrumbCurrent.innerHTML = `<span class="text-neutral-600 dark:text-neutral-400">User Management</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${subLabel}</span>`;
+      }
+
+      const wfTextEl = document.getElementById('studentWireframeBreadcrumbText');
+      const wfIconEl = document.getElementById('studentWireframeBreadcrumbIcon');
+      const wfBackBtn = document.getElementById('studentWireframeBackBtn');
+      if (wfIconEl) {
+        wfIconEl.innerHTML = isTeacher
+          ? '<span>👨‍🏫</span>'
+          : '<img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" />';
+      }
+      if (wfTextEl && isTeacher) {
+        const cCode = (coursesCatalog[activeCourseId] && coursesCatalog[activeCourseId].code) || activeCourseId || 'CMM321';
+        if (screenId === 'teacher-dashboard' || screenId === 'courses') {
+          wfTextEl.innerText = 'Teacher / Courses';
+          if (wfBackBtn) wfBackBtn.classList.toggle('opacity-40', navigationHistory.length === 0);
+        } else if (screenId === 'teacher-review') {
+          if (teacherReviewViewMode === 'projectTasks') {
+            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project / Tasks`;
+          } else if (teacherReviewViewMode === 'students') {
+            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project / Tasks / Members`;
+          } else if (teacherReviewViewMode === 'grading') {
+            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project / Tasks / Members / Grading`;
+          } else {
+            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project`;
+          }
+          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+        } else if (screenId === 'notifications') {
+          wfTextEl.innerText = 'Teacher / Courses / Notifications';
+          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+        } else {
+          wfTextEl.innerText = `Teacher / ${screenId}`;
+        }
+      } else if (wfTextEl && isStudent) {
+        const cCode = (coursesCatalog[activeCourseId] && coursesCatalog[activeCourseId].code) || activeCourseId || 'CMM321';
+        if (screenId === 'dashboard' || screenId === 'courses') {
+          wfTextEl.innerText = 'Student / Courses';
+          if (wfBackBtn) wfBackBtn.classList.toggle('opacity-40', navigationHistory.length === 0);
+        } else if (screenId === 'course-detail') {
+          wfTextEl.innerText = `Student / Courses / ${cCode} / Project`;
+          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+        } else if (screenId === 'tasks-hub') {
+          const isProjTaskMode = !!(activeTasksCourseFilter || activeTasksProjectFilter);
+          wfTextEl.innerText = isProjTaskMode
+            ? `Student / Courses / ${cCode} / Project / Task`
+            : 'Student / All Tasks';
+          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+        } else if (screenId === 'task-detail') {
+          wfTextEl.innerText = `Student / Courses / ${cCode} / Project / Tasks`;
+          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+        } else if (screenId === 'notifications') {
+          wfTextEl.innerText = 'Student / Courses / Notifications';
+          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+        } else {
+          wfTextEl.innerText = `Student / ${screenId}`;
+        }
+      }
+    }
+
+    function renderDynamicPills(activeScreenId) {
+      const container = document.getElementById('dynamicNavPillsContainer');
+      if (!container) return;
+
+      if (currentUserRole === 'admin') {
+        const isAdminScreen = activeScreenId === 'admin';
+        const isStdTab = isAdminScreen && activeAdminTab === 'students';
+        const isTchTab = isAdminScreen && activeAdminTab === 'teachers';
+        const isAllTab = isAdminScreen && activeAdminTab === 'all';
+        const isCourses = activeScreenId === 'courses' || activeScreenId === 'course-detail';
+        const isProject = activeScreenId === 'projects';
+
+        container.innerHTML = `
+          <button onclick="switchAdminTab('students'); navigateTo('admin')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isStdTab ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            <span>🎓</span>
+            <span>Manage Students</span>
+          </button>
+          <button onclick="switchAdminTab('teachers'); navigateTo('admin')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isTchTab ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            <span>👨‍🏫</span>
+            <span>Manage Teachers</span>
+          </button>
+          <button onclick="switchAdminTab('all'); navigateTo('admin')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isAllTab ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            <span>👥</span>
+            <span>All Directory</span>
+          </button>
+          <button onclick="navigateTo('projects')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isProject ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Projects
+          </button>
+          <button onclick="navigateTo('courses')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isCourses ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Courses
+          </button>
+        `;
+        return;
+      }
+
+      if (currentUserRole === 'teacher') {
+
+        const isHome = activeScreenId === 'teacher-dashboard';
+        const isMembers = activeScreenId === 'teacher-review' && (teacherReviewViewMode === 'students' || teacherReviewViewMode === 'grading');
+        const isProject = activeScreenId === 'projects';
+        const isTasks = activeScreenId === 'teacher-review' && (teacherReviewViewMode === 'assessment' || teacherReviewViewMode === 'editTask');
+        const isNotifs = activeScreenId === 'notifications';
+
+        container.innerHTML = `
+          <button onclick="navigateTo('teacher-dashboard')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isHome ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Home
+          </button>
+          <button onclick="switchTeacherViewMode('students'); navigateTo('teacher-review')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isMembers ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Members
+          </button>
+          <button onclick="navigateTo('projects')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isProject ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Project
+          </button>
+          <button onclick="switchTeacherViewMode('assessment'); navigateTo('teacher-review')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isTasks ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Tasks
+          </button>
+          <button onclick="navigateTo('notifications')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isNotifs ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            <span>Notifications</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>
+          </button>
+        `;
+      } else {
+
+        const isHome = activeScreenId === 'dashboard';
+        const isCourses = activeScreenId === 'courses' || activeScreenId === 'course-detail';
+        const isProject = activeScreenId === 'projects';
+        const isTasks = activeScreenId === 'tasks-hub' || activeScreenId === 'task-detail';
+        const isNotifs = activeScreenId === 'notifications';
+
+        container.innerHTML = `
+          <button onclick="navigateTo('dashboard')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isHome ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Home
+          </button>
+          <button onclick="navigateTo('courses')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isCourses ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Courses
+          </button>
+          <button onclick="navigateTo('projects')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isProject ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            Project
+          </button>
+          <button onclick="openAllTasksHub()" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isTasks ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            <span>All Tasks</span>
+            <span class="bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">3 Due</span>
+          </button>
+          <button onclick="navigateTo('notifications')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isNotifs ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
+            <span>Notifications</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>
+          </button>
+        `;
+      }
+    }
+
+    let calendarYear = 2026;
+    let calendarMonth = 8;
+    let selectedCalendarDate = null;
+
+    const extraCalendarEvents = [
+      { year: 2026, month: 8, day: 9, title: 'CMM321 Lecture: Linear Transformations & Affine Space', type: 'lecture', courseCode: 'CMM321', color: 'rose' },
+      { year: 2026, month: 8, day: 14, title: 'CMM349 Lab: Express Middleware & Routing Guardrails', type: 'lab', courseCode: 'CMM349', color: 'sky' },
+      { year: 2026, month: 8, day: 21, title: 'Exam Prep: Midterm Review with T.Komsan', type: 'exam', courseCode: 'CMM310', color: 'sky' },
+      { year: 2026, month: 8, day: 24, title: 'CMM349 Workshop: Socket.io Client Architecture', type: 'workshop', courseCode: 'CMM349', color: 'sky' },
+      { year: 2026, month: 9, day: 6, title: 'CMM349 Lab: WebSocket Connection Pools & Clustering', type: 'lab', courseCode: 'CMM349', color: 'sky' },
+      { year: 2026, month: 9, day: 20, title: 'CMM321 Workshop: Raymarching Volumetric Fog', type: 'workshop', courseCode: 'CMM321', color: 'rose' },
+      { year: 2026, month: 10, day: 10, title: 'KMUTT Tech Expo & Multimedia Student Showcase', type: 'event', courseCode: 'KMUTT', color: 'amber' },
+      { year: 2026, month: 10, day: 24, title: 'CMM349 Special Guest Lecture: Cloud Scale DevOps', type: 'lecture', courseCode: 'CMM349', color: 'sky' }
+    ];
+
+    function parseTaskDueDate(dueStr) {
+      if (!dueStr) return null;
+      const match = dueStr.match(/([A-Za-z]{3})\s+(\d{1,2}),\s+(\d{4})/);
+      if (!match) return null;
+      const months = {
+        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+      };
+      const m = months[match[1]];
+      const d = parseInt(match[2], 10);
+      const y = parseInt(match[3], 10);
+      if (m === undefined || isNaN(d) || isNaN(y)) return null;
+      return { year: y, month: m, day: d };
+    }
+
+    function getCalendarEventsForMonth(year, month) {
+      const map = {};
+
+      for (const [courseCode, course] of Object.entries(coursesCatalog)) {
+        if (!course.tasks) continue;
+        for (const task of course.tasks) {
+          const p = parseTaskDueDate(task.due);
+          if (p && p.year === year && p.month === month) {
+            if (!map[p.day]) map[p.day] = [];
+            map[p.day].push({
+              isTask: true,
+              type: 'task',
+              courseCode: course.code,
+              courseTitle: course.title,
+              task: task,
+              title: task.title,
+              status: task.status,
+              isFinished: task.isFinished,
+              due: task.due,
+              color: course.code === 'CMM321' ? 'rose' : course.code === 'CMM349' ? 'sky' : 'indigo'
+            });
+          }
+        }
+      }
+
+      for (const ev of extraCalendarEvents) {
+        if (ev.year === year && ev.month === month) {
+          if (!map[ev.day]) map[ev.day] = [];
+          map[ev.day].push({
+            isTask: false,
+            type: ev.type,
+            courseCode: ev.courseCode,
+            courseTitle: ev.courseCode,
+            title: ev.title,
+            color: ev.color || 'sky'
+          });
+        }
+      }
+
+      return map;
+    }
+
+    function changeCalendarMonth(delta) {
+      calendarMonth += delta;
+      if (calendarMonth < 0) {
+        calendarMonth = 11;
+        calendarYear--;
+      } else if (calendarMonth > 11) {
+        calendarMonth = 0;
+        calendarYear++;
+      }
+      selectedCalendarDate = null;
+      renderCalendar();
+    }
+
+    function resetCalendarToCurrentMonth() {
+      calendarYear = 2026;
+      calendarMonth = 8;
+      selectedCalendarDate = null;
+      renderCalendar();
+    }
+
+    function handleCalendarDayClick(day) {
+      selectedCalendarDate = { year: calendarYear, month: calendarMonth, day: day };
+      renderCalendar();
+      renderCalendarTaskPreview(day);
+    }
+
+    function closeCalendarTaskPreview() {
+      selectedCalendarDate = null;
+      ['calendarTaskPreviewBox', 'teacherCalendarTaskPreviewBox', 'mobileCalendarTaskPreviewBox'].forEach(boxId => {
+        const box = document.getElementById(boxId);
+        if (box) {
+          box.classList.add('hidden');
+          box.innerHTML = '';
+        }
+      });
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const isTeacher = currentUserRole === 'teacher';
+      const titleEls = [document.getElementById('calendarMonthYearTitle'), document.getElementById('teacherCalendarMonthYearTitle'), document.getElementById('mobileCalendarMonthYearTitle')].filter(Boolean);
+      const daysHeaderEls = [document.getElementById('calendarDaysHeader'), document.getElementById('teacherCalendarDaysHeader'), document.getElementById('mobileCalendarDaysHeader')].filter(Boolean);
+      const gridEls = [document.getElementById('calendarDaysGrid'), document.getElementById('teacherCalendarDaysGrid'), document.getElementById('mobileCalendarDaysGrid')].filter(Boolean);
+      const legendEls = [document.getElementById('calendarEventsLegend'), document.getElementById('teacherCalendarEventsLegend'), document.getElementById('mobileCalendarEventsLegend')].filter(Boolean);
+      if (gridEls.length === 0) return;
+
+      const isThai = currentLanguage === 'th';
+      const monthNames = isThai
+        ? ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม']
+        : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      const titleText = isThai ? `${monthNames[calendarMonth]} ${calendarYear + 543}` : `${monthNames[calendarMonth]} ${calendarYear}`;
+      titleEls.forEach(el => el.innerText = titleText);
+
+      const dayNames = isThai
+        ? ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.']
+        : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const headerHTML = dayNames.map(d => `<span class="py-1">${d}</span>`).join('');
+      daysHeaderEls.forEach(el => el.innerHTML = headerHTML);
+
+      const eventsMap = getCalendarEventsForMonth(calendarYear, calendarMonth);
+
+      const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+      const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+      const prevMonthTotalDays = new Date(calendarYear, calendarMonth, 0).getDate();
+
+      gridEls.forEach(gridEl => {
+        gridEl.innerHTML = '';
+
+        for (let i = firstDayIndex - 1; i >= 0; i--) {
+          const prevDay = prevMonthTotalDays - i;
+          const cell = document.createElement('div');
+          cell.className = 'py-1 text-neutral-300 dark:text-neutral-600 select-none';
+          cell.innerText = prevDay;
+          gridEl.appendChild(cell);
+        }
+
+        const nowToday = new Date();
+        for (let d = 1; d <= totalDays; d++) {
+          const items = eventsMap[d] || [];
+          const hasItems = items.length > 0;
+          const isToday = calendarYear === nowToday.getFullYear() && calendarMonth === nowToday.getMonth() && d === nowToday.getDate();
+          const isSelected = selectedCalendarDate && selectedCalendarDate.year === calendarYear && selectedCalendarDate.month === calendarMonth && selectedCalendarDate.day === d;
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => handleCalendarDayClick(d);
+          btn.title = hasItems ? items.map(it => it.title).join(' • ') : `Day ${d}`;
+
+          let baseClasses = 'py-1.5 min-h-[30px] w-full flex items-center justify-center font-bold transition pressable touch-manipulation rounded-full text-[11px] relative cursor-pointer';
+
+          if (isSelected) {
+            baseClasses += ' ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-neutral-900 z-10';
+          }
+
+          if (hasItems) {
+            const prime = items[0];
+            const color = prime.color || 'indigo';
+
+            if (color === 'rose') {
+              btn.className = `${baseClasses} text-white bg-rose-500 shadow-2xs hover:bg-rose-600`;
+            } else if (color === 'sky') {
+              btn.className = `${baseClasses} text-white bg-sky-500 shadow-2xs hover:bg-sky-600`;
+            } else if (color === 'amber') {
+              btn.className = `${baseClasses} text-white bg-amber-500 shadow-2xs hover:bg-amber-600`;
+            } else {
+              btn.className = `${baseClasses} text-white bg-indigo-600 shadow-2xs hover:bg-indigo-700`;
+            }
+
+            if (items.length > 1) {
+              btn.innerHTML = `<span>${d}</span><span class="absolute bottom-0.5 w-1 h-1 rounded-full bg-white"></span>`;
+            } else {
+              btn.innerText = d;
+            }
+          } else if (isToday) {
+            btn.className = `${baseClasses} text-neutral-900 bg-neutral-200 dark:bg-neutral-700 dark:text-white font-black ring-2 ring-neutral-800 dark:ring-neutral-300`;
+            btn.innerText = d;
+          } else {
+            btn.className = `${baseClasses} text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800`;
+            btn.innerText = d;
+          }
+
+          gridEl.appendChild(btn);
+        }
+
+        const totalSlots = firstDayIndex + totalDays;
+        const trailingCount = (7 - (totalSlots % 7)) % 7;
+        for (let j = 1; j <= trailingCount; j++) {
+          const cell = document.createElement('div');
+          cell.className = 'py-1 text-neutral-300 dark:text-neutral-600 select-none';
+          cell.innerText = j;
+          gridEl.appendChild(cell);
+        }
+      });
+
+      legendEls.forEach(legendEl => {
+        const daysWithEvents = Object.keys(eventsMap).map(Number).sort((a, b) => a - b);
+        if (daysWithEvents.length === 0) {
+          legendEl.innerHTML = `<p class="text-[10px] text-neutral-400 italic">${isThai ? 'ไม่มีงานหรือกำหนดการในเดือนนี้' : 'No tasks scheduled in this month.'}</p>`;
+        } else {
+          const monthAbbr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
+          legendEl.innerHTML = daysWithEvents.map(day => {
+            const dayItems = eventsMap[day];
+            return dayItems.map(it => {
+              const dotColor = it.color === 'rose' ? 'bg-rose-500' : it.color === 'sky' ? 'bg-sky-500' : it.color === 'amber' ? 'bg-amber-500' : 'bg-indigo-600';
+              return `
+                <div onclick="handleCalendarDayClick(${day})" class="flex items-center justify-between p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition pressable cursor-pointer group">
+                  <div class="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 min-w-0">
+                    <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+                    <span class="truncate group-hover:text-blue-600 transition font-medium text-[11px]">${monthAbbr} ${day} - ${escapeHtml(it.courseCode)} ${escapeHtml(it.title)}</span>
+                  </div>
+                  <span class="text-[9px] text-blue-600 font-bold shrink-0 ml-1.5 opacity-80 group-hover:opacity-100">${isThai ? 'ตัวอย่าง →' : 'Preview →'}</span>
+                </div>
+              `;
+            }).join('');
+          }).join('');
+        }
+      });
+
+      if (selectedCalendarDate && selectedCalendarDate.year === calendarYear && selectedCalendarDate.month === calendarMonth) {
+        renderCalendarTaskPreview(selectedCalendarDate.day);
+      }
+    }
+
+    function openMobileCalendarModal() {
+      const modal = document.getElementById('modalMobileCalendar');
+      if (modal) {
+        modal.classList.remove('hidden');
+        renderCalendar();
+      }
+    }
+
+    function closeMobileCalendarModal() {
+      const modal = document.getElementById('modalMobileCalendar');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderCalendarTaskPreview(day) {
+      const isTeacher = currentUserRole === 'teacher';
+      const targetBoxId = isTeacher ? 'teacherCalendarTaskPreviewBox' : 'calendarTaskPreviewBox';
+      const mobileModalOpen = !document.getElementById('modalMobileCalendar')?.classList.contains('hidden');
+      const box = document.getElementById(mobileModalOpen ? 'mobileCalendarTaskPreviewBox' : targetBoxId);
+      if (!box) return;
+
+      const isThai = currentLanguage === 'th';
+      const monthNames = isThai
+        ? ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม']
+        : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      const weekDays = isThai
+        ? ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์']
+        : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      const dateObj = new Date(calendarYear, calendarMonth, day);
+      const weekDayName = weekDays[dateObj.getDay()];
+      const dateFormatted = isThai
+        ? `${weekDayName}ที่ ${day} ${monthNames[calendarMonth]} ${calendarYear + 543}`
+        : `${weekDayName}, ${monthNames[calendarMonth]} ${day}, ${calendarYear}`;
+
+      const eventsMap = getCalendarEventsForMonth(calendarYear, calendarMonth);
+      const items = eventsMap[day] || [];
+
+      box.classList.remove('hidden');
+
+      if (items.length === 0) {
+        const noTasksAction = isTeacher
+          ? `<button onclick="switchTeacherViewMode('assessment'); navigateTo('teacher-review')" class="text-xs font-semibold text-blue-600 hover:underline mt-1.5 inline-block">
+               ${isThai ? 'ดูรายการงานและข้อกำหนดทั้งหมด →' : 'View Course Tasks & Assessments →'}
+             </button>`
+          : `<button onclick="openAllTasksHub()" class="text-xs font-semibold text-blue-600 hover:underline mt-1.5 inline-block">
+               ${isThai ? 'ดูงานทั้งหมดในระบบ (Tasks Hub) →' : 'View All Tasks in Hub →'}
+             </button>`;
+
+        box.innerHTML = `
+          <div class="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 pb-2">
+            <span class="text-xs font-bold text-neutral-800 dark:text-white flex items-center gap-1.5">
+              <span>📅</span>
+              <span>${escapeHtml(dateFormatted)}</span>
+            </span>
+            <button onclick="closeCalendarTaskPreview()" title="Close" class="w-5 h-5 rounded-full bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs flex items-center justify-center font-bold">✕</button>
+          </div>
+          <div class="py-1">
+            <p class="text-xs text-neutral-500 dark:text-neutral-400">
+              ${isThai ? 'ไม่มีงานหรือกำหนดส่งที่ตรงกับวันนี้' : 'No assignment or course milestone due on this date.'}
+            </p>
+            ${noTasksAction}
+          </div>
+        `;
+        return;
+      }
+
+      let itemsHTML = '';
+      items.forEach(it => {
+        if (it.isTask && it.task) {
+          const task = it.task;
+          const computedStatus = computeTaskStatus(task, course.code);
+          const statusColor = getTaskStatusBadgeClasses(computedStatus);
+
+          const actionBtn = isTeacher
+            ? `<button type="button" onclick="closeMobileCalendarModal(); inspectTeacherTaskAndGrade('${task.id}')" class="w-full mt-1.5 py-2 px-3 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition pressable touch-manipulation">
+                 <span>${isThai ? 'ดูผลงานและให้คะแนน' : 'View Submissions & Grade'}</span>
+                 <span>→</span>
+               </button>`
+            : `<button type="button" onclick="closeMobileCalendarModal(); openTaskDetails('${task.id}')" class="w-full mt-1.5 py-2 px-3 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition pressable touch-manipulation">
+                 <span>${isThai ? 'เข้าสู่หน้ารายละเอียดงานนี้' : 'Go to Task Details'}</span>
+                 <span>→</span>
+               </button>`;
+
+          itemsHTML += `
+            <div class="bg-white dark:bg-neutral-900 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-2xs space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                  ${escapeHtml(it.courseCode)} • ${escapeHtml(it.courseTitle)}
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg border ${statusColor}">
+                  ${escapeHtml(computedStatus)}
+                </span>
+              </div>
+
+              <div>
+                <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">${isThai ? 'ตัวอย่างชื่องาน' : 'Task Preview'}</span>
+                <h5 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white leading-snug">
+                  ${escapeHtml(task.title)}
+                </h5>
+              </div>
+
+              <div class="flex items-center gap-2 text-[10px] text-neutral-500 dark:text-neutral-400">
+                <span>👥 ${escapeHtml(task.type || 'Individual')}</span>
+                <span>•</span>
+                <span>⏰ ${escapeHtml(task.due)}</span>
+              </div>
+
+              <p class="text-[11px] text-neutral-600 dark:text-neutral-300 line-clamp-2 leading-relaxed bg-neutral-50 dark:bg-neutral-800/50 p-2 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                ${escapeHtml(task.description)}
+              </p>
+
+              ${actionBtn}
+            </div>
+          `;
+        } else {
+          itemsHTML += `
+            <div class="bg-white dark:bg-neutral-900 p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-2xs space-y-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold text-sky-700 bg-sky-50 dark:bg-sky-950 dark:text-sky-300 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800">
+                  ${escapeHtml(it.courseCode)}
+                </span>
+                <span class="text-xs font-bold text-neutral-800 dark:text-white">${escapeHtml(it.title)}</span>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      box.innerHTML = `
+        <div class="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 pb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs">📅</span>
+            <span class="text-xs font-bold text-neutral-800 dark:text-white">${escapeHtml(dateFormatted)}</span>
+          </div>
+          <button onclick="closeCalendarTaskPreview()" title="Close" class="w-5 h-5 rounded-full bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs flex items-center justify-center font-bold">✕</button>
+        </div>
+        <div class="space-y-2">
+          ${itemsHTML}
+        </div>
+      `;
+    }
