@@ -344,12 +344,13 @@
       }
     }
 
-    function getStudentTasksInCourse(studentId, courseCode) {
+    function getStudentTasksInCourse(studentId, courseCode, projectId = null) {
       const course = coursesCatalog[courseCode] || coursesCatalog['CMM321'];
       const prof = getStudentProfile(studentId);
       const tasks = (course && course.tasks) || [];
       return tasks.filter(t => {
         if (!t) return false;
+        if (projectId && t.projectId !== projectId) return false;
         if (t.createdBy === studentId) return true;
         return (t.members || []).some(m =>
           m.id === studentId ||
@@ -358,9 +359,9 @@
       });
     }
 
-    function getStudentOriginalGroupMembers(studentId, courseCode) {
+    function getStudentOriginalGroupMembers(studentId, courseCode, projectId = null) {
       const curProf = getStudentProfile(studentId);
-      const studentTasks = getStudentTasksInCourse(studentId, courseCode);
+      const studentTasks = getStudentTasksInCourse(studentId, courseCode, projectId);
       if (studentTasks.length === 0) {
         return {
           hasFirstTask: false,
@@ -407,7 +408,8 @@
       if (titleInput) titleInput.value = `Task ${nextNum}: Deliverable`;
 
       const curStd = getCurrentStudent();
-      const origInfo = getStudentOriginalGroupMembers(curStd.id, targetCode);
+      const targetProj = studentProjectsList.find(p => p.id === (activeTasksProjectFilter || activeProjectId) && p.course === targetCode) || studentProjectsList.find(p => p.course === targetCode);
+      const origInfo = getStudentOriginalGroupMembers(curStd.id, targetCode, targetProj ? targetProj.id : null);
       const typeSel = document.getElementById('studentNewTaskType');
       if (origInfo.hasFirstTask) {
         studentAddTaskTempMembers = JSON.parse(JSON.stringify(origInfo.members));
@@ -444,8 +446,8 @@
       if (!course) return;
 
       const curStd = getCurrentStudent();
-      const origInfo = getStudentOriginalGroupMembers(curStd.id, course.code);
       const linkedProj = studentProjectsList.find(p => p.id === (activeTasksProjectFilter || activeProjectId) && p.course === course.code) || studentProjectsList.find(p => p.course === course.code);
+      const origInfo = getStudentOriginalGroupMembers(curStd.id, course.code, linkedProj ? linkedProj.id : null);
       const due = (linkedProj && linkedProj.dueDate) || (course.tasks && course.tasks[0] && course.tasks[0].due) || 'November 28, 2026 at 23:00';
       const newId = `${course.code.toLowerCase()}-task-${Date.now()}`;
 
@@ -646,6 +648,13 @@
         }
       }
       if (!foundTask) return;
+      const curStd = getCurrentStudent();
+      if (isTaskGradedLockedForStudent(foundTask, curStd.id, foundCourse ? foundCourse.code : activeCourseId)) {
+        alertMessage(currentLanguage === 'th'
+          ? 'งานนี้ได้รับการตรวจให้คะแนนแล้ว ไม่สามารถแก้ไขได้ (ยกเว้นอาจารย์สั่งให้ส่งแก้ไข)'
+          : 'This task has already been graded and cannot be edited unless the instructor requests a revision.');
+        return;
+      }
 
       document.getElementById('studentEditTaskId').value = foundTask.id;
       document.getElementById('studentEditTaskTitle').value = foundTask.title || '';
@@ -760,6 +769,35 @@
       if (modal) modal.classList.remove('hidden');
     }
 
+    function isTaskGradedLockedForStudent(task, studentId, courseCode) {
+      if (!task) return false;
+      const curStdId = studentId || (typeof getCurrentStudent === 'function' ? getCurrentStudent().id : '');
+      const revs = curStdId && typeof ensureStudentSubmissionRevisions === 'function'
+        ? ensureStudentSubmissionRevisions(task, curStdId, courseCode || activeCourseId)
+        : [];
+      const latestRev = revs.length > 0 ? revs[revs.length - 1] : null;
+      if (latestRev) {
+        if (latestRev.status === 'revision') return false;
+        const sc = String(latestRev.score || '').trim();
+        if (sc && sc !== 'Pending' && sc !== '-' && sc !== 'Revise') {
+          return true;
+        }
+      }
+      const sub = curStdId && task.studentSubmissions && task.studentSubmissions[curStdId];
+      if (sub) {
+        const subSt = String(sub.status || '').toLowerCase();
+        if (subSt.includes('revision')) return false;
+        const subSc = String(sub.score || '').trim();
+        if (subSt.startsWith('graded') || (subSc && subSc !== 'Pending' && subSc !== '-' && subSc !== 'Revise')) {
+          return true;
+        }
+      }
+      const taskSt = String(task.status || '').toLowerCase();
+      if (taskSt.includes('revision')) return false;
+      if (taskSt.startsWith('graded')) return true;
+      return false;
+    }
+
     function renderTaskDetailPage() {
       const course = coursesCatalog[activeCourseId];
       if (!course) return;
@@ -821,19 +859,50 @@
       const curStd = getCurrentStudent();
       const myRevs = ensureStudentSubmissionRevisions(task, curStd.id, course.code);
       const myLatestRev = myRevs.length > 0 ? myRevs[myRevs.length - 1] : null;
+      const isGradedLocked = isStudent && isTaskGradedLockedForStudent(task, curStd.id, course.code);
+
+      if (editBtn && isGradedLocked) {
+        editBtn.classList.add('hidden');
+      }
+
+      const dropzoneBox = document.getElementById('dropzoneBox');
+      const btnSubmitUpload = document.getElementById('btnStudentSubmitUpload');
+      const btnEditUpload = document.getElementById('btnStudentEditUpload');
+      if (dropzoneBox) {
+        dropzoneBox.classList.toggle('pointer-events-none', isGradedLocked);
+        dropzoneBox.classList.toggle('opacity-60', isGradedLocked);
+        dropzoneBox.classList.toggle('cursor-not-allowed', isGradedLocked);
+      }
+      if (btnSubmitUpload) {
+        btnSubmitUpload.disabled = isGradedLocked;
+        btnSubmitUpload.classList.toggle('opacity-50', isGradedLocked);
+        btnSubmitUpload.classList.toggle('cursor-not-allowed', isGradedLocked);
+      }
+      if (btnEditUpload) {
+        btnEditUpload.disabled = isGradedLocked;
+        btnEditUpload.classList.toggle('hidden', isGradedLocked);
+      }
 
       const hintEl = document.getElementById('submissionFileNameHint');
       if (hintEl) {
         const sizePart = (myLatestRev && myLatestRev.fileSize) ? ` (${myLatestRev.fileSize})` : '';
         const pendingSizePart = task.pendingFileSize ? ` (${task.pendingFileSize})` : '';
-        hintEl.innerText = task.pendingFile
-          ? `Ready: ${task.pendingFile}${pendingSizePart}`
-          : (myLatestRev ? `ล่าสุด: ${myLatestRev.file}${sizePart} • ${myLatestRev.submittedAt || ''}` : `student_${curStd.id}_task.zip`);
+        hintEl.innerText = isGradedLocked
+          ? (myLatestRev
+              ? `คะแนน: ${myLatestRev.score} • ${myLatestRev.file}${sizePart}`
+              : `${computedStatus}`)
+          : (task.pendingFile
+              ? `Ready: ${task.pendingFile}${pendingSizePart}`
+              : (myLatestRev ? `ล่าสุด: ${myLatestRev.file}${sizePart} • ${myLatestRev.submittedAt || ''}` : `student_${curStd.id}_task.zip`));
       }
       const uploadStatusText = document.getElementById('uploadStatusText');
       if (uploadStatusText) {
         const isTh = currentLanguage === 'th';
-        if (task.pendingFile) {
+        if (isGradedLocked) {
+          uploadStatusText.innerText = isTh
+            ? '🔒 งานนี้ได้รับการตรวจให้คะแนนแล้ว (ไม่สามารถแก้งานได้ ยกเว้นอาจารย์สั่งให้ส่งแก้)'
+            : '🔒 Graded — locked from editing unless your instructor requests a revision';
+        } else if (task.pendingFile) {
           uploadStatusText.innerText = isTh
             ? `✓ แนบไฟล์ ${task.pendingFile} แล้ว (พร้อมกดส่งงาน)`
             : `✓ ${task.pendingFile} attached (Ready to submit)`;
@@ -881,6 +950,7 @@
 
       const btnEdit = document.getElementById('btnEditInTaskMembers');
       if (btnEdit) {
+        btnEdit.classList.toggle('hidden', isGradedLocked);
         btnEdit.onclick = () => openMemberEditModalForTask(task.id);
       }
     }
@@ -940,7 +1010,22 @@
       return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
+    function guardActiveTaskNotGraded() {
+      if (currentUserRole !== 'student') return false;
+      const course = coursesCatalog[activeCourseId];
+      const task = course ? (course.tasks.find(t => t.id === activeTaskId) || course.tasks[0]) : null;
+      const curStd = getCurrentStudent();
+      if (task && isTaskGradedLockedForStudent(task, curStd.id, course.code)) {
+        alertMessage(currentLanguage === 'th'
+          ? 'งานนี้ได้รับการตรวจให้คะแนนแล้ว ไม่สามารถแก้งานได้ (ยกเว้นอาจารย์สั่งให้ส่งแก้ไข)'
+          : 'This task has already been graded and cannot be modified unless the instructor requests a revision.');
+        return true;
+      }
+      return false;
+    }
+
     function triggerRealFilePicker() {
+      if (guardActiveTaskNotGraded()) return;
       const fileInput = document.getElementById('studentRealFileInput');
       if (fileInput && typeof fileInput.click === 'function') {
         fileInput.value = '';
@@ -951,6 +1036,10 @@
     }
 
     function handleRealFileSelected(input) {
+      if (guardActiveTaskNotGraded()) {
+        if (input) input.value = '';
+        return;
+      }
       const file = input && input.files && input.files[0];
       if (!file) return;
       const course = coursesCatalog[activeCourseId];
@@ -1010,6 +1099,7 @@
     }
 
     function simulateFileUpload() {
+      if (guardActiveTaskNotGraded()) return;
       const course = coursesCatalog[activeCourseId];
       const task = course ? (course.tasks.find(t => t.id === activeTaskId) || course.tasks[0]) : null;
       const text = document.getElementById('uploadStatusText');
@@ -1027,6 +1117,7 @@
     }
 
     function submitAssignment() {
+      if (guardActiveTaskNotGraded()) return;
       const course = coursesCatalog[activeCourseId];
       if (!course) return;
       const task = course.tasks.find(t => t.id === activeTaskId) || course.tasks[0];
@@ -1658,11 +1749,13 @@
           return;
         }
 
+        const projKey = task.projectId || 'default';
         const validCreatorId = (task.createdBy && (!hasDir || studentDirectory[task.createdBy])) ? getStudentProfile(task.createdBy).id : null;
         const ownerId = validCreatorId || (normalized[0] && normalized[0].id) || null;
+        const ownerProjKey = ownerId ? `${projKey}::${ownerId}` : null;
         let finalMembers;
-        if (ownerId && canonicalTeamByStudent.has(ownerId)) {
-          const template = canonicalTeamByStudent.get(ownerId);
+        if (ownerProjKey && canonicalTeamByStudent.has(ownerProjKey)) {
+          const template = canonicalTeamByStudent.get(ownerProjKey);
           const prevById = new Map(normalized.map(m => [m.id, m]));
           finalMembers = template.map((tm, idx) => {
             const existing = prevById.get(tm.id);
@@ -1676,7 +1769,7 @@
             };
           });
         } else {
-          let clean = normalized.filter(m => !canonicalTeamByStudent.has(m.id));
+          let clean = normalized.filter(m => !canonicalTeamByStudent.has(`${projKey}::${m.id}`));
           if (clean.length === 0 && ownerId) {
             const op = getStudentProfile(ownerId);
             clean = [{ id: op.id, name: op.shortName, role: 'Leader', taskStatus: 'Active', score: 'Pending' }];
@@ -1685,7 +1778,7 @@
             ...m,
             role: idx === 0 ? 'Leader' : (m.role === 'Leader' ? 'Member' : (m.role || 'Member'))
           }));
-          finalMembers.forEach(m => canonicalTeamByStudent.set(m.id, finalMembers));
+          finalMembers.forEach(m => canonicalTeamByStudent.set(`${projKey}::${m.id}`, finalMembers));
         }
 
         task.members = finalMembers;
@@ -2091,18 +2184,11 @@
         isRevReq = st.includes('revision') || st.includes('รอแก้');
         hasSubmitted = !isRevReq && (task.isFinished || st.includes('graded') || st.includes('review') || st.includes('finish') || st.includes('complete'));
         baseScore = memberEntry.score || (hasSubmitted ? '9/10' : 'Pending');
-      } else if (String(task.id || '').includes('-task-')) {
+      } else {
+        // Non-members without an explicit submission must never inherit synthetic 'complete' statuses.
         hasSubmitted = false;
         isRevReq = false;
         baseScore = 'Pending';
-      } else {
-        if (tail === 3 || tail === 7) {
-          isRevReq = true;
-          hasSubmitted = false;
-        } else {
-          hasSubmitted = task.isFinished ? (tail % 3 !== 0) : (tail % 2 === 0);
-        }
-        baseScore = hasSubmitted ? ((mid % 3 === 0) ? '10/10' : (mid % 2 === 0 ? '9/10' : '8.5/10')) : 'Pending';
       }
 
       const revisions = [];
@@ -2198,8 +2284,32 @@
       }
 
 
+      const buildEmptyProjectTaskInfo = () => ({
+        student: prof,
+        courseCode: course.code,
+        task: null,
+        taskId: '',
+        taskTitle: currentLanguage === 'th' ? 'ยังไม่มีงานในโปรเจกต์นี้' : 'No task in this project yet',
+        taskCount: 0,
+        submittedTasksCount: 0,
+        revisionTasksCount: 0,
+        due: '—',
+        isComplete: false,
+        isRevision: false,
+        submissionStatus: 'pending',
+        taskSubmissionStatus: 'pending',
+        revisions: [],
+        revisionCount: 0,
+        score: 'Pending',
+        file: ''
+      });
+
+      const isSeededCourseProj = /^proj-[1-9]$/.test(String(projectId || ''));
       let candidateTasks = projectId ? tasks.filter(t => t.projectId === projectId) : tasks;
-      if (candidateTasks.length === 0) candidateTasks = tasks;
+      if (candidateTasks.length === 0) {
+        if (projectId) return buildEmptyProjectTaskInfo();
+        candidateTasks = tasks;
+      }
 
       const isStudentInTask = (t) => {
         if (!t) return false;
@@ -2216,12 +2326,17 @@
       let matchedTask = specificTaskId ? tasks.find(t => t.id === specificTaskId) : null;
       if (!matchedTask) {
         matchedTask = revCandidate.find(isStudentInTask)
-          || revAll.find(isStudentInTask)
-          || revCandidate.find(t => t.studentSubmissions && t.studentSubmissions[studentId] && Array.isArray(t.studentSubmissions[studentId].revisions) && t.studentSubmissions[studentId].revisions.length > 0)
-          || revAll.find(t => t.studentSubmissions && t.studentSubmissions[studentId] && Array.isArray(t.studentSubmissions[studentId].revisions) && t.studentSubmissions[studentId].revisions.length > 0);
+          || revCandidate.find(t => t.studentSubmissions && t.studentSubmissions[studentId] && Array.isArray(t.studentSubmissions[studentId].revisions) && t.studentSubmissions[studentId].revisions.length > 0);
+        if (!matchedTask && (!projectId || isSeededCourseProj)) {
+          matchedTask = revAll.find(isStudentInTask)
+            || revAll.find(t => t.studentSubmissions && t.studentSubmissions[studentId] && Array.isArray(t.studentSubmissions[studentId].revisions) && t.studentSubmissions[studentId].revisions.length > 0);
+        }
       }
 
       if (!matchedTask) {
+        if (projectId && !isSeededCourseProj) {
+          return buildEmptyProjectTaskInfo();
+        }
         const numId = parseInt(String(studentId).slice(-3), 10) || 0;
         matchedTask = candidateTasks[numId % candidateTasks.length] || tasks[0];
       }
@@ -2235,8 +2350,9 @@
       const isRevision = submissionStatus === 'revision';
       const score = latestRev ? (latestRev.score || 'Pending') : 'Pending';
 
+      const scopeProjId = (matchedTask && matchedTask.projectId) || projectId || null;
       const allStudentTasks = typeof getStudentTasksInCourse === 'function'
-        ? getStudentTasksInCourse(studentId, course.code)
+        ? getStudentTasksInCourse(studentId, course.code, scopeProjId)
         : [matchedTask];
       const effectiveTasks = allStudentTasks.length > 0 ? allStudentTasks : [matchedTask];
 

@@ -573,8 +573,8 @@
       activeProjectId = newProjectId;
       const course = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
       if (course && course.tasks) {
-        const linkedTask = course.tasks.find(t => t.projectId === newProjectId) || course.tasks[0];
-        if (linkedTask) selectedTeacherAssessmentTaskId = linkedTask.id;
+        const linkedTask = course.tasks.find(t => t.projectId === newProjectId);
+        selectedTeacherAssessmentTaskId = linkedTask ? linkedTask.id : null;
       }
       renderTeacherStudentTable(document.getElementById('teacherStudentSearchInput')?.value || '');
       if (currentScreen === 'teacher-review') syncBrowserHistory('teacher-review', true);
@@ -678,6 +678,9 @@
       activeTeacherGradingRevisionIndex = -1;
       if (taskId) {
         selectedTeacherAssessmentTaskId = taskId;
+        const cObj = coursesCatalog[activeCourseId];
+        const tObj = cObj && Array.isArray(cObj.tasks) ? cObj.tasks.find(t => t.id === taskId) : null;
+        if (tObj && tObj.projectId) activeProjectId = tObj.projectId;
       } else {
         const info = getStudentCourseTaskInfo(studentId, activeCourseId || 'CMM321', activeProjectId);
         if (info && info.taskId) selectedTeacherAssessmentTaskId = info.taskId;
@@ -1056,9 +1059,10 @@
           </div>
 
           <div class="col-span-2 sm:col-span-2 text-center shrink-0">
+            ${info.taskId ? `
             <button onclick="gradeStudentTask('${prof.id}', '${info.taskId}')" class="px-4 py-1 rounded-full bg-blue-50 hover:bg-blue-600 hover:text-white dark:bg-neutral-800 dark:hover:bg-blue-600 text-blue-700 dark:text-sky-300 dark:hover:text-white border border-blue-200/80 dark:border-neutral-700 font-bold text-xs transition shadow-2xs pressable">
               View
-            </button>
+            </button>` : '<span class="text-[11px] text-neutral-400">—</span>'}
           </div>
         `;
         container.appendChild(row);
@@ -1133,8 +1137,12 @@
 
     function resolveTeacherReviewTask(course, studentId) {
       if (!course || !Array.isArray(course.tasks) || course.tasks.length === 0) return null;
+      const explicitTask = selectedTeacherAssessmentTaskId
+        ? course.tasks.find(t => t.id === selectedTeacherAssessmentTaskId)
+        : null;
+      const scopeProjId = activeProjectId || (explicitTask && explicitTask.projectId) || null;
       const studentTasks = typeof getStudentTasksInCourse === 'function'
-        ? getStudentTasksInCourse(studentId, course.code)
+        ? getStudentTasksInCourse(studentId, course.code, scopeProjId)
         : [];
       if (studentTasks.length > 0) {
         const matched = studentTasks.find(t => t.id === selectedTeacherAssessmentTaskId);
@@ -1142,7 +1150,12 @@
         selectedTeacherAssessmentTaskId = studentTasks[0].id;
         return studentTasks[0];
       }
-      return course.tasks.find(t => t.id === selectedTeacherAssessmentTaskId) || course.tasks[0];
+      if (explicitTask) return explicitTask;
+      if (scopeProjId) {
+        const projTask = course.tasks.find(t => t.projectId === scopeProjId);
+        if (projTask) return projTask;
+      }
+      return course.tasks[0];
     }
 
     async function downloadTeacherGradingFile() {
@@ -1324,6 +1337,8 @@
           if (!Array.isArray(task.comments)) task.comments = [];
           task.comments.push({ ...revMsg });
 
+          task.status = 'Revision Requested';
+          task.isFinished = false;
           syncGroupSubmissionSnapshot(task, student.id, {
             submitted: false,
             score: 'Revise',
@@ -1667,8 +1682,9 @@
       const stuBadgeEl = document.getElementById('teacherGradingStudentBadge');
       if (stuBadgeEl) stuBadgeEl.innerText = `${currentStudent.id} • ${currentStudent.fullName}`;
 
+      const scopeProjId = (activeTask && activeTask.projectId) || activeProjectId || null;
       const studentTasksInCourse = typeof getStudentTasksInCourse === 'function'
-        ? getStudentTasksInCourse(currentStudent.id, course.code)
+        ? getStudentTasksInCourse(currentStudent.id, course.code, scopeProjId)
         : (activeTask ? [activeTask] : []);
       const taskCountBadgeEl = document.getElementById('teacherGradingTaskCountBadge');
       if (taskCountBadgeEl) {
@@ -2978,7 +2994,17 @@
             </div>
           `;
         } else {
-          actionsHtml = `
+          const stepLocked = isProjectStepGradedLocked(task);
+          actionsHtml = stepLocked
+            ? `
+            <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>🔒</span>
+                <span>ตรวจให้คะแนนแล้ว (ไม่สามารถแก้ไขได้ ยกเว้นอาจารย์สั่งให้ส่งแก้)</span>
+              </span>
+            </div>
+          `
+            : `
             <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <button onclick="openEditProjectStepModal('${task.id}')" class="px-2.5 py-1 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition">
@@ -2989,13 +3015,9 @@
                 </button>
               </div>
 
-              <button onclick="openSubmitStepProgressModal('${task.id}')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs ${
-                task.status === 'Approved'
-                  ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'
-                  : 'bg-neutral-900 hover:bg-black dark:bg-orange-600 dark:hover:bg-orange-500 text-white'
-              }">
+              <button onclick="openSubmitStepProgressModal('${task.id}')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs bg-neutral-900 hover:bg-black dark:bg-orange-600 dark:hover:bg-orange-500 text-white">
                 <span>☁️</span>
-                <span>${task.status === 'Approved' ? 'อัปเดตงานเพิ่มเติม' : (task.status === 'Revision Requested' ? 'ส่งงานฉบับแก้ไข' : 'ส่งตรวจความก้าวหน้า')}</span>
+                <span>${task.status === 'Revision Requested' ? 'ส่งงานฉบับแก้ไข' : 'ส่งตรวจความก้าวหน้า'}</span>
               </button>
             </div>
           `;
@@ -3047,11 +3069,21 @@
       document.getElementById('modalProjectStep').classList.remove('hidden');
     }
 
+    function isProjectStepGradedLocked(task) {
+      if (!task) return false;
+      if (task.status === 'Revision Requested') return false;
+      return task.status === 'Approved' || (task.score !== null && task.score !== undefined && String(task.score).trim() !== '' && task.score !== 'Pending' && task.score !== '-');
+    }
+
     function openEditProjectStepModal(taskId) {
       const p = studentProjectsList.find(x => x.id === activeViewingProjectId);
       if (!p) return;
       const task = (p.tasks || []).find(t => t.id === taskId);
       if (!task) return;
+      if (currentUserRole === 'student' && isProjectStepGradedLocked(task)) {
+        alertMessage('ขั้นตอนนี้ได้รับการตรวจให้คะแนนแล้ว ไม่สามารถแก้ไขได้ (ยกเว้นอาจารย์สั่งให้ส่งแก้)');
+        return;
+      }
 
       document.getElementById('projectStepEditId').value = task.id;
       document.getElementById('modalProjectStepHeading').textContent = 'แก้ไขขั้นตอนโครงงาน';
@@ -3113,9 +3145,14 @@
     }
 
     function handleDeleteProjectStep(taskId) {
-      if (!confirm('คุณต้องการลบขั้นตอนนี้ใช่หรือไม่?')) return;
       const p = studentProjectsList.find(x => x.id === activeViewingProjectId);
       if (!p) return;
+      const task = (p.tasks || []).find(t => t.id === taskId);
+      if (currentUserRole === 'student' && isProjectStepGradedLocked(task)) {
+        alertMessage('ขั้นตอนนี้ได้รับการตรวจให้คะแนนแล้ว ไม่สามารถลบได้ (ยกเว้นอาจารย์สั่งให้ส่งแก้)');
+        return;
+      }
+      if (!confirm('คุณต้องการลบขั้นตอนนี้ใช่หรือไม่?')) return;
       p.tasks = (p.tasks || []).filter(t => t.id !== taskId);
       saveStoredProjects(studentProjectsList);
       openProjectMilestoneDetail(p.id);
@@ -3127,6 +3164,10 @@
       if (!p) return;
       const task = (p.tasks || []).find(t => t.id === taskId);
       if (!task) return;
+      if (currentUserRole === 'student' && isProjectStepGradedLocked(task)) {
+        alertMessage('ขั้นตอนนี้ได้รับการตรวจให้คะแนนแล้ว ไม่สามารถส่งแก้ได้ (ยกเว้นอาจารย์สั่งให้ส่งแก้)');
+        return;
+      }
 
       document.getElementById('submitStepTaskId').value = task.id;
       document.getElementById('submitStepModalSubtitle').textContent = task.title;
