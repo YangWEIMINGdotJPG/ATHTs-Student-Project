@@ -1089,7 +1089,7 @@
         fileInput.value = '';
         fileInput.click();
       } else {
-        alertMessage(currentLanguage === 'th' ? 'กรุณาเลือกไฟล์ผ่านปุ่มอัปโหลดจากอุปกรณ์ของคุณ' : 'Please pick a real file from your device.');
+        simulateFileUpload();
       }
     }
 
@@ -1156,7 +1156,23 @@
       alertMessage(isTh ? `แนบไฟล์ ${file.name} สำเร็จ!` : `Attached ${file.name} successfully!`);
     }
 
-    /* Real SQL file uploads only (fake simulation removed) */
+    function simulateFileUpload() {
+      if (guardActiveTaskNotGraded()) return;
+      const course = coursesCatalog[activeCourseId];
+      const task = course ? (course.tasks.find(t => t.id === activeTaskId) || course.tasks[0]) : null;
+      const text = document.getElementById('uploadStatusText');
+      if (text) {
+        text.innerText = "Uploading 'student_solution_v2.zip' (8.4 MB)...";
+        setTimeout(() => {
+          text.innerText = "✓ student_solution_v2.zip attached (Ready to submit)";
+          if (task) {
+            task.pendingFile = 'student_solution_v2.zip';
+            task.pendingFileSize = '8.4 MB';
+          }
+          alertMessage("File attached successfully!");
+        }, 600);
+      }
+    }
 
     function submitAssignment() {
       if (guardActiveTaskNotGraded()) return;
@@ -1587,7 +1603,8 @@
           'atht_student_projects',
           'atht_admin_students',
           'atht_admin_teachers',
-          'atht_notifications'
+          'atht_notifications',
+          'atht_v2_notifications'
         ];
         if (!syncKeys.includes(e.key)) return;
         try {
@@ -1598,6 +1615,7 @@
           }
           if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
           if (typeof syncDynamicCourseSelectors === 'function') syncDynamicCourseSelectors();
+          if (typeof syncHeaderNotificationDot === 'function') syncHeaderNotificationDot();
           if (typeof currentScreen !== 'undefined') {
             if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
             else if (currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') renderCoursesCatalog();
