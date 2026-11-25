@@ -445,6 +445,10 @@
         if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
         if (currentScreen === 'admin' && typeof renderAdminScreen === 'function') renderAdminScreen();
       }
+      const profileModalEl = document.getElementById('modalUserProfile');
+      if (profileModalEl && !profileModalEl.classList.contains('hidden') && typeof openUserProfileModal === 'function') {
+        openUserProfileModal();
+      }
       translateDOM(currentLanguage);
     }
 
@@ -1326,50 +1330,92 @@
           ? '<span>👨‍🏫</span>'
           : '<img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" />';
       }
-      if (wfTextEl && isTeacher) {
+      if (wfTextEl && (isTeacher || isStudent)) {
         const cCode = (coursesCatalog[activeCourseId] && coursesCatalog[activeCourseId].code) || activeCourseId || 'CMM321';
-        if (screenId === 'teacher-dashboard' || screenId === 'courses') {
-          wfTextEl.innerText = 'Teacher / Courses';
-          if (wfBackBtn) wfBackBtn.classList.toggle('opacity-40', navigationHistory.length === 0);
-        } else if (screenId === 'teacher-review') {
-          if (teacherReviewViewMode === 'projectTasks') {
-            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project / Tasks`;
-          } else if (teacherReviewViewMode === 'students') {
-            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project / Tasks / Members`;
-          } else if (teacherReviewViewMode === 'grading') {
-            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project / Tasks / Members / Grading`;
+        const safeCode = escapeHtml(cCode);
+        const bcSep = '<span class="opacity-45 mx-1 select-none">/</span>';
+        const bcBtn = (label, onclickExpr) => `<button type="button" onclick="${onclickExpr}" class="hover:underline hover:text-blue-600 dark:hover:text-sky-400 transition cursor-pointer whitespace-nowrap">${label}</button>`;
+        const bcCur = (label) => `<span class="font-extrabold text-neutral-900 dark:text-white whitespace-nowrap">${label}</span>`;
+        const renderTrail = (segs) => segs.map((seg, i) => i === segs.length - 1 ? bcCur(seg.label) : (seg.action ? bcBtn(seg.label, seg.action) : `<span>${seg.label}</span>`)).join(bcSep);
+
+        if (isTeacher) {
+          const roleLbl = isTh ? 'อาจารย์' : 'Teacher';
+          const coursesLbl = isTh ? 'รายวิชา' : 'Courses';
+          const projLbl = isTh ? 'โปรเจกต์' : 'Project';
+          const tasksLbl = isTh ? 'งาน' : 'Tasks';
+          const memLbl = isTh ? 'สมาชิก' : 'Members';
+          const gradeLbl = isTh ? 'ตรวจและให้คะแนน' : 'Grading';
+          const notifLbl = isTh ? 'การแจ้งเตือน' : 'Notifications';
+          const goTchHome = "handleLogoClick()";
+          const goTchProj = "switchTeacherViewMode('assessment'); navigateTo('teacher-review')";
+          const goTchTasks = "switchTeacherViewMode('projectTasks'); navigateTo('teacher-review')";
+          const goTchMem = "switchTeacherViewMode('students'); navigateTo('teacher-review')";
+
+          if (screenId === 'teacher-dashboard' || screenId === 'courses') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goTchHome }, { label: coursesLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.toggle('opacity-40', navigationHistory.length === 0);
+          } else if (screenId === 'teacher-review') {
+            const base = [
+              { label: roleLbl, action: goTchHome },
+              { label: coursesLbl, action: goTchHome },
+              { label: safeCode, action: goTchProj }
+            ];
+            if (teacherReviewViewMode === 'projectTasks') {
+              base.push({ label: projLbl, action: goTchProj }, { label: tasksLbl });
+            } else if (teacherReviewViewMode === 'students') {
+              base.push({ label: projLbl, action: goTchProj }, { label: tasksLbl, action: goTchTasks }, { label: memLbl });
+            } else if (teacherReviewViewMode === 'grading') {
+              base.push({ label: projLbl, action: goTchProj }, { label: tasksLbl, action: goTchTasks }, { label: memLbl, action: goTchMem }, { label: gradeLbl });
+            } else {
+              base.push({ label: projLbl });
+            }
+            wfTextEl.innerHTML = renderTrail(base);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else if (screenId === 'projects') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goTchHome }, { label: coursesLbl, action: goTchHome }, { label: projLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else if (screenId === 'notifications') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goTchHome }, { label: coursesLbl, action: goTchHome }, { label: notifLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
           } else {
-            wfTextEl.innerText = `Teacher / Courses / ${cCode} / Project`;
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goTchHome }, { label: escapeHtml(screenId) }]);
           }
-          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
-        } else if (screenId === 'notifications') {
-          wfTextEl.innerText = 'Teacher / Courses / Notifications';
-          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
         } else {
-          wfTextEl.innerText = `Teacher / ${screenId}`;
-        }
-      } else if (wfTextEl && isStudent) {
-        const cCode = (coursesCatalog[activeCourseId] && coursesCatalog[activeCourseId].code) || activeCourseId || 'CMM321';
-        if (screenId === 'dashboard' || screenId === 'courses') {
-          wfTextEl.innerText = 'Student / Courses';
-          if (wfBackBtn) wfBackBtn.classList.toggle('opacity-40', navigationHistory.length === 0);
-        } else if (screenId === 'course-detail') {
-          wfTextEl.innerText = `Student / Courses / ${cCode} / Project`;
-          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
-        } else if (screenId === 'tasks-hub') {
-          const isProjTaskMode = !!(activeTasksCourseFilter || activeTasksProjectFilter);
-          wfTextEl.innerText = isProjTaskMode
-            ? `Student / Courses / ${cCode} / Project / Task`
-            : 'Student / All Tasks';
-          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
-        } else if (screenId === 'task-detail') {
-          wfTextEl.innerText = `Student / Courses / ${cCode} / Project / Tasks`;
-          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
-        } else if (screenId === 'notifications') {
-          wfTextEl.innerText = 'Student / Courses / Notifications';
-          if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
-        } else {
-          wfTextEl.innerText = `Student / ${screenId}`;
+          const roleLbl = isTh ? 'นักศึกษา' : 'Student';
+          const coursesLbl = isTh ? 'รายวิชา' : 'Courses';
+          const projLbl = isTh ? 'โปรเจกต์' : 'Project';
+          const taskLbl = isTh ? 'งาน' : 'Task';
+          const tasksLbl = isTh ? 'รายละเอียดงาน' : 'Tasks';
+          const allTasksLbl = isTh ? 'งานทั้งหมด' : 'All Tasks';
+          const notifLbl = isTh ? 'การแจ้งเตือน' : 'Notifications';
+          const goStuHome = "handleLogoClick()";
+          const goStuCourse = `selectCourse('${safeCode}')`;
+          const goStuProjTasks = activeProjectId ? `openStudentProjectTaskDetail('${escapeHtml(activeProjectId)}')` : `openAllTasksHub()`;
+
+          if (screenId === 'dashboard' || screenId === 'courses') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goStuHome }, { label: coursesLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.toggle('opacity-40', navigationHistory.length === 0);
+          } else if (screenId === 'course-detail') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goStuHome }, { label: coursesLbl, action: goStuHome }, { label: safeCode, action: goStuCourse }, { label: projLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else if (screenId === 'tasks-hub') {
+            const isProjTaskMode = !!(activeTasksCourseFilter || activeTasksProjectFilter);
+            wfTextEl.innerHTML = isProjTaskMode
+              ? renderTrail([{ label: roleLbl, action: goStuHome }, { label: coursesLbl, action: goStuHome }, { label: safeCode, action: goStuCourse }, { label: projLbl, action: goStuCourse }, { label: taskLbl }])
+              : renderTrail([{ label: roleLbl, action: goStuHome }, { label: allTasksLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else if (screenId === 'task-detail') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goStuHome }, { label: coursesLbl, action: goStuHome }, { label: safeCode, action: goStuCourse }, { label: projLbl, action: goStuCourse }, { label: taskLbl, action: goStuProjTasks }, { label: tasksLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else if (screenId === 'projects') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goStuHome }, { label: coursesLbl, action: goStuHome }, { label: projLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else if (screenId === 'notifications') {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goStuHome }, { label: coursesLbl, action: goStuHome }, { label: notifLbl }]);
+            if (wfBackBtn) wfBackBtn.classList.remove('opacity-40');
+          } else {
+            wfTextEl.innerHTML = renderTrail([{ label: roleLbl, action: goStuHome }, { label: escapeHtml(screenId) }]);
+          }
         }
       }
       if (typeof translateDOM === 'function' && currentLanguage === 'th') {

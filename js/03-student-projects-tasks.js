@@ -861,18 +861,7 @@
       if (feed) {
         feed.innerHTML = '';
         ensureRelationalIntegrity();
-        const revNotes = [];
-        myRevs.forEach(r => {
-          (r.notes || []).forEach(n => {
-            revNotes.push({
-              author: `${n.author} (${r.statusLabel || 'ส่งแล้ว'})`,
-              role: n.role || 'teacher',
-              time: n.time || r.submittedAt || 'Just now',
-              text: n.text
-            });
-          });
-        });
-        const mergedComments = [...revNotes, ...(task.comments || [])];
+        const mergedComments = getUnifiedTaskChatMessages(task, curStd.id, course.code);
         mergedComments.forEach(c => {
           const item = document.createElement('div');
           item.className = c.role === 'student'
@@ -887,6 +876,7 @@
           `;
           feed.appendChild(item);
         });
+        feed.scrollTop = feed.scrollHeight;
       }
 
       const btnEdit = document.getElementById('btnEditInTaskMembers');
@@ -1124,6 +1114,44 @@
       alertMessage(currentLanguage === 'th' ? `ส่งงาน "${task.title}" สำเร็จ!` : `Assignment "${task.title}" submitted successfully!`);
     }
 
+    function getUnifiedTaskChatMessages(task, studentId, courseCode) {
+      if (!task) return [];
+      const merged = [];
+      const seen = new Set();
+      const pushUnique = (msg, statusLabel = '') => {
+        if (!msg || !msg.text) return;
+        const cleanText = String(msg.text).trim();
+        if (!cleanText) return;
+        const role = msg.role || 'teacher';
+        const dedupeKey = msg.id ? `id:${msg.id}` : `${role}|${cleanText}`;
+        if (seen.has(dedupeKey)) return;
+        seen.add(dedupeKey);
+        const rawAuthor = String(msg.author || (role === 'student' ? 'Student' : 'Teacher'));
+        const showStatus = statusLabel && !rawAuthor.includes(`(${statusLabel})`);
+        merged.push({
+          id: msg.id || null,
+          author: showStatus ? `${rawAuthor} (${statusLabel})` : rawAuthor,
+          role,
+          time: msg.time || 'Just now',
+          text: cleanText
+        });
+      };
+
+      (task.comments || []).forEach(c => pushUnique(c, c.statusTag || ''));
+
+      const revs = (typeof ensureStudentSubmissionRevisions === 'function' && studentId)
+        ? ensureStudentSubmissionRevisions(task, studentId, courseCode)
+        : [];
+      revs.forEach(r => {
+        (r.notes || []).forEach(n => {
+          const stLabel = (n.role !== 'student' && r.statusLabel) ? r.statusLabel : (n.statusTag || '');
+          pushUnique({ ...n, time: n.time || r.submittedAt || 'Just now' }, stLabel);
+        });
+      });
+
+      return merged;
+    }
+
     function postCommentReply() {
       const input = document.getElementById('replyInput');
       if (!input || !input.value.trim()) return;
@@ -1132,18 +1160,50 @@
       const task = course ? (course.tasks.find(t => t.id === activeTaskId) || course.tasks[0]) : null;
       const curStd = getCurrentStudent();
       if (task) {
-        if (!Array.isArray(task.comments)) task.comments = [];
-        task.comments.push({
+        const msgTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const chatMsg = {
+          id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           author: `${curStd.shortName} (Student)`,
           role: 'student',
-          time: 'Just now',
+          time: msgTime,
           text
+        };
+        if (!Array.isArray(task.comments)) task.comments = [];
+        task.comments.push(chatMsg);
+
+        const groupIds = typeof getGroupSyncStudentIds === 'function'
+          ? getGroupSyncStudentIds(task, curStd.id)
+          : [curStd.id];
+        groupIds.forEach(gid => {
+          const revs = typeof ensureStudentSubmissionRevisions === 'function'
+            ? ensureStudentSubmissionRevisions(task, gid, course.code)
+            : [];
+          if (revs.length > 0) {
+            const latestRev = revs[revs.length - 1];
+            if (!Array.isArray(latestRev.notes)) latestRev.notes = [];
+            latestRev.notes.push({ ...chatMsg });
+          }
         });
-        saveCoursesCatalog();
+
+        if (typeof pushAppNotification === 'function') {
+          pushAppNotification({
+            type: 'comment',
+            targetRole: 'teacher',
+            course: course.code,
+            title: `${curStd.shortName} ส่งข้อความในงาน`,
+            taskTitle: text,
+            taskId: task.id,
+            studentId: curStd.id,
+            time: msgTime,
+            isNew: true
+          });
+        }
+        if (typeof syncAllATHTData === 'function') syncAllATHTData();
+        else saveCoursesCatalog();
       }
       input.value = '';
       renderTaskDetailPage();
-      alertMessage("Reply posted to discussion!");
+      alertMessage(currentLanguage === 'th' ? 'ส่งข้อความถึงอาจารย์เรียบร้อยแล้ว!' : 'Reply posted to discussion!');
     }
 
     const defaultStudentProjects = [
@@ -1338,6 +1398,40 @@
       if (hasSeededSimulatedTasks && typeof renderCalendar === 'function') {
         try { renderCalendar(); } catch (e) {}
       }
+    }
+
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('storage', (e) => {
+        if (!e || !e.key) return;
+        const syncKeys = [
+          COURSES_CATALOG_STORAGE_KEY,
+          'atht_student_projects',
+          'atht_admin_students',
+          'atht_admin_teachers',
+          'atht_notifications'
+        ];
+        if (!syncKeys.includes(e.key)) return;
+        try {
+          if (e.key === COURSES_CATALOG_STORAGE_KEY) loadPersistedCoursesCatalog();
+          if (e.key === 'atht_student_projects') studentProjectsList = getStoredProjects();
+          if ((e.key === 'atht_admin_students' || e.key === 'atht_admin_teachers') && typeof loadAdminPersistedDirectories === 'function') {
+            loadAdminPersistedDirectories();
+          }
+          if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+          if (typeof currentScreen !== 'undefined') {
+            if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
+            else if (currentScreen === 'teacher-review' && typeof renderTeacherReviewScreen === 'function') renderTeacherReviewScreen();
+            else if (currentScreen === 'dashboard' && typeof renderDashboardCourses === 'function') renderDashboardCourses();
+            else if (currentScreen === 'teacher-dashboard' && typeof renderTeacherDashboard === 'function') renderTeacherDashboard();
+            else if (currentScreen === 'projects' && typeof renderProjectsScreen === 'function') renderProjectsScreen();
+            else if (currentScreen === 'admin' && typeof renderAdminScreen === 'function') renderAdminScreen();
+            else if (currentScreen === 'notifications' && typeof renderNotificationsScreen === 'function') renderNotificationsScreen();
+          }
+          if (typeof updateBreadcrumbUI === 'function' && typeof currentScreen !== 'undefined' && currentScreen) {
+            updateBreadcrumbUI(currentScreen);
+          }
+        } catch (err) {}
+      });
     }
 
 

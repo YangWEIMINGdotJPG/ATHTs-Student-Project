@@ -181,12 +181,12 @@
 
     <main class="flex-1 w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col">
 
-      <div id="studentWireframeBreadcrumbRow" class="hidden items-center justify-between pb-4">
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-xs shadow-2xs font-bold text-neutral-800 dark:text-neutral-200">
+      <div id="studentWireframeBreadcrumbRow" class="hidden items-center justify-between gap-2 pb-4">
+        <div class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-[11px] sm:text-xs shadow-2xs font-bold text-neutral-800 dark:text-neutral-200 max-w-full overflow-x-auto hide-scrollbar">
           <span id="studentWireframeBreadcrumbIcon" class="inline-flex items-center justify-center shrink-0"><img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" /></span>
-          <span id="studentWireframeBreadcrumbText">Student / Courses</span>
+          <span id="studentWireframeBreadcrumbText" class="flex items-center flex-wrap gap-y-0.5">Student / Courses</span>
         </div>
-        <button id="studentWireframeBackBtn" onclick="navigateBack()" title="Back" class="w-11 h-8 rounded-full bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white flex items-center justify-center font-bold text-sm shadow-2xs transition pressable">
+        <button id="studentWireframeBackBtn" onclick="navigateBack()" title="Back" class="w-11 h-8 rounded-full bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white flex items-center justify-center font-bold text-sm shadow-2xs transition pressable shrink-0">
           ↩
         </button>
       </div>
@@ -565,7 +565,7 @@
             </div>
 
             <div class="flex items-center gap-2 pt-1">
-              <input type="text" id="replyInput" placeholder="Reply..." class="flex-1 px-4 py-2.5 text-xs bg-white text-neutral-900 dark:bg-neutral-900 dark:border dark:border-neutral-800 dark:text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-neutral-500 placeholder:text-neutral-400" />
+              <input type="text" id="replyInput" onkeydown="if(event.key==='Enter'){event.preventDefault();postCommentReply();}" placeholder="Reply..." class="flex-1 px-4 py-2.5 text-xs bg-white text-neutral-900 dark:bg-neutral-900 dark:border dark:border-neutral-800 dark:text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-neutral-500 placeholder:text-neutral-400" />
               <button onclick="postCommentReply()" class="px-5 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white text-xs font-bold rounded-xl transition pressable shrink-0">
                 Reply
               </button>
@@ -1248,7 +1248,7 @@
 
                 <div class="space-y-2 pt-1 border-t border-slate-800">
                   <div class="flex flex-wrap items-center gap-2">
-                    <input type="text" id="teacherFeedbackNoteInput" placeholder="พิมพ์ข้อเสนอแนะหรือจุดที่ต้องแก้ไข..." class="flex-1 min-w-[160px] px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" id="teacherFeedbackNoteInput" onkeydown="if(event.key==='Enter'){event.preventDefault();sendTeacherFeedbackNote();}" placeholder="พิมพ์ข้อเสนอแนะหรือจุดที่ต้องแก้ไข..." class="flex-1 min-w-[160px] px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <button type="button" onclick="requestTeacherRevision()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition pressable shrink-0">
                       ส่งแก้ (รอแก้)
                     </button>
@@ -1942,8 +1942,8 @@
 
         <div class="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 pb-3">
           <div class="flex items-center gap-2">
-            <img src="student-icon.png" alt="Student" class="w-5 h-5 object-contain" />
-            <h3 class="text-sm font-bold text-neutral-900 dark:text-white" data-i18n="studentProfileTitle">Student Profile</h3>
+            <span id="userProfileModalIcon" class="inline-flex items-center justify-center shrink-0"><img src="student-icon.png" alt="Student" class="w-5 h-5 object-contain" /></span>
+            <h3 id="userProfileModalTitle" class="text-sm font-bold text-neutral-900 dark:text-white">Student Profile</h3>
           </div>
           <button onclick="closeUserProfileModal()" class="w-6 h-6 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-xs flex items-center justify-center font-bold">✕</button>
         </div>
@@ -1961,7 +1961,7 @@
         <div class="space-y-2 text-xs">
 
           <div class="flex items-center justify-between p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-700">
-            <span class="text-neutral-500 dark:text-neutral-400 font-medium" data-i18n="studentIdLabel">Student ID</span>
+            <span id="userProfileModalIdLabel" class="text-neutral-500 dark:text-neutral-400 font-medium">Student ID</span>
             <span id="userProfileModalId" class="font-mono font-bold text-neutral-900 dark:text-white text-xs">67080200501</span>
           </div>
 

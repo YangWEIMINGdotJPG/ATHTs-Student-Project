@@ -705,6 +705,9 @@ const coursesCatalog = {
       const isThai = currentLanguage === 'th';
 
       const avatarEl = document.getElementById('userProfileModalAvatar');
+      const iconEl = document.getElementById('userProfileModalIcon');
+      const titleEl = document.getElementById('userProfileModalTitle');
+      const idLabelEl = document.getElementById('userProfileModalIdLabel');
       const nameEl = document.getElementById('userProfileModalName');
       const roleBadgeEl = document.getElementById('userProfileModalRoleBadge');
       const idEl = document.getElementById('userProfileModalId');
@@ -715,6 +718,9 @@ const coursesCatalog = {
       const switcherContainer = document.getElementById('userProfileModalSwitcherContainer');
 
       if (isAdmin) {
+        if (iconEl) iconEl.innerHTML = '<span class="text-base">🛡️</span>';
+        if (titleEl) titleEl.innerText = isThai ? 'ข้อมูลผู้ดูแลระบบ' : 'Admin Profile';
+        if (idLabelEl) idLabelEl.innerText = isThai ? 'รหัสผู้ดูแลระบบ' : 'Admin ID';
         if (avatarEl) avatarEl.innerText = 'AD';
         if (nameEl) nameEl.innerText = 'System Administrator';
         if (roleBadgeEl) roleBadgeEl.innerText = isThai ? 'ผู้ดูแลระบบหลัก • มจธ.' : 'Super Admin • KMUTT Portal';
@@ -741,6 +747,9 @@ const coursesCatalog = {
           }
         }
       } else if (isTeacher) {
+        if (iconEl) iconEl.innerHTML = '<span class="text-base">👨‍🏫</span>';
+        if (titleEl) titleEl.innerText = isThai ? 'ข้อมูลอาจารย์ผู้สอน' : 'Teacher Profile';
+        if (idLabelEl) idLabelEl.innerText = isThai ? 'รหัสอาจารย์ผู้สอน' : 'Teacher ID';
         const teacher = getCurrentTeacher();
         if (avatarEl) avatarEl.innerText = teacher.initials;
         if (nameEl) nameEl.innerText = teacher.fullName;
@@ -771,6 +780,9 @@ const coursesCatalog = {
           }
         }
       } else {
+        if (iconEl) iconEl.innerHTML = '<img src="student-icon.png" alt="Student" class="w-5 h-5 object-contain" />';
+        if (titleEl) titleEl.innerText = isThai ? 'ข้อมูลนักศึกษา' : 'Student Profile';
+        if (idLabelEl) idLabelEl.innerText = isThai ? 'รหัสนักศึกษา' : 'Student ID';
         if (avatarEl) avatarEl.innerText = student.initials;
         if (nameEl) nameEl.innerText = student.fullName;
         if (roleBadgeEl) roleBadgeEl.innerText = isThai ? 'นักศึกษาปริญญาตรี • สื่อมัลติมีเดีย' : 'Undergraduate Student • Multimedia';
