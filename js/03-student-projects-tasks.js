@@ -65,7 +65,7 @@
           </div>
 
           <div class="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 flex items-center justify-between pt-0.5">
-            <span>${escapeHtml(c.schedule)}</span>
+            <span>${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
             <span class="text-[10px] text-neutral-400 font-normal">${doneCount}/${c.tasks.length}</span>
           </div>
         `;
@@ -98,7 +98,7 @@
 
           <div class="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100 space-y-1.5">
             <div class="flex justify-between text-[10px] text-neutral-500 font-medium">
-              <span>Course Progress</span>
+              <span>${isThai ? 'ความคืบหน้ารายวิชา' : 'Course Progress'}</span>
               <span>${c.progress}%</span>
             </div>
             <div class="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
@@ -107,8 +107,8 @@
           </div>
 
           <div class="flex items-center justify-between text-[10px] text-neutral-400">
-            <span>${escapeHtml(c.schedule)}</span>
-            <span class="font-bold text-neutral-800">View Details →</span>
+            <span>${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
+            <span class="font-bold text-neutral-800">${isThai ? 'ดูรายละเอียด →' : 'View Details →'}</span>
           </div>
         `;
         container.appendChild(card);
@@ -180,7 +180,7 @@
       const teacherEl = document.getElementById('detailTeacher');
       if (teacherEl) teacherEl.innerText = `${currentLanguage === 'th' ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${course.teacher}`;
       const scheduleEl = document.getElementById('detailSchedule');
-      if (scheduleEl) scheduleEl.innerText = course.schedule || 'Wednesday 09:30 - 12:30';
+      if (scheduleEl) scheduleEl.innerText = typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(course.schedule || 'Wednesday 09:30 - 12:30', currentLanguage) : (course.schedule || 'Wednesday 09:30 - 12:30');
 
       const totalItems = courseProjects.length > 0 ? courseProjects.length : course.tasks.length;
       const completedItems = courseProjects.length > 0
@@ -208,7 +208,7 @@
       if (mobileTotalEl) mobileTotalEl.innerText = totalItems;
 
       const badgeCountEl = document.getElementById('courseTaskCountBadge');
-      if (badgeCountEl) badgeCountEl.innerText = `${totalItems} Projects`;
+      if (badgeCountEl) badgeCountEl.innerText = currentLanguage === 'th' ? `${totalItems} โปรเจกต์` : `${totalItems} Projects`;
 
       // Project header handled in tasks-hub/project view
 
@@ -252,8 +252,10 @@
               : (isRevision
                 ? 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
                 : 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800');
-            const publishDateText = p.createdAt || 'Sep 18, 2026';
-            const dueDateText = p.dueDate || defaultDue;
+            const publishDateRaw = p.createdAt || 'Sep 18, 2026';
+            const dueDateRaw = p.dueDate || defaultDue;
+            const publishDateText = typeof formatBilingualDate === 'function' ? formatBilingualDate(publishDateRaw, currentLanguage) : publishDateRaw;
+            const dueDateText = typeof formatBilingualDate === 'function' ? formatBilingualDate(dueDateRaw, currentLanguage) : dueDateRaw;
 
             card.innerHTML = `
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
@@ -273,12 +275,12 @@
 
                 <div class="grid grid-cols-2 gap-3 pt-2.5 mt-1 border-t border-neutral-200/80 dark:border-neutral-800 sm:contents">
                   <div class="sm:col-span-3 text-xs flex sm:block items-baseline gap-1.5 min-w-0">
-                    <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 shrink-0 sm:block">Publish Date</span>
+                    <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 shrink-0 sm:block">${currentLanguage === 'th' ? 'วันที่ประกาศ' : 'Publish Date'}</span>
                     <span class="text-[10px] sm:text-[11px] text-neutral-500 sm:text-neutral-600 dark:text-neutral-400 font-medium truncate sm:block">${escapeHtml(publishDateText)}</span>
                   </div>
 
                   <div class="sm:col-span-3 text-xs flex sm:block items-baseline justify-end sm:justify-start gap-1.5 min-w-0">
-                    <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 shrink-0 sm:block">Due Date</span>
+                    <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 shrink-0 sm:block">${currentLanguage === 'th' ? 'กำหนดส่ง' : 'Due Date'}</span>
                     <span class="text-[10px] sm:text-[11px] text-neutral-500 sm:text-neutral-600 dark:text-neutral-400 font-medium truncate sm:block">${escapeHtml(dueDateText)}</span>
                   </div>
                 </div>
@@ -609,7 +611,8 @@
       if (task.status && task.status.toLowerCase().includes('graded')) {
         return task.status;
       }
-      if (task.submitted || task.isFinished || (task.status && task.status.toLowerCase().includes('finish'))) {
+      const tLow = (task.status || '').toLowerCase();
+      if (task.submitted || task.isFinished || (tLow.includes('finish') && !tLow.includes('unfinish'))) {
         return 'Finished';
       }
       return 'Unfinished';
@@ -617,14 +620,17 @@
 
     function getTaskStatusBadgeClasses(statusStr) {
       if (!statusStr) return 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800';
-      const s = statusStr.toLowerCase();
+      const s = String(statusStr).toLowerCase();
       if (s.includes('revision') || s.includes('รอแก้')) {
         return 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800';
       }
-      if (s.includes('graded')) {
+      if (s.includes('unfinish') || s.includes('uncomplete') || s.includes('not submitted') || s.includes('pending') || s.includes('ยังไม่')) {
+        return 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+      }
+      if (s.includes('graded') || s.includes('ตรวจแล้ว')) {
         return 'bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800';
       }
-      if (s.includes('finish') || s.includes('complete')) {
+      if (s.includes('finish') || s.includes('complete') || s.includes('ส่งแล้ว')) {
         return 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
       }
       return 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800';
@@ -838,8 +844,8 @@
 
       document.getElementById('taskDetailTitle').innerText = task.title;
       document.getElementById('taskDetailDescription').innerText = task.description;
-      document.getElementById('taskDueDate').innerText = task.due;
-      document.getElementById('taskPublishDate').innerText = task.publishDate;
+      document.getElementById('taskDueDate').innerText = typeof formatBilingualDate === 'function' ? formatBilingualDate(task.due, currentLanguage) : task.due;
+      document.getElementById('taskPublishDate').innerText = typeof formatBilingualDate === 'function' ? formatBilingualDate(task.publishDate, currentLanguage) : task.publishDate;
 
       const container = document.getElementById('inTaskMembersList');
       if (container) {
@@ -2852,15 +2858,49 @@
       }
     }
 
+    function localizeTaskHubStatus(statusStr, isThai) {
+      const raw = String(statusStr || '').trim();
+      if (!isThai) return raw;
+      const gMatch = raw.match(/^Graded\s*\(([^)]+)\)$/i);
+      if (gMatch) return `ตรวจแล้ว (${gMatch[1]})`;
+      const low = raw.toLowerCase();
+      if (low === 'finished' || low === 'complete' || low === 'completed' || low === 'submitted') return 'ส่งแล้ว';
+      if (low.includes('unfinish') || low.includes('uncomplete') || low.includes('not submitted')) return 'ยังไม่ส่ง';
+      if (low.includes('revision') || low.includes('รอแก้')) return 'รอแก้';
+      if (low === 'in review') return 'รอตรวจ';
+      if (low === 'in progress') return 'กำลังดำเนินการ';
+      if (low === 'pending') return 'รอดำเนินการ';
+      if (low === 'upcoming') return 'กำลังจะถึง';
+      return raw;
+    }
+
     function renderGlobalTasksHub() {
+      const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
       const isProjectTaskMode = !!(activeTasksCourseFilter || activeTasksProjectFilter);
       const headingEl = document.getElementById('tasksHubHeading');
       if (headingEl) {
-        headingEl.innerText = isProjectTaskMode ? 'Task' : 'All Tasks';
+        headingEl.innerText = isProjectTaskMode
+          ? (isThai ? 'รายการงาน' : 'Task')
+          : (isThai ? 'งานทั้งหมด' : 'All Tasks');
+      }
+      const subtitleEl = document.getElementById('tasksHubSubtitle');
+      if (subtitleEl) {
+        if (isProjectTaskMode) {
+          const projObj = (studentProjectsList || []).find(p => p && p.id === activeTasksProjectFilter);
+          const courseObj = coursesCatalog[activeTasksCourseFilter || (projObj && projObj.course)];
+          const cCode = activeTasksCourseFilter || (projObj && projObj.course) || '';
+          const pTitle = (projObj && projObj.title) || (courseObj && courseObj.title) || '';
+          subtitleEl.innerText = pTitle ? `${cCode} • ${pTitle}` : cCode;
+        } else {
+          subtitleEl.innerText = isThai
+            ? 'ติดตามและคัดกรองงานที่ได้รับมอบหมายในทุกรายวิชา'
+            : 'Track and filter assignments across all enrolled subjects';
+        }
       }
       const addBtn = document.getElementById('btnAllTasksAddTask');
       if (addBtn) {
         addBtn.classList.toggle('hidden', !isProjectTaskMode || currentUserRole === 'teacher');
+        addBtn.innerHTML = `<span>+</span><span>${isThai ? 'เพิ่มงาน' : 'Add Task'}</span>`;
       }
 
       const container = document.getElementById('globalTasksListContainer');
@@ -2895,9 +2935,9 @@
 
       const unfinishedCount = allTasks.filter(t => !isTaskDoneForUser(t)).length;
       const unfinBtnSpan = document.querySelector('#tabFilterUnfinished span');
-      if (unfinBtnSpan) unfinBtnSpan.innerText = `Unfinished (${unfinishedCount})`;
+      if (unfinBtnSpan) unfinBtnSpan.innerText = isThai ? `ยังไม่เสร็จ (${unfinishedCount})` : `Unfinished (${unfinishedCount})`;
       const allBtnSpan = document.querySelector('#tabFilterAll span');
-      if (allBtnSpan) allBtnSpan.innerText = `All (${allTasks.length})`;
+      if (allBtnSpan) allBtnSpan.innerText = isThai ? `ทั้งหมด (${allTasks.length})` : `All (${allTasks.length})`;
 
       ['unfinished', 'all', 'completed'].forEach(f => {
         const btn = document.getElementById(`tabFilter${f.charAt(0).toUpperCase() + f.slice(1)}`);
@@ -2913,7 +2953,7 @@
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="col-span-full p-10 text-center text-xs text-neutral-400 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800">
-            No tasks match this filter.
+            ${isThai ? 'ยังไม่มีรายการงานในโปรเจกต์นี้' : 'No tasks match this filter.'}
           </div>
         `;
         return;
@@ -2926,6 +2966,8 @@
 
         const computedStatus = computeTaskStatus(task, task.courseCode);
         const statusCls = getTaskStatusBadgeClasses(computedStatus);
+        const displayStatus = localizeTaskHubStatus(computedStatus, isThai);
+        const displayTitle = (typeof findPhraseTranslation === 'function' ? findPhraseTranslation(task.title, isThai ? 'th' : 'en') : null) || task.title;
 
         card.innerHTML = `
           <div class="space-y-1.5">
@@ -2934,16 +2976,16 @@
                 <span class="font-extrabold text-neutral-800 dark:text-neutral-200">${escapeHtml(task.courseCode)}</span>
                 <span class="text-neutral-400 dark:text-neutral-500 ml-1">${escapeHtml(task.courseTitle || '')}</span>
               </p>
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusCls}">${escapeHtml(computedStatus)}</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusCls}">${escapeHtml(displayStatus)}</span>
             </div>
 
-            <h3 class="text-sm sm:text-base font-black text-neutral-900 dark:text-white leading-snug truncate">${escapeHtml(task.title)}</h3>
+            <h3 class="text-sm sm:text-base font-black text-neutral-900 dark:text-white leading-snug truncate">${escapeHtml(displayTitle)}</h3>
             <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400 truncate">${escapeHtml(task.description || 'Student Project')}</p>
           </div>
 
           <div class="flex items-center justify-between text-[11px] text-neutral-600 dark:text-neutral-400 pt-2">
-            <span class="font-semibold">Due : ${escapeHtml(task.due)}</span>
-            <span class="font-bold text-neutral-800 dark:text-neutral-200 shrink-0">View &gt;</span>
+            <span class="font-semibold">${isThai ? 'กำหนดส่ง' : 'Due'} : ${escapeHtml(typeof formatBilingualDate === 'function' ? formatBilingualDate(task.due, currentLanguage) : task.due)}</span>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200 shrink-0">${isThai ? 'ดูงาน →' : 'View →'}</span>
           </div>
         `;
         container.appendChild(card);

@@ -298,6 +298,82 @@
     uiThToEn.set('รอแก้', 'Revision');
     uiThToEn.set('ยังไม่ส่ง', 'Uncompleted');
 
+    const thaiMonthsAbbr = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const enMonthsAbbr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const enMonthIndexMap = {
+      jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2, apr: 3, april: 3,
+      may: 4, jun: 5, june: 5, jul: 6, july: 6, aug: 7, august: 7,
+      sep: 8, sept: 8, september: 8, oct: 9, october: 9, nov: 10, november: 10, dec: 11, december: 11
+    };
+
+    function formatBilingualSchedule(schedStr, lang = currentLanguage) {
+      if (!schedStr) return '';
+      let out = String(schedStr);
+      const dayPairs = [
+        ['Monday', 'วันจันทร์'], ['Tuesday', 'วันอังคาร'], ['Wednesday', 'วันพุธ'],
+        ['Thursday', 'วันพฤหัสบดี'], ['Friday', 'วันศุกร์'], ['Saturday', 'วันเสาร์'], ['Sunday', 'วันอาทิตย์']
+      ];
+      if (lang === 'th') {
+        dayPairs.forEach(([en, th]) => {
+          out = out.replace(new RegExp(`\\b${en}\\b`, 'gi'), th);
+        });
+      } else {
+        dayPairs.forEach(([en, th]) => {
+          out = out.replace(new RegExp(th, 'g'), en);
+        });
+      }
+      return out;
+    }
+
+    function formatBilingualDate(dateStr, lang = currentLanguage) {
+      if (!dateStr) return '';
+      const raw = String(dateStr).trim();
+      if (!raw || raw === '-') return raw;
+      if (lang === 'th') {
+        const isoM = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(.*)$/);
+        if (isoM) {
+          const yNum = parseInt(isoM[1], 10);
+          const mNum = parseInt(isoM[2], 10) - 1;
+          const dNum = parseInt(isoM[3], 10);
+          if (mNum >= 0 && mNum < 12) {
+            const beYear = yNum < 2400 ? yNum + 543 : yNum;
+            return `${dNum} ${thaiMonthsAbbr[mNum]} ${beYear}${isoM[4] || ''}`;
+          }
+        }
+        const enYearM = raw.match(/^([A-Za-z]+)\s+(\d{1,2})\s*,?\s+(\d{4})(.*)$/);
+        if (enYearM) {
+          const mIdx = enMonthIndexMap[enYearM[1].toLowerCase()];
+          if (mIdx !== undefined) {
+            const dNum = parseInt(enYearM[2], 10);
+            const yNum = parseInt(enYearM[3], 10);
+            const beYear = yNum < 2400 ? yNum + 543 : yNum;
+            const tail = (enYearM[4] || '').replace(/^\s+at\s+/i, ' เวลา ');
+            return `${dNum} ${thaiMonthsAbbr[mIdx]} ${beYear}${tail}`;
+          }
+        }
+        const enShortM = raw.match(/^([A-Za-z]+)\s+(\d{1,2})\s*(,\s*\d{1,2}:\d{2})$/);
+        if (enShortM) {
+          const mIdx = enMonthIndexMap[enShortM[1].toLowerCase()];
+          if (mIdx !== undefined) {
+            return `${parseInt(enShortM[2], 10)} ${thaiMonthsAbbr[mIdx]}${enShortM[3]}`;
+          }
+        }
+        return raw;
+      } else {
+        const thM = raw.match(/^(\d{1,2})\s+([^\s\d]+)\s+(\d{4})(.*)$/);
+        if (thM) {
+          const mIdx = thaiMonthsAbbr.indexOf(thM[2]);
+          if (mIdx !== -1) {
+            const yNum = parseInt(thM[3], 10);
+            const adYear = yNum > 2400 ? yNum - 543 : yNum;
+            const tail = (thM[4] || '').replace(/^\s+เวลา\s+/, ' at ');
+            return `${enMonthsAbbr[mIdx]} ${String(parseInt(thM[1], 10)).padStart(2, '0')}, ${adYear}${tail}`;
+          }
+        }
+        return raw;
+      }
+    }
+
     function findPhraseTranslation(text, lang) {
       if (!text) return null;
       const trimmed = text.trim();
@@ -316,6 +392,8 @@
         if ((m = trimmed.match(/^(\d+)\s+Active\s+Subjects?$/i))) return `เรียน ${m[1]} วิชา`;
         if ((m = trimmed.match(/^(\d+)\s+Tasks?\s+in\s+this\s+course$/i))) return `${m[1]} งานในวิชานี้`;
         if ((m = trimmed.match(/^Group\s+Project\s*\((\d+)\s+Members?\)$/i))) return `งานกลุ่ม (${m[1]} คน)`;
+        if ((m = trimmed.match(/^Graded\s*\(([^)]+)\)$/i))) return `ตรวจแล้ว (${m[1]})`;
+        if ((m = trimmed.match(/^Due\s*:\s*(.+)$/i))) return `กำหนดส่ง : ${formatBilingualDate(m[1], 'th')}`;
         if ((m = trimmed.match(/^Teacher:\s*(.+)$/i))) return `อาจารย์ผู้สอน: ${m[1]}`;
         if ((m = trimmed.match(/^Task\s*#?(\d+)\s*:\s*(.+)$/i))) return `งานครั้งที่ ${m[1]}: ${m[2]}`;
         if ((m = trimmed.match(/^(\d+)\s+of\s+(\d+)\s+steps?\s+approved$/i))) return `ผ่าน ${m[1]} จาก ${m[2]} ขั้นตอน`;
@@ -325,6 +403,10 @@
         if ((m = trimmed.match(/^(\d+)\s+Members?$/i))) return `${m[1]} สมาชิก`;
         if ((m = trimmed.match(/^All\s+Members\s*\((\d+)\)\s*→$/i))) return `สมาชิกทั้งหมด (${m[1]}) →`;
         if ((m = trimmed.match(/^(\d+)\s+Projects?$/i))) return `${m[1]} โปรเจกต์`;
+        const schedTh = formatBilingualSchedule(trimmed, 'th');
+        if (schedTh !== trimmed) return schedTh;
+        const dateTh = formatBilingualDate(trimmed, 'th');
+        if (dateTh !== trimmed) return dateTh;
         return null;
       } else {
         if (uiThToEn.has(trimmed)) return uiThToEn.get(trimmed);
@@ -356,10 +438,16 @@
         if ((m = trimmed.match(/^อนุมัติแล้ว\s+(\d+)\s+Step$/i))) return `${m[1]} steps approved`;
         if ((m = trimmed.match(/^งานครั้งที่\s*(\d+)\s*:\s*(.+)$/))) return `Task #${m[1]}: ${m[2]}`;
         if ((m = trimmed.match(/^งานครั้งที่\s*(\d+)\s*\(รวม\s*(\d+)\s*งาน\)$/))) return `Task #${m[1]} (${m[2]} Tasks)`;
+        if ((m = trimmed.match(/^ตรวจแล้ว\s*\(([^)]+)\)$/))) return `Graded (${m[1]})`;
+        if ((m = trimmed.match(/^กำหนดส่ง\s*:\s*(.+)$/))) return `Due : ${formatBilingualDate(m[1], 'en')}`;
         if ((m = trimmed.match(/^(\d+)\s+คน$/))) return `${m[1]} Students`;
         if ((m = trimmed.match(/^(\d+)\s+งาน$/))) return `${m[1]} Tasks`;
         if ((m = trimmed.match(/^(\d+)\s+สมาชิก$/))) return `${m[1]} Members`;
         if ((m = trimmed.match(/^(\d+)\s+โปรเจกต์$/))) return `${m[1]} Projects`;
+        const schedEn = formatBilingualSchedule(trimmed, 'en');
+        if (schedEn !== trimmed) return schedEn;
+        const dateEn = formatBilingualDate(trimmed, 'en');
+        if (dateEn !== trimmed) return dateEn;
         return null;
       }
     }
@@ -454,6 +542,7 @@
         renderDrawerLinks();
         if (typeof renderCalendar === 'function') renderCalendar();
         if (currentScreen === 'dashboard' && typeof renderDashboardCourses === 'function') renderDashboardCourses();
+        if (currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') renderCoursesCatalog();
         if (currentScreen === 'teacher-dashboard' && typeof renderTeacherDashboard === 'function') renderTeacherDashboard();
         if (currentScreen === 'teacher-review' && typeof renderTeacherReviewScreen === 'function') renderTeacherReviewScreen();
         if (currentScreen === 'projects') {
@@ -1154,7 +1243,7 @@
         if (studentWireframeBreadcrumbRow) { studentWireframeBreadcrumbRow.classList.add('hidden'); studentWireframeBreadcrumbRow.classList.remove('flex'); }
         if (headerNotifLabel) headerNotifLabel.className = 'hidden';
         if (desktopUserProfileEl) {
-          desktopUserProfileEl.className = 'hidden md:flex items-center gap-2.5 bg-white/10 hover:bg-white/20 active:bg-white/25 px-3.5 py-1.5 rounded-xl border border-white/10 text-left cursor-pointer transition pressable';
+          desktopUserProfileEl.className = 'hidden md:flex items-center gap-2 bg-white hover:bg-neutral-100 text-neutral-900 px-3.5 py-1.5 rounded-full shadow-xs text-left cursor-pointer transition pressable';
         }
       }
 
@@ -1165,10 +1254,10 @@
         if (isAdmin) {
           desktopUserAvatar.innerText = 'AD';
           desktopUserName.innerText = 'System Admin';
-          desktopUserName.className = 'text-xs font-extrabold text-neutral-900 dark:text-white block leading-tight';
+          desktopUserName.className = 'text-xs font-extrabold text-neutral-900 block leading-tight';
           desktopUserName.title = 'System Administrator (admin@kmutt.ac.th)';
           desktopUserSub.innerText = 'Super Admin • KMUTT';
-          desktopUserSub.className = 'text-[9px] text-neutral-500 dark:text-neutral-400 block leading-tight';
+          desktopUserSub.className = 'text-[9px] text-neutral-500 font-mono block leading-tight';
         } else if (isTeacher) {
           const teacher = getCurrentTeacher();
           desktopUserAvatar.innerText = teacher.initials;
@@ -1705,9 +1794,10 @@
         if (typeof teacherReviewViewMode !== 'undefined') teacherReviewViewMode = 'students';
         navigateTo('teacher-review');
         if (typeof inspectTeacherTask === 'function') inspectTeacherTask(p.id);
+      } else if (typeof openStudentProjectTaskDetail === 'function') {
+        openStudentProjectTaskDetail(p.id);
       } else {
-        navigateTo('projects');
-        if (typeof openProjectMilestoneDetail === 'function') openProjectMilestoneDetail(p.id);
+        navigateTo('tasks-hub');
       }
     }
 
@@ -1953,7 +2043,7 @@
               </div>
 
               <div class="flex items-center gap-2 text-[10px] text-neutral-500 dark:text-neutral-400">
-                <span>⏰ ${escapeHtml(it.due)}</span>
+                <span>⏰ ${escapeHtml(typeof formatBilingualDate === 'function' ? formatBilingualDate(it.due, currentLanguage) : it.due)}</span>
               </div>
 
               ${it.description ? `

@@ -77,7 +77,7 @@
             </div>
 
             <div class="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 flex items-center justify-between pt-0.5">
-              <span>${escapeHtml(c.schedule)}</span>
+              <span>${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
               <span class="text-[10px] text-neutral-400 font-normal">${doneCount}/${c.tasks.length}</span>
             </div>
           `;
@@ -554,8 +554,9 @@
           : [{ name: (proj && proj.createdByName) || 'Student', id: (proj && proj.createdBy) || '67080200501', role: 'Leader' }];
         const totalMembers = membersList.length;
         const leaderName = membersList[0].name || 'Student';
-        const isDone = !!(task.submitted || task.isFinished || (task.status && (task.status.toLowerCase().includes('graded') || task.status.toLowerCase().includes('finish'))));
-        const statusLabel = (task.status && task.status.toLowerCase().includes('graded')) ? task.status : (isDone ? 'Complete' : 'Unfinished');
+        const tLowP = (task.status || '').toLowerCase();
+        const isDone = !!(task.submitted || task.isFinished || (tLowP.includes('graded') || (tLowP.includes('finish') && !tLowP.includes('unfinish'))));
+        const statusLabel = tLowP.includes('graded') ? task.status : (isDone ? 'Complete' : 'Unfinished');
 
         const row = document.createElement('div');
         row.onclick = () => openTeacherTaskMembers(task.id);
@@ -582,17 +583,17 @@
 
             <div class="grid grid-cols-2 gap-3 pt-2 mt-1 border-t border-neutral-200/70 dark:border-neutral-800 sm:border-t-0 sm:pt-0 sm:mt-0 sm:col-span-4">
               <div class="text-xs min-w-0">
-                <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">Publish Date</span>
-                <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(task.publishDate || 'Sep 18, 2026')}</span>
+                <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">${currentLanguage === 'th' ? 'วันที่ประกาศ' : 'Publish Date'}</span>
+                <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(typeof formatBilingualDate === 'function' ? formatBilingualDate(task.publishDate || 'Sep 18, 2026', currentLanguage) : (task.publishDate || 'Sep 18, 2026'))}</span>
               </div>
               <div class="text-xs min-w-0">
-                <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">Due Date</span>
-                <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(task.due || 'Sep 30, 2026')}</span>
+                <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">${currentLanguage === 'th' ? 'กำหนดส่ง' : 'Due Date'}</span>
+                <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(typeof formatBilingualDate === 'function' ? formatBilingualDate(task.due || 'Sep 30, 2026', currentLanguage) : (task.due || 'Sep 30, 2026'))}</span>
               </div>
             </div>
 
             <div class="sm:col-span-3 flex items-center justify-between sm:justify-end gap-2">
-              <span class="px-3 py-1 rounded-full text-[11px] font-bold ${isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'}">
+              <span class="px-3 py-1 rounded-full text-[11px] font-bold ${isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'}">
                 ${escapeHtml(statusLabel)}
               </span>
               <span class="px-3 py-1 rounded-full bg-blue-50 dark:bg-neutral-800 text-blue-700 dark:text-sky-300 border border-blue-200/80 dark:border-neutral-700 text-[11px] font-bold">
@@ -1642,12 +1643,12 @@
 
                 <div class="grid grid-cols-2 gap-3 pt-2 mt-1 border-t border-neutral-200/70 dark:border-neutral-800 sm:border-t-0 sm:pt-0 sm:mt-0 sm:col-span-4 sm:grid-cols-2">
                   <div class="text-xs min-w-0">
-                    <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">Publish Date</span>
-                    <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(item.publishDate)}</span>
+                    <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">${currentLanguage === 'th' ? 'วันที่ประกาศ' : 'Publish Date'}</span>
+                    <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(typeof formatBilingualDate === 'function' ? formatBilingualDate(item.publishDate, currentLanguage) : item.publishDate)}</span>
                   </div>
                   <div class="text-xs min-w-0">
-                    <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">Due Date</span>
-                    <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(item.due)}</span>
+                    <span class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block">${currentLanguage === 'th' ? 'กำหนดส่ง' : 'Due Date'}</span>
+                    <span class="text-[11px] text-neutral-700 dark:text-neutral-300 font-medium truncate block">${escapeHtml(typeof formatBilingualDate === 'function' ? formatBilingualDate(item.due, currentLanguage) : item.due)}</span>
                   </div>
                 </div>
 
