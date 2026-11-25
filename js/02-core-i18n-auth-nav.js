@@ -1702,30 +1702,17 @@
       activeProjectId = p.id;
       if (typeof selectedTeacherAssessmentTaskId !== 'undefined') selectedTeacherAssessmentTaskId = null;
       if (currentUserRole === 'teacher') {
-        if (typeof switchTeacherViewMode === 'function') switchTeacherViewMode('assessment');
+        if (typeof teacherReviewViewMode !== 'undefined') teacherReviewViewMode = 'students';
         navigateTo('teacher-review');
+        if (typeof inspectTeacherTask === 'function') inspectTeacherTask(p.id);
       } else {
-        navigateTo('course-detail');
+        navigateTo('projects');
+        if (typeof openProjectMilestoneDetail === 'function') openProjectMilestoneDetail(p.id);
       }
     }
 
     function handleCalendarDayClick(day) {
-      const eventsMap = getCalendarEventsForMonth(calendarYear, calendarMonth);
-      const items = eventsMap[day] || [];
       selectedCalendarDate = { year: calendarYear, month: calendarMonth, day: day };
-
-      if (items.length === 1 && items[0] && items[0].projectId) {
-        openProjectFromCalendar(items[0].projectId);
-        return;
-      }
-      if (items.length > 1) {
-        const uniqueCourses = new Set(items.map(it => it.courseCode).filter(Boolean));
-        if (uniqueCourses.size === 1 && items[0] && items[0].projectId) {
-          openProjectFromCalendar(items[0].projectId);
-          return;
-        }
-      }
-
       renderCalendar();
       renderCalendarTaskPreview(day);
     }
@@ -1851,7 +1838,7 @@
             const dayItems = eventsMap[day];
             return dayItems.map(it => {
               return `
-                <div onclick="openProjectFromCalendar('${escapeHtml(it.projectId)}')" class="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-50/90 hover:bg-neutral-100 dark:bg-neutral-800/70 dark:hover:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/70 transition pressable cursor-pointer group">
+                <div onclick="handleCalendarDayClick(${day})" class="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-50/90 hover:bg-neutral-100 dark:bg-neutral-800/70 dark:hover:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/70 transition pressable cursor-pointer group">
                   <div class="flex items-center gap-2 min-w-0 flex-1">
                     <span class="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
                     <span class="px-1.5 py-0.5 rounded-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-[9px] font-black text-neutral-700 dark:text-neutral-200 shrink-0">${day} ${monthAbbr}</span>
@@ -1948,7 +1935,7 @@
                </button>`;
 
           itemsHTML += `
-            <div onclick="openProjectFromCalendar('${escapeHtml(it.projectId)}')" class="bg-white dark:bg-neutral-900 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-blue-400 transition cursor-pointer shadow-2xs space-y-2">
+            <div class="bg-white dark:bg-neutral-900 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-2xs space-y-2">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-lg border border-neutral-200 dark:border-neutral-700">
                   ${escapeHtml(it.courseCode)} • ${escapeHtml(it.courseTitle)}
