@@ -225,9 +225,12 @@
         } else {
           const defaultDue = (course.tasks && course.tasks[0]) ? course.tasks[0].due : 'Sep 30, 2026';
           courseProjects.forEach((p, idx) => {
+            const isSelectedProj = activeProjectId === p.id;
             const card = document.createElement('div');
             card.onclick = () => openStudentProjectTaskDetail(p.id, idx);
-            card.className = 'bg-white dark:bg-neutral-900 hover:bg-slate-50/80 dark:hover:bg-neutral-800/80 rounded-2xl p-4 sm:p-5 border border-neutral-200/80 dark:border-neutral-800 transition pressable cursor-pointer shadow-xs';
+            card.className = 'bg-white dark:bg-neutral-900 hover:bg-slate-50/80 dark:hover:bg-neutral-800/80 rounded-2xl p-4 sm:p-5 border ' +
+              (isSelectedProj ? 'border-blue-500 ring-2 ring-blue-500/15' : 'border-neutral-200/80 dark:border-neutral-800') +
+              ' transition pressable cursor-pointer shadow-xs';
 
             let isComplete = ['Ready for Review', 'Completed', 'Complete', 'Approved'].includes(p.status);
             let isRevision = false;
