@@ -530,8 +530,36 @@
         members: finalMembers,
         studentSubmissions: initialSubs
       });
-      ensureRelationalIntegrity();
-      saveCoursesCatalog();
+      if (linkedProj) {
+        linkedProj.members = Array.isArray(linkedProj.members) ? linkedProj.members : [];
+        finalMembers.forEach(fm => {
+          if (!fm || !fm.id) return;
+          const hasM = linkedProj.members.some(ms => String(ms).includes(fm.id));
+          if (!hasM) linkedProj.members.push(`${fm.id} ${fm.name}`);
+        });
+      }
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      else {
+        ensureRelationalIntegrity();
+        saveCoursesCatalog();
+      }
+      if (typeof pushAppNotification === 'function') {
+        pushAppNotification({
+          type: 'submission',
+          targetRole: 'teacher',
+          course: course.code,
+          title: `${curStd.shortName} เพิ่มงานใหม่: ${title}`,
+          taskTitle: linkedProj ? linkedProj.title : title,
+          taskId: newId,
+          projectId: linkedProj ? linkedProj.id : '',
+          studentId: curStd.id,
+          time: 'Just now',
+          isNew: true
+        });
+      }
+      if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+        setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+      }
 
       closeStudentAddTaskModal();
       if (currentScreen === 'tasks-hub') {
@@ -1362,6 +1390,9 @@
         }
         if (typeof syncAllATHTData === 'function') syncAllATHTData();
         else saveCoursesCatalog();
+        if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+          setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+        }
       }
       input.value = '';
       renderTaskDetailPage();
@@ -2921,6 +2952,22 @@
           studentSubmissions: initialSubs
         });
         syncAllATHTData();
+      }
+      if (typeof pushAppNotification === 'function') {
+        pushAppNotification({
+          type: 'submission',
+          targetRole: 'teacher',
+          course: course,
+          title: `${cur.shortName} สร้างโปรเจกต์ใหม่: ${title}`,
+          taskTitle: newProj.description,
+          projectId: newProj.id,
+          studentId: cur.id,
+          time: 'Just now',
+          isNew: true
+        });
+      }
+      if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+        setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
       }
 
       closeCreateProjectModal();

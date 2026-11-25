@@ -1265,58 +1265,60 @@
         const task = resolveTeacherReviewTask(course, student.id);
         if (task) {
           const revs = ensureStudentSubmissionRevisions(task, student.id, course.code);
-          if (revs.length === 0) {
-            revs.push({
-              attempt: 1,
-              file: `student_${student.id}_${task.id}_v1.zip`,
-              submittedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-              status: 'complete',
-              statusLabel: 'ส่งแล้ว',
-              score: scoreVal,
-              notes: []
-            });
-          }
-          const idx = (activeTeacherGradingRevisionIndex >= 0 && activeTeacherGradingRevisionIndex < revs.length)
-            ? activeTeacherGradingRevisionIndex
-            : revs.length - 1;
-          const targetRev = revs[idx];
-          const existingRevScore = (targetRev.score && targetRev.score !== 'Pending' && targetRev.score !== '-' && targetRev.score !== 'Revise')
-            ? targetRev.score
-            : '';
-          const effectiveScore = hasScoreEntered ? scoreVal : existingRevScore;
-          targetRev.status = 'complete';
-          targetRev.statusLabel = 'ส่งแล้ว';
-          if (hasScoreEntered) {
-            targetRev.score = scoreVal;
-          }
           const msgTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const teacherMsg = text ? {
             id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             author: `T. ${course.teacher}`,
             role: 'teacher',
             time: msgTime,
-            statusTag: 'ส่งแล้ว',
+            statusTag: hasScoreEntered ? 'ส่งแล้ว' : '',
             text
           } : null;
-          if (teacherMsg) {
+
+          if (hasScoreEntered) {
+            if (revs.length === 0) {
+              revs.push({
+                attempt: 1,
+                file: `student_${student.id}_${task.id}_v1.zip`,
+                submittedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                status: 'complete',
+                statusLabel: 'ส่งแล้ว',
+                score: scoreVal,
+                notes: []
+              });
+            }
+            const idx = (activeTeacherGradingRevisionIndex >= 0 && activeTeacherGradingRevisionIndex < revs.length)
+              ? activeTeacherGradingRevisionIndex
+              : revs.length - 1;
+            const targetRev = revs[idx];
+            targetRev.status = 'complete';
+            targetRev.statusLabel = 'ส่งแล้ว';
+            targetRev.score = scoreVal;
+            if (teacherMsg) {
+              if (!Array.isArray(targetRev.notes)) targetRev.notes = [];
+              targetRev.notes.push({ ...teacherMsg });
+            }
+            task.score = scoreVal;
+            task.status = `Graded (${scoreVal})`;
+            task.isFinished = true;
+            syncGroupSubmissionSnapshot(task, student.id, {
+              submitted: true,
+              score: scoreVal,
+              status: `Graded (${scoreVal})`,
+              memberTaskStatus: `Graded (${scoreVal})`,
+              file: targetRev.file,
+              submittedAt: targetRev.submittedAt,
+              revisions: revs
+            });
+          } else if (revs.length > 0 && teacherMsg) {
+            const idx = (activeTeacherGradingRevisionIndex >= 0 && activeTeacherGradingRevisionIndex < revs.length)
+              ? activeTeacherGradingRevisionIndex
+              : revs.length - 1;
+            const targetRev = revs[idx];
             if (!Array.isArray(targetRev.notes)) targetRev.notes = [];
             targetRev.notes.push({ ...teacherMsg });
           }
 
-          if (effectiveScore) {
-            task.score = effectiveScore;
-            task.status = `Graded (${effectiveScore})`;
-          }
-          task.isFinished = true;
-          syncGroupSubmissionSnapshot(task, student.id, {
-            submitted: true,
-            score: effectiveScore || 'Pending',
-            status: effectiveScore ? `Graded (${effectiveScore})` : 'Submitted',
-            memberTaskStatus: effectiveScore ? `Graded (${effectiveScore})` : 'Finished',
-            file: targetRev.file,
-            submittedAt: targetRev.submittedAt,
-            revisions: revs
-          });
           if (teacherMsg) {
             if (!Array.isArray(task.comments)) task.comments = [];
             task.comments.push({ ...teacherMsg });
@@ -1339,6 +1341,9 @@
             });
           }
           saveCoursesCatalog();
+          if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+            setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+          }
         }
       }
 
@@ -1421,6 +1426,9 @@
             });
           }
           saveCoursesCatalog();
+          if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+            setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+          }
         }
       }
       if (input) input.value = '';
@@ -1814,7 +1822,7 @@
       }
 
       const scoreInputEl = document.getElementById('teacherGradingScoreInput');
-      if (scoreInputEl) {
+      if (scoreInputEl && document.activeElement !== scoreInputEl) {
         const existingScoreNum = (activeRev && activeRev.score && activeRev.score !== 'Pending' && activeRev.score !== '-' && activeRev.score !== 'Revise')
           ? clampTeacherScoreNumber(activeRev.score)
           : null;
@@ -1967,6 +1975,21 @@
       saveStoredProjects(studentProjectsList);
       if (typeof syncAllATHTData === 'function') syncAllATHTData();
       else saveCoursesCatalog();
+      if (typeof pushAppNotification === 'function') {
+        pushAppNotification({
+          type: 'submission',
+          targetRole: 'student',
+          course: course.code,
+          title: `${curTch.shortName} เพิ่มโปรเจกต์ใหม่: ${title}`,
+          taskTitle: `${course.code} • Due ${due}`,
+          projectId: newProjId,
+          time: 'Just now',
+          isNew: true
+        });
+      }
+      if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+        setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+      }
 
       closeTeacherAddTaskModal();
       renderTeacherReviewScreen();
@@ -3020,7 +3043,7 @@
                   <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 font-medium text-neutral-700 dark:text-neutral-200">
                     <span>📄</span>
                     <span>${task.submittedFile}</span>
-                    <a href="javascript:void(0)" onclick="downloadMilestoneStepFile('${escapeHtml(task.submittedFile).replace(/'/g, "\\'")}', '${escapeHtml(task.submittedFileKey || '').replace(/'/g, "\\'")}', '${escapeHtml(task.title || '').replace(/'/g, "\\'")}')" class="text-orange-600 hover:underline text-[10px] ml-1 font-bold">ดาวน์โหลด</a>
+                    <a href="#" onclick="alert('จำลองการเปิดไฟล์: ' + '${task.submittedFile}'); return false;" class="text-orange-600 hover:underline text-[10px] ml-1">ดาวน์โหลด</a>
                   </div>
                 ` : ''}
 
@@ -3278,17 +3301,9 @@
 
       const pct = parseInt(document.getElementById('submitStepPctSlider').value) || 100;
       const fileInput = document.getElementById('submitStepFileInput');
-      const selectedFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
-      const fileName = selectedFile ? selectedFile.name : (task.submittedFile || 'Milestone_Deliverable.pdf');
+      const fileName = fileInput.files[0] ? fileInput.files[0].name : (task.submittedFile || 'Milestone_Deliverable.pdf');
       const link = document.getElementById('submitStepLinkInput').value.trim();
       const note = document.getElementById('submitStepNotesInput').value.trim();
-
-      if (selectedFile) {
-        const stepFileKey = `stepfile_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-        task.submittedFileKey = stepFileKey;
-        if (window.__athtFileStore) window.__athtFileStore[stepFileKey] = selectedFile;
-        if (typeof saveUploadedFileToDB === 'function') saveUploadedFileToDB(stepFileKey, selectedFile);
-      }
 
       task.progressPct = pct;
       task.submittedFile = fileName;
@@ -3366,7 +3381,7 @@
                   <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs">
                     <span>📄</span>
                     <span class="font-semibold text-neutral-800 dark:text-neutral-200">${task.submittedFile}</span>
-                    <button type="button" onclick="downloadMilestoneStepFile('${escapeHtml(task.submittedFile).replace(/'/g, "\\'")}', '${escapeHtml(task.submittedFileKey || '').replace(/'/g, "\\'")}', '${escapeHtml(task.title || '').replace(/'/g, "\\'")}')" class="ml-2 px-2 py-0.5 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded text-[10px] font-bold transition">เปิดดู / ดาวน์โหลด</button>
+                    <button onclick="alert('จำลองการเปิดตรวจไฟล์: ' + '${task.submittedFile}');" class="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 rounded text-[10px] font-bold">เปิดดู</button>
                   </div>
                 ` : ''}
 
@@ -3435,37 +3450,6 @@
 
     function closeTeacherStepInspectModal() {
       document.getElementById('modalTeacherStepInspect').classList.add('hidden');
-    }
-
-    async function downloadMilestoneStepFile(fileName, fileKey, taskTitle) {
-      if (!fileName) return;
-      let blob = null;
-      if (fileKey && typeof loadUploadedFileFromDB === 'function') {
-        blob = await loadUploadedFileFromDB(fileKey);
-      }
-      let outName = fileName;
-      if (!blob) {
-        const text = `ATHT Milestone Deliverable\r\nTask: ${taskTitle || ''}\r\nFile: ${fileName}\r\nSource: ATHT SQL Server Portal\r\n`;
-        if (fileName.toLowerCase().endsWith('.zip')) {
-          blob = buildValidZipBlob('README_milestone.txt', text);
-        } else {
-          blob = typeof Blob !== 'undefined' ? new Blob([text], { type: 'text/plain;charset=utf-8' }) : null;
-          if (!fileName.toLowerCase().endsWith('.txt')) outName = `${fileName}.txt`;
-        }
-      }
-      try {
-        if (blob && typeof URL !== 'undefined' && URL.createObjectURL) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = outName;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 2000);
-        }
-      } catch (e) {}
-      alertMessage(currentLanguage === 'th' ? `ดาวน์โหลดไฟล์สำเร็จ: ${outName}` : `Downloaded: ${outName}`);
     }
 
     function submitTeacherEvaluationStep(projId, taskId, newStatus) {
