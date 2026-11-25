@@ -20,6 +20,22 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
+    ctx.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
+    ctx.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With";
+    if (ctx.Request.Headers.ContainsKey("Access-Control-Request-Private-Network"))
+    {
+        ctx.Response.Headers["Access-Control-Allow-Private-Network"] = "true";
+    }
+    if (HttpMethods.IsOptions(ctx.Request.Method))
+    {
+        ctx.Response.StatusCode = 204;
+        return;
+    }
+    await next();
+});
 app.UseCors();
 
 await SqlPortalStore.EnsureDatabaseAndSchemaAsync(connectionString, app.Logger);

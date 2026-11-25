@@ -1022,6 +1022,11 @@
 
     async function saveUploadedFileToDB(fileKey, fileBlob) {
       try {
+        if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.uploadFileToSql === 'function') {
+          await window.__ATHT_SQL_SYNC.uploadFileToSql(fileKey, fileBlob);
+        }
+      } catch (e) {}
+      try {
         const db = await openAthtFilesDB();
         if (!db) return;
         const tx = db.transaction('files', 'readwrite');
@@ -1034,6 +1039,15 @@
       if (window.__athtFileStore && window.__athtFileStore[fileKey]) {
         return window.__athtFileStore[fileKey];
       }
+      try {
+        if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.downloadFileFromSql === 'function') {
+          const sqlBlob = await window.__ATHT_SQL_SYNC.downloadFileFromSql(fileKey);
+          if (sqlBlob) {
+            window.__athtFileStore[fileKey] = sqlBlob;
+            return sqlBlob;
+          }
+        }
+      } catch (e) {}
       try {
         const db = await openAthtFilesDB();
         if (!db) return null;
