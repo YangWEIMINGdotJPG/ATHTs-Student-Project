@@ -104,7 +104,7 @@
             <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-neutral-900 text-white dark:bg-neutral-700 shrink-0 mt-0.5">${escapeHtml(item.badge || 'LOG')}</span>
             <div class="min-w-0">
               <span class="font-bold text-neutral-900 dark:text-white block text-xs">${escapeHtml(item.action)}</span>
-              <span class="text-[11px] text-neutral-500 dark:text-neutral-400 block truncate">${escapeHtml(item.detail)}</span>
+              <span class="text-[11px] text-neutral-500 dark:text-neutral-400 block leading-snug break-words">${escapeHtml(item.detail)}</span>
             </div>
           </div>
           <span class="text-[10px] font-mono text-neutral-400 shrink-0">${escapeHtml(item.time)}</span>

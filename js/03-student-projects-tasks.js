@@ -2105,9 +2105,9 @@
         const btn = document.getElementById(`projFilter${code}`);
         if (btn) {
           if (code === courseCode) {
-            btn.className = 'px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition';
+            btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition whitespace-nowrap';
           } else {
-            btn.className = 'px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium';
+            btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap';
           }
         }
       });
@@ -2157,14 +2157,20 @@
 
       const countBadge = document.getElementById('projectsCountBadge');
       if (countBadge) {
-        countBadge.innerText = `Showing ${filtered.length} Project${filtered.length === 1 ? '' : 's'}`;
+        const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        countBadge.innerText = isThai
+          ? `แสดง ${filtered.length} โปรเจกต์`
+          : `Showing ${filtered.length} Project${filtered.length === 1 ? '' : 's'}`;
       }
 
       renderProjectsCards(filtered);
+      if (typeof translateDOM === 'function') translateDOM(currentLanguage);
     }
 
     function renderProjectsScreen() {
       const isTeacher = currentUserRole === 'teacher';
+      const isAdmin = currentUserRole === 'admin';
+      const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
       const titleEl = document.getElementById('projectsScreenTitle');
       const subtitleEl = document.getElementById('projectsScreenSubtitle');
       const roleHintEl = document.getElementById('projectsRoleHint');
@@ -2183,14 +2189,38 @@
       });
 
       if (isTeacher) {
-        if (titleEl) titleEl.innerText = courseData ? `${courseData.code} - Student Projects` : 'Student Projects (Teacher View)';
-        if (subtitleEl) subtitleEl.innerText = courseData ? `Inspect repositories and team deliverables for ${courseData.title}. Select any project to review tasks.` : 'Inspect and review student repositories, deliverables, and team collaboration status.';
-        if (roleHintEl) roleHintEl.innerText = '• Teacher View: Select any student project below to view its tasks and deliverables.';
+        if (titleEl) {
+          titleEl.innerText = courseData
+            ? `${courseData.code} - ${isThai ? 'โปรเจกต์นักศึกษา' : 'Student Projects'}`
+            : (isThai ? 'โปรเจกต์นักศึกษา (มุมมองอาจารย์)' : 'Student Projects (Teacher View)');
+        }
+        if (subtitleEl) {
+          subtitleEl.innerText = courseData
+            ? (isThai ? `ตรวจสอบคลังงานและผลงานทีมสำหรับวิชา ${courseData.title} เลือกโปรเจกต์เพื่อตรวจงาน` : `Inspect repositories and team deliverables for ${courseData.title}. Select any project to review tasks.`)
+            : (isThai ? 'ตรวจสอบและติดตามความคืบหน้าผลงานและสถานะการทำงานของนักศึกษา' : 'Inspect and review student repositories, deliverables, and team collaboration status.');
+        }
+        if (roleHintEl) {
+          roleHintEl.innerText = isThai
+            ? '• มุมมองอาจารย์: เลือกโปรเจกต์นักศึกษาด้านล่างเพื่อตรวจดูงานและผลงานที่ส่ง'
+            : '• Teacher View: Select any student project below to view its tasks and deliverables.';
+        }
         if (createBtn) createBtn.classList.add('hidden');
       } else {
-        if (titleEl) titleEl.innerText = courseData ? `${courseData.code} - Projects` : 'Course Projects';
-        if (subtitleEl) subtitleEl.innerText = courseData ? `Group projects for ${courseData.title}. Create any project below, then select to view tasks.` : 'Collaborative semester group projects. Create any project, then select to view tasks.';
-        if (roleHintEl) roleHintEl.innerText = '• Student Mode: You can create or remove projects below. Click any project to open its tasks.';
+        if (titleEl) {
+          titleEl.innerText = courseData
+            ? `${courseData.code} - ${isThai ? 'โปรเจกต์' : 'Projects'}`
+            : (isThai ? 'โปรเจกต์ในรายวิชา' : 'Course Projects');
+        }
+        if (subtitleEl) {
+          subtitleEl.innerText = courseData
+            ? (isThai ? `โปรเจกต์กลุ่มสำหรับวิชา ${courseData.title} สามารถสร้างหรือเลือกโปรเจกต์เพื่อดูรายการงาน` : `Group projects for ${courseData.title}. Create any project below, then select to view tasks.`)
+            : (isThai ? 'โปรเจกต์กลุ่มประจำภาคการศึกษา สร้างโปรเจกต์ใหม่ หรือเลือกโปรเจกต์เพื่อดูรายการงาน' : 'Collaborative semester group projects. Create any project, then select to view tasks.');
+        }
+        if (roleHintEl) {
+          roleHintEl.innerText = isAdmin
+            ? (isThai ? '• โหมดผู้ดูแลระบบ: สร้าง แก้ไข หรือคลิกดูโปรเจกต์และงานของแต่ละกลุ่มได้ทันที' : '• Admin Mode: Create, inspect, or manage all course projects and group deliverables.')
+            : (isThai ? '• โหมดนักศึกษา: สร้างหรือลบโปรเจกต์ของคุณ และคลิกเลือกโปรเจกต์เพื่อดูรายการงาน' : '• Student Mode: You can create or remove projects below. Click any project to open its tasks.');
+        }
         if (createBtn) createBtn.classList.remove('hidden');
       }
 

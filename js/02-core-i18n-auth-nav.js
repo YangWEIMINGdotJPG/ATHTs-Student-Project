@@ -178,10 +178,32 @@
       ['Add New Teacher / Instructor', 'เพิ่มอาจารย์ผู้สอนใหม่'],
       ['Remove User Account?', 'ต้องการลบบัญชีผู้ใช้นี้?'],
       ['Are you sure you want to remove this user from the KMUTT directory?', 'คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีนี้ออกจากระบบ มจธ.?'],
-      ['Yes, Remove', 'ยืนยันการลบ']
+      ['Yes, Remove', 'ยืนยันการลบ'],
+      ['SYSTEM', 'ระบบ'],
+      ['SYNC', 'ซิงค์'],
+      ['RESET', 'รีเซ็ต'],
+      ['EXPORT', 'ส่งออก'],
+      ['System Initialized', 'เริ่มต้นระบบสำเร็จ'],
+      ['Loaded 81 Undergraduate Students and 3 Faculty Instructors into KMUTT Directory.', 'นำเข้านักศึกษา 81 คน และอาจารย์ผู้สอน 3 ท่านเข้าสู่ระบบ มจธ. แล้ว'],
+      ['Course Roster Synced', 'ซิงค์รายชื่อรายวิชาแล้ว'],
+      ['Verified CMM321, CMM349, and CMM310 instructor permissions.', 'ตรวจสอบสิทธิ์อาจารย์ผู้สอน CMM321, CMM349 และ CMM310 เรียบร้อย'],
+      ['Created Student Account', 'สร้างบัญชีนักศึกษา'],
+      ['Updated Student Account', 'อัปเดตบัญชีนักศึกษา'],
+      ['Created Teacher Account', 'สร้างบัญชีอาจารย์'],
+      ['Updated Teacher Account', 'อัปเดตบัญชีอาจารย์'],
+      ['Status Changed', 'เปลี่ยนสถานะบัญชี'],
+      ['Removed Student', 'ลบบัญชีนักศึกษา'],
+      ['Removed Teacher', 'ลบบัญชีอาจารย์'],
+      ['Directory Reset', 'รีเซ็ตรายชื่อเริ่มต้น'],
+      ['Restored default 81 Students and 3 Faculty Instructors.', 'กู้คืนรายชื่อนักศึกษา 81 คน และอาจารย์ 3 ท่านเป็นค่าเริ่มต้นแล้ว'],
+      ['Exported CSV', 'ส่งออกไฟล์ CSV'],
+      ['Tracking v2', 'ติดตามผล v2'],
+      ['No Projects Found', 'ไม่พบโปรเจกต์'],
+      ['Review & Grade', 'ตรวจและให้คะแนน']
     ];
 
     const uiEnToTh = new Map(uiPhrasePairs);
+    const uiEnToThLower = new Map(uiPhrasePairs.map(([en, th]) => [en.toLowerCase(), th]));
     const uiThToEn = new Map();
     uiPhrasePairs.forEach(([en, th]) => {
       if (!uiThToEn.has(th)) uiThToEn.set(th, en);
@@ -218,7 +240,10 @@
       if (!trimmed) return null;
       if (lang === 'th') {
         if (uiEnToTh.has(trimmed)) return uiEnToTh.get(trimmed);
+        if (uiEnToThLower.has(trimmed.toLowerCase())) return uiEnToThLower.get(trimmed.toLowerCase());
         let m;
+        if ((m = trimmed.match(/^Today,\s*(.+)$/i))) return `วันนี้, ${m[1]}`;
+        if ((m = trimmed.match(/^Exported\s+(\d+)\s+user\s+records\s+to\s+CSV\.?$/i))) return `ส่งออกข้อมูลผู้ใช้ ${m[1]} รายการเป็น CSV แล้ว`;
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Students?$/i))) return `แสดงนักศึกษา ${m[1]} คน`;
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Teachers?$/i))) return `แสดงอาจารย์ ${m[1]} ท่าน`;
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Users?$/i))) return `แสดงผู้ใช้ทั้งหมด ${m[1]} คน`;
@@ -232,6 +257,8 @@
       } else {
         if (uiThToEn.has(trimmed)) return uiThToEn.get(trimmed);
         let m;
+        if ((m = trimmed.match(/^วันนี้,\s*(.+)$/))) return `Today, ${m[1]}`;
+        if ((m = trimmed.match(/^ส่งออกข้อมูลผู้ใช้\s+(\d+)\s+รายการเป็น CSV แล้ว$/))) return `Exported ${m[1]} user records to CSV.`;
         if ((m = trimmed.match(/^แสดงนักศึกษา\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Students`;
         if ((m = trimmed.match(/^แสดงอาจารย์\s+(\d+)\s+ท่าน$/))) return `Showing ${m[1]} Teachers`;
         if ((m = trimmed.match(/^แสดงผู้ใช้ทั้งหมด\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Users`;
@@ -261,14 +288,15 @@
       nodes.forEach(el => {
         if (!el || el.children.length > 0) return;
         if (el.hasAttribute && el.hasAttribute('data-i18n')) return;
-        const cur = (el.innerText || '').trim();
+        const rawTxt = (typeof el.textContent === 'string' && el.textContent.trim()) ? el.textContent : el.innerText;
+        const cur = (rawTxt || '').replace(/\s+/g, ' ').trim();
         if (!cur) return;
 
         // Only translate if current text (or previously translated text matching what we wrote) is a known UI phrase!
         let mapped = findPhraseTranslation(cur, lang);
         if (mapped === null && el.dataset && el.dataset.i18nLastApplied === cur && el.dataset.i18nOrig) {
           mapped = findPhraseTranslation(el.dataset.i18nOrig, lang);
-          if (mapped === null && (el.dataset.i18nOrig === cur || uiEnToTh.has(el.dataset.i18nOrig) || uiThToEn.has(el.dataset.i18nOrig))) {
+          if (mapped === null && (el.dataset.i18nOrig === cur || uiEnToTh.has(el.dataset.i18nOrig) || uiEnToThLower.has(el.dataset.i18nOrig.toLowerCase()) || uiThToEn.has(el.dataset.i18nOrig))) {
             mapped = el.dataset.i18nOrig;
           }
         }
@@ -1130,11 +1158,12 @@
 
       if (!breadcrumbCurrent) return;
 
+      const isTh = currentLanguage === 'th';
       const sep = `<span class="text-neutral-400 dark:text-neutral-500 font-normal">/</span>`;
-      const homeLink = `<button onclick="handleLogoClick()" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Home</button>`;
-      const coursesLink = `<button onclick="navigateTo('courses')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Courses</button>`;
-      const projectsLink = `<button onclick="navigateTo('projects')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Projects</button>`;
-      const tasksHubLink = `<button onclick="openAllTasksHub()" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">All Tasks</button>`;
+      const homeLink = `<button onclick="handleLogoClick()" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${isTh ? 'หน้าหลัก' : 'Home'}</button>`;
+      const coursesLink = `<button onclick="navigateTo('courses')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${isTh ? 'รายวิชา' : 'Courses'}</button>`;
+      const projectsLink = `<button onclick="navigateTo('projects')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${isTh ? 'โปรเจกต์' : 'Projects'}</button>`;
+      const tasksHubLink = `<button onclick="openAllTasksHub()" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${isTh ? 'งานทั้งหมด' : 'All Tasks'}</button>`;
 
       if (screenId === 'dashboard') {
         breadcrumbCurrent.innerHTML = `<span class="font-bold text-neutral-900 dark:text-white">${t('home', 'Home')}</span>`;
@@ -1148,26 +1177,29 @@
         const courseCode = course ? course.code : 'Course';
         const courseLink = `<button onclick="selectCourse('${courseCode}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${escapeHtml(courseCode)}</button>`;
         const projLink = proj ? `<button onclick="openProjectTasks('${proj.id}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${escapeHtml(projTitle)}</button>` : '';
+        const tasksWord = isTh ? 'รายการงาน' : 'Tasks';
 
         if (teacherReviewViewMode === 'assessment') {
           breadcrumbCurrent.innerHTML = proj
-            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Tasks</span>`
-            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Tasks</span>`;
+            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${tasksWord}</span>`
+            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${tasksWord}</span>`;
         } else if (teacherReviewViewMode === 'editTask') {
-          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} ${courseLink} ${sep} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Tasks</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">Edit Task</span>`;
+          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} ${courseLink} ${sep} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${tasksWord}</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${isTh ? 'แก้ไขงาน' : 'Edit Task'}</span>`;
         } else if (teacherReviewViewMode === 'students') {
+          const memWord = isTh ? 'สมาชิก' : 'Members';
           breadcrumbCurrent.innerHTML = proj
-            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Members</span>`
-            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Members</span>`;
+            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${memWord}</span>`
+            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${memWord}</span>`;
         } else if (teacherReviewViewMode === 'grading') {
+          const revWord = isTh ? 'ตรวจและให้คะแนน' : 'Review & Grade';
           breadcrumbCurrent.innerHTML = proj
-            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Tasks</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">Review & Grade</span>`
-            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Review & Grade</span>`;
+            ? `${homeLink} ${sep} ${courseLink} ${sep} ${projLink} ${sep} <button onclick="switchTeacherViewMode('assessment')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${tasksWord}</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${revWord}</span>`
+            : `${homeLink} ${sep} ${courseLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${revWord}</span>`;
         } else {
           breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${courseCode}</span>`;
         }
       } else if (screenId === 'courses') {
-        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Courses</span>`;
+        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${isTh ? 'รายวิชา' : 'Courses'}</span>`;
       } else if (screenId === 'course-detail') {
         const c = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
         const proj = studentProjectsList.find(p => p.id === activeProjectId) || studentProjectsList.find(p => p.course === activeCourseId);
@@ -1179,9 +1211,10 @@
           : `${homeLink} ${sep} ${coursesLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${cCode}</span>`;
       } else if (screenId === 'projects') {
         const isFiltered = activeProjectsFilter && activeProjectsFilter !== 'ALL';
+        const projLabel = isTh ? 'โปรเจกต์' : 'Projects';
         breadcrumbCurrent.innerHTML = isFiltered
-          ? `${homeLink} ${sep} <button onclick="setProjectsFilter('ALL')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">Projects</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${activeProjectsFilter}</span>`
-          : `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Projects</span>`;
+          ? `${homeLink} ${sep} <button onclick="setProjectsFilter('ALL')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${projLabel}</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${activeProjectsFilter}</span>`
+          : `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${projLabel}</span>`;
       } else if (screenId === 'tasks-hub') {
         const isProjTaskMode = !!(activeTasksCourseFilter || activeTasksProjectFilter);
         if (isProjTaskMode) {
@@ -1190,11 +1223,12 @@
           const proj = studentProjectsList.find(p => p.id === (activeTasksProjectFilter || activeProjectId)) || studentProjectsList.find(p => p.course === cCode);
           const projTitle = proj ? (proj.title.length > 20 ? proj.title.slice(0, 20) + '...' : proj.title) : null;
           const courseBtn = `<button onclick="selectCourse('${cCode}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${escapeHtml(cCode)}</button>`;
+          const taskWord = isTh ? 'ชื่องาน' : 'Task';
           breadcrumbCurrent.innerHTML = projTitle
-            ? `${homeLink} ${sep} ${coursesLink} ${sep} ${courseBtn} ${sep} <span class="text-neutral-600 dark:text-neutral-400">${escapeHtml(projTitle)}</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">Task</span>`
-            : `${homeLink} ${sep} ${coursesLink} ${sep} ${courseBtn} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Task</span>`;
+            ? `${homeLink} ${sep} ${coursesLink} ${sep} ${courseBtn} ${sep} <span class="text-neutral-600 dark:text-neutral-400">${escapeHtml(projTitle)}</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${taskWord}</span>`
+            : `${homeLink} ${sep} ${coursesLink} ${sep} ${courseBtn} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${taskWord}</span>`;
         } else {
-          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">All Tasks</span>`;
+          breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${isTh ? 'งานทั้งหมด' : 'All Tasks'}</span>`;
         }
       } else if (screenId === 'task-detail') {
         const c = coursesCatalog[activeCourseId] || coursesCatalog['CMM321'];
@@ -1204,10 +1238,12 @@
 
         breadcrumbCurrent.innerHTML = `${homeLink} ${sep} ${tasksHubLink} ${sep} <button onclick="selectCourse('${cCode}')" class="hover:underline text-neutral-600 dark:text-neutral-400 transition">${cCode}</button> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${escapeHtml(shortTaskTitle)}</span>`;
       } else if (screenId === 'notifications') {
-        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">Notifications</span>`;
+        breadcrumbCurrent.innerHTML = `${homeLink} ${sep} <span class="font-bold text-neutral-900 dark:text-white">${isTh ? 'การแจ้งเตือน' : 'Notifications'}</span>`;
       } else if (screenId === 'admin') {
-        const subLabel = activeAdminTab === 'teachers' ? 'Teachers' : (activeAdminTab === 'all' ? 'All Users' : 'Students');
-        breadcrumbCurrent.innerHTML = `<span class="text-neutral-600 dark:text-neutral-400">User Management</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${subLabel}</span>`;
+        const subLabel = activeAdminTab === 'teachers'
+          ? (isTh ? 'อาจารย์ผู้สอน' : 'Teachers')
+          : (activeAdminTab === 'all' ? (isTh ? 'ผู้ใช้ทั้งหมด' : 'All Users') : (isTh ? 'นักศึกษา' : 'Students'));
+        breadcrumbCurrent.innerHTML = `<span class="text-neutral-600 dark:text-neutral-400">${isTh ? 'จัดการผู้ใช้' : 'User Management'}</span> ${sep} <span class="font-bold text-neutral-900 dark:text-white">${subLabel}</span>`;
       }
 
       const wfTextEl = document.getElementById('studentWireframeBreadcrumbText');
@@ -1264,6 +1300,9 @@
           wfTextEl.innerText = `Student / ${screenId}`;
         }
       }
+      if (typeof translateDOM === 'function' && currentLanguage === 'th') {
+        translateDOM('th');
+      }
     }
 
     function renderDynamicPills(activeScreenId) {
@@ -1280,25 +1319,26 @@
 
         const pillActive = 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold shadow-xs';
         const pillIdle = 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 font-medium';
+        const isTh = currentLanguage === 'th';
 
         container.innerHTML = `
           <button onclick="switchAdminTab('students'); navigateTo('admin')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable flex items-center gap-1.5 ${isStdTab ? pillActive : pillIdle}">
             <span>🎓</span>
-            <span>Manage Students</span>
+            <span>${isTh ? 'จัดการนักศึกษา' : 'Manage Students'}</span>
           </button>
           <button onclick="switchAdminTab('teachers'); navigateTo('admin')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable flex items-center gap-1.5 ${isTchTab ? pillActive : pillIdle}">
             <span>👨‍🏫</span>
-            <span>Manage Teachers</span>
+            <span>${isTh ? 'จัดการอาจารย์' : 'Manage Teachers'}</span>
           </button>
           <button onclick="switchAdminTab('all'); navigateTo('admin')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable flex items-center gap-1.5 ${isAllTab ? pillActive : pillIdle}">
             <span>👥</span>
-            <span>All Directory</span>
+            <span>${isTh ? 'รายชื่อทั้งหมด' : 'All Directory'}</span>
           </button>
           <button onclick="navigateTo('projects')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable ${isProject ? pillActive : pillIdle}">
-            Projects
+            ${isTh ? 'โปรเจกต์' : 'Projects'}
           </button>
           <button onclick="navigateTo('courses')" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs transition pressable ${isCourses ? pillActive : pillIdle}">
-            Courses
+            ${isTh ? 'รายวิชา' : 'Courses'}
           </button>
         `;
         return;
