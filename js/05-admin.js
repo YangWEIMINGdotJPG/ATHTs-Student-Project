@@ -141,6 +141,9 @@
       if (tab === 'teachers') {
         if (inlineBtnText) inlineBtnText.innerText = 'Add Teacher';
         if (topBtnText) topBtnText.innerText = 'Add New Teacher';
+      } else if (tab === 'all') {
+        if (inlineBtnText) inlineBtnText.innerText = 'Add New User';
+        if (topBtnText) topBtnText.innerText = 'Add New User';
       } else {
         if (inlineBtnText) inlineBtnText.innerText = 'Add Student';
         if (topBtnText) topBtnText.innerText = 'Add New Student';
@@ -392,11 +395,18 @@
       const tchGroup = document.getElementById('adminTeacherFieldsGroup');
       const isEdit = document.getElementById('adminFormMode').value === 'edit';
 
+      const titleEl = document.getElementById('adminModalTitle');
+      const submitBtn = document.getElementById('adminFormSubmitBtn');
+
       if (role === 'teacher') {
         if (btnTch) btnTch.className = 'py-2 rounded-lg font-extrabold text-xs transition bg-neutral-900 text-white shadow-2xs flex items-center justify-center gap-1.5';
         if (btnStd) btnStd.className = 'py-2 rounded-lg font-bold text-xs transition text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 flex items-center justify-center gap-1.5';
         if (iconEl) iconEl.innerText = '👨‍🏫';
         if (idLabel) idLabel.innerText = 'Faculty Code / Instructor ID *';
+        if (!isEdit) {
+          if (titleEl) titleEl.innerText = 'Add New Teacher / Instructor';
+          if (submitBtn) submitBtn.innerText = 'Create Teacher Account';
+        }
         if (idInput && !isEdit) {
           const nextNum = Object.keys(teacherDirectory).length + 101;
           idInput.value = `FAC-CMM-${nextNum}`;
@@ -408,6 +418,10 @@
         if (btnTch) btnTch.className = 'py-2 rounded-lg font-bold text-xs transition text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 flex items-center justify-center gap-1.5';
         if (iconEl) iconEl.innerHTML = '<img src="student-icon.png" alt="Student" class="w-full h-full object-contain" />';
         if (idLabel) idLabel.innerText = 'Student ID (11 Digits) *';
+        if (!isEdit) {
+          if (titleEl) titleEl.innerText = 'Add New Student';
+          if (submitBtn) submitBtn.innerText = 'Create Student Account';
+        }
         if (idInput && !isEdit) {
           const maxId = Object.keys(studentDirectory)
             .map(k => parseInt(k, 10))
@@ -469,7 +483,8 @@
       document.getElementById('adminFormMode').value = mode;
       const targetRole = role || (activeAdminTab === 'teachers' ? 'teacher' : 'student');
       const roleSelectorGroup = document.getElementById('adminFormRoleSelectorGroup');
-      if (roleSelectorGroup) roleSelectorGroup.classList.toggle('hidden', mode === 'edit');
+      const hideRoleSwitch = mode === 'edit' || Boolean(role) || activeAdminTab !== 'all';
+      if (roleSelectorGroup) roleSelectorGroup.classList.toggle('hidden', hideRoleSwitch);
       setAdminModalRoleType(targetRole);
       renderAdminUserCourseCheckboxes(targetRole === 'teacher' ? [] : ['CMM321']);
 
