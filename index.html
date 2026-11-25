@@ -1309,15 +1309,15 @@
             <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shrink-0">🗄️</div>
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <h3 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white">SQL Server Realtime Bridge</h3>
-                <span id="adminSqlStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700">○ Browser Local Mode</span>
+                <h3 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white">Cloud &amp; SQL Realtime Sync Bridge</h3>
+                <span id="adminSqlStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">● Firebase Cloud Ready</span>
               </div>
-              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-snug">เชื่อมหน้า GitHub Pages เข้ากับเซิร์ฟเวอร์ ATHT_devv3 (SQL Server) เช่น http://localhost:5080 หรือ URL Tunnel</p>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-snug">ซิงค์ข้อมูลข้ามเครื่องอัตโนมัติผ่าน Firebase Cloud บน GitHub Pages หรือสลับไปเชื่อม SQL Server (ATHT_devv3) ด้วย URL เช่น http://localhost:5080</p>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <input type="text" id="adminSqlApiUrlInput" placeholder="http://localhost:5080 หรือ https://...trycloudflare.com" class="w-full sm:w-64 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-mono text-neutral-900 dark:text-white focus:outline-none" />
-            <button type="button" onclick="connectAdminSqlBridge()" class="px-3.5 py-2 rounded-xl genz-primary-btn font-bold text-xs shadow-xs transition pressable whitespace-nowrap">Connect SQL</button>
+            <input type="text" id="adminSqlApiUrlInput" placeholder="Firebase URL หรือ http://localhost:5080" class="w-full sm:w-64 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-mono text-neutral-900 dark:text-white focus:outline-none" />
+            <button type="button" onclick="connectAdminSqlBridge()" class="px-3.5 py-2 rounded-xl genz-primary-btn font-bold text-xs shadow-xs transition pressable whitespace-nowrap">Connect Sync</button>
             <button type="button" onclick="copyGithubSqlShareLink()" class="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-bold text-xs transition pressable whitespace-nowrap">Copy Share Link</button>
             <button type="button" onclick="disconnectAdminSqlBridge()" class="px-2.5 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 font-bold text-xs transition whitespace-nowrap">Disconnect</button>
           </div>
@@ -2529,7 +2529,7 @@
     </div>
   </div>
 
-  <script src="js/00-sql-sync.js?v=20261126b"></script>
+  <script src="js/00-sql-sync.js?v=20261126c"></script>
   <script src="js/01-data.js"></script>
   <script src="js/02-core-i18n-auth-nav.js"></script>
   <script src="js/03-student-projects-tasks.js"></script>

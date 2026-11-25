@@ -1603,7 +1603,8 @@
           'atht_student_projects',
           'atht_admin_students',
           'atht_admin_teachers',
-          'atht_notifications'
+          'atht_notifications',
+          'atht_v2_notifications'
         ];
         if (!syncKeys.includes(e.key)) return;
         try {
@@ -1614,6 +1615,7 @@
           }
           if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
           if (typeof syncDynamicCourseSelectors === 'function') syncDynamicCourseSelectors();
+          if (typeof syncHeaderNotificationDot === 'function') syncHeaderNotificationDot();
           if (typeof currentScreen !== 'undefined') {
             if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
             else if (currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') renderCoursesCatalog();
