@@ -103,13 +103,16 @@
   resolveInitialMode();
 
   let currentRevision = Number((boot && boot.revision) || 0);
+  let initialHydrationDone = isSameOriginSql;
   let pendingBuckets = {};
   let flushTimer = null;
+  let flushFailCount = 0;
   let deferredPullTimer = null;
   let deferredPullRev = null;
   let isApplyingRemote = false;
   let isFlushing = false;
   let sseSource = null;
+  let lastVisibilityCheckAt = 0;
 
   function sqlUrl(path) {
     return apiBase ? `${apiBase}${path}` : path;
@@ -298,7 +301,7 @@
     return null;
   }
 
-  async function flushPendingToRemote() {
+  async function flushPendingToRemote(isUnloading = false) {
     if (!syncMode || typeof fetch !== 'function') return;
     const keys = Object.keys(pendingBuckets);
     if (keys.length === 0 || isFlushing) return;
@@ -309,30 +312,37 @@
 
     try {
       if (syncMode === 'sql') {
-        const res = await fetch(sqlUrl('/api/sync'), {
+        const bodyStr = JSON.stringify({ clientId, buckets: batch });
+        const fetchOpts = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientId, buckets: batch }),
-          keepalive: true
-        });
+          body: bodyStr
+        };
+        if (isUnloading && bodyStr.length < 55000) fetchOpts.keepalive = true;
+        const res = await fetch(sqlUrl('/api/sync'), fetchOpts);
         if (res.ok) {
+          flushFailCount = 0;
           const data = await res.json();
           if (data && typeof data.revision === 'number' && data.revision > currentRevision) {
             currentRevision = data.revision;
           }
           updateSyncBadge(true, Boolean(sseSource && sseSource.readyState === 1));
         } else {
+          flushFailCount++;
           Object.assign(pendingBuckets, batch);
           updateSyncBadge(false, false);
         }
       } else if (syncMode === 'firebase') {
-        const patchRes = await fetch(fbUrl('buckets'), {
+        const bodyStr = JSON.stringify(batch);
+        const patchOpts = {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(batch),
-          keepalive: true
-        });
-        if (!patchRes.ok) throw new Error('Firebase buckets PATCH failed');
+          body: bodyStr
+        };
+        // Note: Chrome/Edge enforce a strict 64 KB cap when keepalive is true; never use keepalive on >55 KB payloads (courses catalog is ~395 KB).
+        if (isUnloading && bodyStr.length < 55000) patchOpts.keepalive = true;
+        const patchRes = await fetch(fbUrl('buckets'), patchOpts);
+        if (!patchRes.ok) throw new Error(`Firebase buckets PATCH failed (${patchRes.status})`);
 
         const nextRev = Math.max(Date.now(), currentRevision + 1);
         const metaPayload = {
@@ -340,36 +350,43 @@
           clientId,
           updatedAt: new Date().toISOString()
         };
-        const metaRes = await fetch(fbUrl('meta'), {
+        const metaOpts = {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(metaPayload),
-          keepalive: true
-        });
+          body: JSON.stringify(metaPayload)
+        };
+        if (isUnloading) metaOpts.keepalive = true;
+        const metaRes = await fetch(fbUrl('meta'), metaOpts);
         if (metaRes.ok) {
+          flushFailCount = 0;
           currentRevision = nextRev;
           updateSyncBadge(true, Boolean(sseSource && sseSource.readyState === 1));
         } else {
+          flushFailCount++;
           updateSyncBadge(false, false);
         }
       }
     } catch (err) {
+      flushFailCount++;
       Object.assign(pendingBuckets, batch);
       updateSyncBadge(false, false);
     } finally {
       isFlushing = false;
-      if (Object.keys(pendingBuckets).length > 0) {
-        setTimeout(flushPendingToRemote, 150);
+      if (!isUnloading && Object.keys(pendingBuckets).length > 0) {
+        const delayMs = flushFailCount === 0
+          ? 120
+          : Math.min(10000, 400 * Math.pow(2, Math.min(flushFailCount - 1, 5)));
+        setTimeout(() => flushPendingToRemote(false), delayMs);
       }
     }
   }
 
   function scheduleFlush() {
-    if (!syncMode) return;
+    if (!syncMode || !initialHydrationDone) return;
     if (flushTimer) clearTimeout(flushTimer);
     flushTimer = setTimeout(() => {
       flushTimer = null;
-      flushPendingToRemote();
+      flushPendingToRemote(false);
     }, 90);
   }
 
@@ -377,7 +394,7 @@
   if (typeof fetch === 'function') {
     localStorage.setItem = function (key, value) {
       origSetItem.call(localStorage, key, value);
-      if (syncMode && !isApplyingRemote && SYNC_KEYS.includes(key)) {
+      if (syncMode && initialHydrationDone && !isApplyingRemote && SYNC_KEYS.includes(key)) {
         pendingBuckets[key] = String(value);
         scheduleFlush();
       }
@@ -385,14 +402,14 @@
 
     localStorage.removeItem = function (key) {
       origRemoveItem.call(localStorage, key);
-      if (syncMode && !isApplyingRemote && SYNC_KEYS.includes(key)) {
+      if (syncMode && initialHydrationDone && !isApplyingRemote && SYNC_KEYS.includes(key)) {
         pendingBuckets[key] = null;
         scheduleFlush();
       }
     };
 
     window.addEventListener('beforeunload', () => {
-      if (syncMode && Object.keys(pendingBuckets).length > 0) flushPendingToRemote();
+      if (syncMode && initialHydrationDone && Object.keys(pendingBuckets).length > 0) flushPendingToRemote(true);
       if (sseSource) try { sseSource.close(); } catch (e) {}
     });
   }
@@ -418,6 +435,9 @@
       if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
       if (typeof syncDynamicCourseSelectors === 'function') syncDynamicCourseSelectors();
       if (typeof syncHeaderNotificationDot === 'function') syncHeaderNotificationDot();
+      if (typeof updateBreadcrumbUI === 'function' && typeof currentScreen !== 'undefined' && currentScreen) {
+        updateBreadcrumbUI(currentScreen);
+      }
       if (typeof currentScreen !== 'undefined') {
         if (currentScreen === 'dashboard' && typeof renderDashboardCourses === 'function') renderDashboardCourses();
         else if (currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') renderCoursesCatalog();
@@ -431,9 +451,12 @@
         else if (currentScreen === 'admin' && typeof renderAdminScreen === 'function') renderAdminScreen();
       }
       if (typeof renderCalendar === 'function') renderCalendar();
-      if (typeof applyFestivalTheme === 'function') {
-        const theme = localStorage.getItem('atht_global_festival_theme') || localStorage.getItem('atht_festival_theme') || 'default';
-        if (theme) applyFestivalTheme(theme, true);
+      const theme = localStorage.getItem('atht_global_festival_theme') || localStorage.getItem('atht_festival_theme') || 'default';
+      if (typeof applyFestivalThemeToUI === 'function') {
+        applyFestivalThemeToUI(theme);
+      }
+      if (typeof translateDOM === 'function' && typeof currentLanguage !== 'undefined') {
+        translateDOM(currentLanguage);
       }
     } catch (e) {}
   }
@@ -586,6 +609,9 @@
         };
         sseSource.onerror = () => {
           updateSyncBadge(false, false);
+          if (sseSource && sseSource.readyState === 2) {
+            setTimeout(() => { if (syncMode === 'sql') connectSseRealtime(); }, 3000);
+          }
         };
       } else if (syncMode === 'firebase') {
         sseSource = new EventSource(fbUrl('meta'));
@@ -616,6 +642,9 @@
         sseSource.addEventListener('patch', handleFbMetaEvent);
         sseSource.onerror = () => {
           updateSyncBadge(true, false);
+          if (sseSource && sseSource.readyState === 2) {
+            setTimeout(() => { if (syncMode === 'firebase') connectSseRealtime(); }, 3000);
+          }
         };
       }
     } catch (e) {}
@@ -807,36 +836,61 @@
     }
   };
 
-  window.addEventListener('load', () => {
-    setTimeout(async () => {
-      if (typeof applyLanguage === 'function') {
-        const origApplyLanguage = applyLanguage;
-        applyLanguage = function (lang) {
-          const out = origApplyLanguage(lang);
-          updateSyncBadge(Boolean(syncMode), Boolean(sseSource && sseSource.readyState === 1));
-          return out;
-        };
-      }
-      updateSyncBadge(Boolean(syncMode), false);
-      if (isSameOriginSql) {
-        await seedRemoteOnFirstRun(false);
+  async function startInitialSync() {
+    if (typeof applyLanguage === 'function' && !window.__athtApplyLangHooked) {
+      window.__athtApplyLangHooked = true;
+      const origApplyLanguage = applyLanguage;
+      applyLanguage = function (lang) {
+        const out = origApplyLanguage(lang);
+        updateSyncBadge(Boolean(syncMode), Boolean(sseSource && sseSource.readyState === 1));
+        return out;
+      };
+    }
+    updateSyncBadge(Boolean(syncMode), false);
+    if (isSameOriginSql) {
+      initialHydrationDone = true;
+      await seedRemoteOnFirstRun(false);
+      connectSseRealtime();
+      updateSyncBadge(true, true);
+    } else if (syncMode === 'sql' || syncMode === 'firebase') {
+      const ok = await pullLatestFromRemote(null, true);
+      initialHydrationDone = true;
+      if (ok) {
         connectSseRealtime();
         updateSyncBadge(true, true);
-      } else if (syncMode === 'sql' || syncMode === 'firebase') {
-        const ok = await pullLatestFromRemote(null, true);
-        if (ok) {
-          connectSseRealtime();
-          updateSyncBadge(true, true);
-        } else {
-          updateSyncBadge(false, false);
-        }
+      } else {
+        updateSyncBadge(false, false);
       }
-    }, 200);
+    } else {
+      initialHydrationDone = true;
+    }
+  }
+
+  window.addEventListener('load', () => {
+    setTimeout(startInitialSync, 30);
 
     setInterval(() => {
-      if (syncMode) checkBackupVersion();
-    }, 15000);
+      if (syncMode && initialHydrationDone) checkBackupVersion();
+    }, 5000);
   });
+
+  function handleForegroundSync() {
+    if (!syncMode || !initialHydrationDone) return;
+    const now = Date.now();
+    if (now - lastVisibilityCheckAt < 1200) return;
+    lastVisibilityCheckAt = now;
+    if (!sseSource || sseSource.readyState === 2) {
+      connectSseRealtime();
+    }
+    checkBackupVersion();
+  }
+
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') handleForegroundSync();
+    });
+  }
+  window.addEventListener('focus', handleForegroundSync);
 
   window.__ATHT_SQL_SYNC = {
     isSqlMode: () => Boolean(syncMode),
