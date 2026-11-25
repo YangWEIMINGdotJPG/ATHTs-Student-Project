@@ -41,7 +41,10 @@
       if (!container) return;
       container.innerHTML = '';
 
-      Object.values(coursesCatalog).forEach(c => {
+      const visibleCodes = typeof getVisibleCourseCodesForCurrentRole === 'function'
+        ? getVisibleCourseCodesForCurrentRole()
+        : Object.keys(coursesCatalog || {});
+      visibleCodes.map(code => coursesCatalog[code]).filter(Boolean).forEach(c => {
         const doneCount = c.tasks.filter(t => t.isFinished).length;
         const pct = c.tasks.length > 0 ? Math.round((doneCount / c.tasks.length) * 100) : c.progress;
         const card = document.createElement('div');
@@ -80,18 +83,41 @@
       if (!container) return;
       container.innerHTML = '';
 
-      Object.values(coursesCatalog).forEach(c => {
-        const isThai = currentLanguage === 'th';
+      const isAdmin = currentUserRole === 'admin';
+      const isThai = currentLanguage === 'th';
+      const visibleCodes = typeof getVisibleCourseCodesForCurrentRole === 'function'
+        ? getVisibleCourseCodesForCurrentRole()
+        : Object.keys(coursesCatalog || {});
+      const visibleCourses = visibleCodes.map(code => coursesCatalog[code]).filter(Boolean);
+
+      const badgeEl = document.getElementById('coursesScreenCountBadge');
+      if (badgeEl) {
+        badgeEl.innerText = isThai
+          ? `${visibleCourses.length} รายวิชาที่เปิดสอน`
+          : `${visibleCourses.length} Active Subjects`;
+      }
+      const adminAddBtn = document.getElementById('btnCoursesScreenAdminAdd');
+      if (adminAddBtn) {
+        adminAddBtn.classList.toggle('hidden', !isAdmin);
+      }
+
+      visibleCourses.forEach(c => {
         const card = document.createElement('div');
         card.className = 'bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-xs hover:border-neutral-300 transition pressable cursor-pointer space-y-3';
-        card.onclick = () => selectCourse(c.code);
+        card.onclick = () => {
+          if (isAdmin && typeof openAdminCourseModal === 'function') {
+            openAdminCourseModal('edit', c.code);
+          } else {
+            selectCourse(c.code);
+          }
+        };
 
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div>
               <span class="text-xs font-bold text-neutral-900 dark:text-white">${escapeHtml(c.code)}</span>
               <h3 class="text-sm font-bold text-neutral-800 dark:text-neutral-200">${escapeHtml(c.title)}</h3>
-              <p class="text-[11px] text-neutral-400">${isThai ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${escapeHtml(c.teacher)}</p>
+              <p class="text-[11px] text-neutral-400">${isThai ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${escapeHtml(c.teacher || 'TBA')}</p>
             </div>
             <span class="text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded">${isThai ? 'ภาคเรียนที่ 1' : 'Semester 1'}</span>
           </div>
@@ -108,7 +134,7 @@
 
           <div class="flex items-center justify-between text-[10px] text-neutral-400">
             <span>${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
-            <span class="font-bold text-neutral-800">${isThai ? 'ดูรายละเอียด →' : 'View Details →'}</span>
+            <span class="font-bold text-neutral-800">${isAdmin ? (isThai ? 'แก้ไข / กำหนดอาจารย์ →' : 'Manage / Assign →') : (isThai ? 'ดูรายละเอียด →' : 'View Details →')}</span>
           </div>
         `;
         container.appendChild(card);
@@ -1479,6 +1505,7 @@
     }
 
     const COURSES_CATALOG_STORAGE_KEY = 'atht_v2_courses_catalog_rev6';
+    const defaultCoursesCatalogSnapshot = JSON.parse(JSON.stringify(coursesCatalog));
     let hasSeededSimulatedTasks = false;
     let studentProjectsList = getStoredProjects();
     loadPersistedCoursesCatalog();
@@ -1489,6 +1516,13 @@
         const rawCat = localStorage.getItem(COURSES_CATALOG_STORAGE_KEY);
         if (rawCat) {
           const parsed = JSON.parse(rawCat);
+          if (localStorage.getItem('atht_admin_courses_synced') === 'true' && parsed && typeof parsed === 'object') {
+            Object.keys(coursesCatalog).forEach(k => delete coursesCatalog[k]);
+            Object.keys(parsed).forEach(k => {
+              coursesCatalog[k] = parsed[k];
+            });
+            return;
+          }
           if (parsed && parsed.CMM321 && parsed.CMM349 && parsed.CMM310) {
             Object.keys(parsed).forEach(k => {
               coursesCatalog[k] = parsed[k];
@@ -1533,6 +1567,9 @@
       try {
         localStorage.setItem(COURSES_CATALOG_STORAGE_KEY, JSON.stringify(coursesCatalog));
       } catch (e) {}
+      if (typeof syncDynamicCourseSelectors === 'function') {
+        try { syncDynamicCourseSelectors(); } catch (e) {}
+      }
       if (hasSeededSimulatedTasks && typeof renderCalendar === 'function') {
         try { renderCalendar(); } catch (e) {}
       }
@@ -1543,6 +1580,7 @@
         if (!e || !e.key) return;
         const syncKeys = [
           COURSES_CATALOG_STORAGE_KEY,
+          'atht_admin_courses_synced',
           'atht_student_projects',
           'atht_admin_students',
           'atht_admin_teachers',
@@ -1550,14 +1588,16 @@
         ];
         if (!syncKeys.includes(e.key)) return;
         try {
-          if (e.key === COURSES_CATALOG_STORAGE_KEY) loadPersistedCoursesCatalog();
+          if (e.key === COURSES_CATALOG_STORAGE_KEY || e.key === 'atht_admin_courses_synced') loadPersistedCoursesCatalog();
           if (e.key === 'atht_student_projects') studentProjectsList = getStoredProjects();
           if ((e.key === 'atht_admin_students' || e.key === 'atht_admin_teachers') && typeof loadAdminPersistedDirectories === 'function') {
             loadAdminPersistedDirectories();
           }
           if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+          if (typeof syncDynamicCourseSelectors === 'function') syncDynamicCourseSelectors();
           if (typeof currentScreen !== 'undefined') {
             if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
+            else if (currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') renderCoursesCatalog();
             else if (currentScreen === 'teacher-review' && typeof renderTeacherReviewScreen === 'function') renderTeacherReviewScreen();
             else if (currentScreen === 'dashboard' && typeof renderDashboardCourses === 'function') renderDashboardCourses();
             else if (currentScreen === 'teacher-dashboard' && typeof renderTeacherDashboard === 'function') renderTeacherDashboard();
@@ -1624,6 +1664,7 @@
       Object.entries(coursesCatalog).forEach(([cCode, course]) => {
         if (!course) return;
         if (!Array.isArray(course.tasks)) course.tasks = [];
+        if (!samplePoolByCourse[cCode]) return;
 
         const coveredInCourse = new Set();
         course.tasks.forEach(t => {
@@ -1845,11 +1886,18 @@
       if (teachersList.length > 0) {
         Object.entries(coursesCatalog || {}).forEach(([cCode, course]) => {
           if (!course) return;
-          const matchedTch = teachersList.find(t => (t.status || 'Active') === 'Active' && Array.isArray(t.courses) && t.courses.includes(cCode))
-            || teachersList.find(t => Array.isArray(t.courses) && t.courses.includes(cCode));
-          if (matchedTch && matchedTch.fullName) {
-            const cleanTeacherName = matchedTch.fullName.replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.|Dr\.)\s*/i, '').trim();
-            if (cleanTeacherName) course.teacher = cleanTeacherName;
+          const activeMatches = teachersList.filter(t => (t.status || 'Active') === 'Active' && Array.isArray(t.courses) && t.courses.includes(cCode));
+          const allMatches = activeMatches.length > 0
+            ? activeMatches
+            : teachersList.filter(t => Array.isArray(t.courses) && t.courses.includes(cCode));
+          course.assignedTeacherIds = allMatches.map(t => t.id);
+          if (allMatches.length > 0) {
+            const names = allMatches
+              .map(t => String(t.fullName || t.shortName || '').replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.|Dr\.)\s*/i, '').trim())
+              .filter(Boolean);
+            if (names.length > 0) course.teacher = names.join(', ');
+          } else if (course._adminManagedTeachers) {
+            course.teacher = 'TBA';
           }
         });
       }
@@ -1883,6 +1931,7 @@
       Object.entries(coursesCatalog || {}).forEach(([cCode, course]) => {
         if (!course) return;
         if (!Array.isArray(course.tasks)) course.tasks = [];
+        if (course.isAdminCreated) return;
         const coveredIds = new Set();
         course.tasks.forEach(t => {
           if (t.createdBy) coveredIds.add(t.createdBy);
@@ -2445,6 +2494,41 @@
 
     let activeProjectsFilter = 'ALL';
 
+    function renderProjectsFilterPills() {
+      const bar = document.getElementById('projFilterBar');
+      const isTeacher = currentUserRole === 'teacher';
+      const visibleCodes = typeof getVisibleCourseCodesForCurrentRole === 'function'
+        ? getVisibleCourseCodesForCurrentRole()
+        : Object.keys(coursesCatalog || {});
+      if (activeProjectsFilter !== 'ALL' && !visibleCodes.includes(activeProjectsFilter)) {
+        activeProjectsFilter = 'ALL';
+      }
+      if (bar) {
+        const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        const allCodes = ['ALL', ...visibleCodes];
+        bar.innerHTML = allCodes.map(code => {
+          const active = code === activeProjectsFilter;
+          const label = code === 'ALL' ? (isThai ? 'ทั้งหมด' : 'All') : escapeHtml(code);
+          const cls = active
+            ? 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition whitespace-nowrap'
+            : 'px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap';
+          return `<button onclick="setProjectsFilter('${escapeHtml(code)}')" id="projFilter${escapeHtml(code)}" class="${cls}">${label}</button>`;
+        }).join('');
+        return;
+      }
+      const filters = ['ALL', ...visibleCodes];
+      filters.forEach(code => {
+        const btn = document.getElementById(`projFilter${code}`);
+        if (btn) {
+          if (code === activeProjectsFilter) {
+            btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition whitespace-nowrap';
+          } else {
+            btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap';
+          }
+        }
+      });
+    }
+
     function setProjectsFilter(courseCode) {
       activeProjectsFilter = courseCode;
       if (courseCode !== 'ALL') {
@@ -2452,17 +2536,7 @@
       } else {
         activeCourseId = 'ALL';
       }
-      const filters = ['ALL', 'CMM321', 'CMM349', 'CMM310', 'CMM390', 'CMM320', 'GEN121'];
-      filters.forEach(code => {
-        const btn = document.getElementById(`projFilter${code}`);
-        if (btn) {
-          if (code === courseCode) {
-            btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition whitespace-nowrap';
-          } else {
-            btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap';
-          }
-        }
-      });
+      renderProjectsFilterPills();
       renderProjectsScreen();
       if (currentScreen === 'projects') {
         updateBreadcrumbUI('projects');
@@ -2535,15 +2609,7 @@
 
       const courseData = activeProjectsFilter !== 'ALL' ? coursesCatalog[activeProjectsFilter] : null;
 
-      const allFilterCodes = ['CMM321', 'CMM349', 'CMM310', 'CMM390', 'CMM320', 'GEN121'];
-      const allowedTeacherCodes = isTeacher ? getTeacherAssignedCourseCodes() : allFilterCodes;
-      if (isTeacher && activeProjectsFilter !== 'ALL' && !allowedTeacherCodes.includes(activeProjectsFilter)) {
-        activeProjectsFilter = 'ALL';
-      }
-      allFilterCodes.forEach(code => {
-        const btn = document.getElementById(`projFilter${code}`);
-        if (btn) btn.classList.toggle('hidden', isTeacher && !allowedTeacherCodes.includes(code));
-      });
+      renderProjectsFilterPills();
 
       if (isTeacher) {
         if (titleEl) {
@@ -2706,10 +2772,19 @@
       }
       const courseSelect = document.getElementById('newProjectCourse');
       if (courseSelect) {
-        if (activeCourseId && activeCourseId !== 'ALL') {
+        const visibleCodes = typeof getVisibleCourseCodesForCurrentRole === 'function'
+          ? getVisibleCourseCodesForCurrentRole()
+          : Object.keys(coursesCatalog || {});
+        courseSelect.innerHTML = visibleCodes.map(code => {
+          const c = coursesCatalog[code];
+          return `<option value="${escapeHtml(code)}">${escapeHtml(code)} - ${escapeHtml(c ? c.title : code)}</option>`;
+        }).join('');
+        if (activeCourseId && activeCourseId !== 'ALL' && visibleCodes.includes(activeCourseId)) {
           courseSelect.value = activeCourseId;
-        } else if (activeProjectsFilter && activeProjectsFilter !== 'ALL') {
+        } else if (activeProjectsFilter && activeProjectsFilter !== 'ALL' && visibleCodes.includes(activeProjectsFilter)) {
           courseSelect.value = activeProjectsFilter;
+        } else if (visibleCodes[0]) {
+          courseSelect.value = visibleCodes[0];
         }
       }
       const modal = document.getElementById('createProjectModal');
@@ -2919,6 +2994,7 @@
 
       let allTasks = [];
       Object.entries(coursesCatalog).forEach(([cCode, cData]) => {
+        if (currentUserRole === 'student' && cData && cData.studentVisibility === 'hidden') return;
         if (activeTasksCourseFilter && cCode !== activeTasksCourseFilter) return;
         cData.tasks.forEach(t => {
           if (activeTasksProjectFilter && t.projectId !== activeTasksProjectFilter) return;

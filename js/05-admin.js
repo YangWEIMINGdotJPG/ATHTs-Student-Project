@@ -193,7 +193,10 @@
       const kpiCrs = document.getElementById('adminKpiCourses');
       if (kpiCrs) kpiCrs.innerText = courseKeys.length;
       const kpiCrsList = document.getElementById('adminKpiCoursesList');
-      if (kpiCrsList) kpiCrsList.innerText = courseKeys.join(' • ');
+      if (kpiCrsList) {
+        kpiCrsList.innerText = courseKeys.join(' • ');
+        kpiCrsList.title = courseKeys.join(' • ');
+      }
 
       const badgeStd = document.getElementById('adminTabBadgeStudents');
       if (badgeStd) badgeStd.innerText = studentsList.length;
@@ -202,7 +205,9 @@
       const badgeAll = document.getElementById('adminTabBadgeAll');
       if (badgeAll) badgeAll.innerText = totalUsers;
 
+      syncDynamicCourseSelectors();
       renderAdminUsersTable();
+      renderAdminCoursesManager();
       renderAdminAuditLogs();
     }
 
@@ -237,7 +242,7 @@
 
       if (activeAdminTab === 'teachers' || activeAdminTab === 'all') {
         Object.values(teacherDirectory).forEach(t => {
-          const coursesArr = Array.isArray(t.courses) && t.courses.length > 0 ? t.courses : ['CMM321'];
+          const coursesArr = Array.isArray(t.courses) ? t.courses.filter(c => Boolean(coursesCatalog[c])) : ['CMM321'];
           combined.push({
             role: 'teacher',
             id: t.id,
@@ -246,7 +251,7 @@
             shortName: t.shortName,
             initials: t.initials || 'TR',
             email: t.email,
-            deptOrCourses: coursesArr.join(', '),
+            deptOrCourses: coursesArr.length > 0 ? coursesArr.join(', ') : 'No Assigned Courses',
             subMeta: t.specialization || t.title || 'Course Instructor',
             courses: coursesArr,
             status: t.status || 'Active',
@@ -442,13 +447,31 @@
       }
     }
 
+    function renderAdminUserCourseCheckboxes(selectedList = ['CMM321']) {
+      const box = document.getElementById('adminFormCourseCheckboxes');
+      if (!box) return;
+      const selectedSet = new Set(Array.isArray(selectedList) ? selectedList : []);
+      box.innerHTML = Object.values(coursesCatalog || {}).map(c => {
+        const checked = selectedSet.has(c.code) ? 'checked' : '';
+        return `
+          <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
+            <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="${escapeHtml(c.code)}" ${checked} />
+            <span>${escapeHtml(c.code)} (${escapeHtml(c.title)})</span>
+          </label>
+        `;
+      }).join('');
+    }
+
     function openAdminUserModal(mode, role, userId) {
       const modal = document.getElementById('modalAdminUserForm');
       if (!modal) return;
 
       document.getElementById('adminFormMode').value = mode;
       const targetRole = role || (activeAdminTab === 'teachers' ? 'teacher' : 'student');
+      const roleSelectorGroup = document.getElementById('adminFormRoleSelectorGroup');
+      if (roleSelectorGroup) roleSelectorGroup.classList.toggle('hidden', mode === 'edit');
       setAdminModalRoleType(targetRole);
+      renderAdminUserCourseCheckboxes(targetRole === 'teacher' ? [] : ['CMM321']);
 
       const titleEl = document.getElementById('adminModalTitle');
       const submitBtn = document.getElementById('adminFormSubmitBtn');
@@ -468,10 +491,8 @@
           document.getElementById('adminFormTeacherTitleInput').value = t.title || 'Course Instructor';
           document.getElementById('adminFormSpecializationInput').value = t.specialization || 'Computer & Multimedia';
 
-          const coursesArr = Array.isArray(t.courses) ? t.courses : ['CMM321'];
-          document.querySelectorAll('.admin-course-checkbox').forEach(cb => {
-            cb.checked = coursesArr.includes(cb.value);
-          });
+          const coursesArr = Array.isArray(t.courses) ? t.courses : [];
+          renderAdminUserCourseCheckboxes(coursesArr);
         } else {
           const s = studentDirectory[userId];
           if (!s) return;
@@ -532,7 +553,7 @@
         const title = (document.getElementById('adminFormTeacherTitleInput').value || 'Instructor').trim();
         const spec = (document.getElementById('adminFormSpecializationInput').value || 'Computer Multimedia').trim();
         const checkedCourses = Array.from(document.querySelectorAll('.admin-course-checkbox:checked')).map(cb => cb.value);
-        const courses = checkedCourses.length > 0 ? checkedCourses : ['CMM321'];
+        const courses = mode === 'edit' ? checkedCourses : (checkedCourses.length > 0 ? checkedCourses : []);
 
         const keyId = mode === 'edit' && origId ? origId : (email.split('@')[0].toLowerCase() || rawId.toLowerCase());
         teacherDirectory[keyId] = {
@@ -551,15 +572,16 @@
           _adminEdited: true
         };
 
-        courses.forEach(cCode => {
-          if (coursesCatalog[cCode]) {
-            coursesCatalog[cCode].teacher = fullName.replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.|Dr\.)\s*/i, '').trim();
-          }
+        Object.values(coursesCatalog || {}).forEach(c => {
+          if (c) c._adminManagedTeachers = true;
         });
+        syncCourseTeachersFromDirectory();
+        localStorage.setItem('atht_admin_courses_synced', 'true');
+        if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
 
         addAdminAuditLog(
           mode === 'edit' ? 'Updated Teacher Account' : 'Created Teacher Account',
-          `${fullName} (${rawId}) • Courses: ${courses.join(', ')}`,
+          `${fullName} (${rawId}) • Courses: ${courses.length > 0 ? courses.join(', ') : 'None'}`,
           'TEACHER'
         );
       } else {
@@ -644,10 +666,16 @@
       const textEl = document.getElementById('adminDeleteConfirmText');
       if (textEl) {
         const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
-        const roleTh = role === 'teacher' ? 'อาจารย์' : 'นักศึกษา';
-        textEl.innerText = isThai
-          ? `คุณแน่ใจหรือไม่ว่าต้องการลบ${roleTh} "${name}" (${id}) ออกจากระบบ มจธ.?`
-          : `Are you sure you want to remove ${role.toUpperCase()} "${name}" (${id}) from the portal directory?`;
+        if (role === 'course') {
+          textEl.innerText = isThai
+            ? `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${id} - ${name}" ออกจากระบบ (อาจารย์และนักศึกษาจะไม่เห็นวิชานี้)?`
+            : `Are you sure you want to remove course "${id} - ${name}"? It will be removed from Teacher and Student views.`;
+        } else {
+          const roleTh = role === 'teacher' ? 'อาจารย์' : 'นักศึกษา';
+          textEl.innerText = isThai
+            ? `คุณแน่ใจหรือไม่ว่าต้องการลบ${roleTh} "${name}" (${id}) ออกจากระบบ มจธ.?`
+            : `Are you sure you want to remove ${role.toUpperCase()} "${name}" (${id}) from the portal directory?`;
+        }
       }
       const modal = document.getElementById('modalAdminDeleteConfirm');
       if (modal) modal.classList.remove('hidden');
@@ -664,8 +692,21 @@
       if (!pendingAdminDeleteUser) return;
       const { role, id, name } = pendingAdminDeleteUser;
 
-      if (role === 'teacher') {
+      if (role === 'course') {
+        delete coursesCatalog[id];
+        Object.values(teacherDirectory || {}).forEach(t => {
+          if (t && Array.isArray(t.courses) && t.courses.includes(id)) {
+            t.courses = t.courses.filter(c => c !== id);
+            t._adminEdited = true;
+          }
+        });
+        localStorage.setItem('atht_admin_courses_synced', 'true');
+        if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+        addAdminAuditLog('Removed Course', `Deleted course ${id} (${name})`, 'COURSE');
+      } else if (role === 'teacher') {
         delete teacherDirectory[id];
+        syncCourseTeachersFromDirectory();
+        if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
         addAdminAuditLog('Removed Teacher', `Deleted instructor ${name} (${id})`, 'DELETE');
       } else {
         delete studentDirectory[id];
@@ -679,7 +720,7 @@
       closeAdminDeleteModal();
       renderAdminScreen();
       updateBreadcrumbUI('admin');
-      alertMessage(`Removed ${name} from directory.`);
+      alertMessage(`Removed ${name} cleanly.`);
     }
 
     function adminImpersonateUser(role, id) {
@@ -711,9 +752,15 @@
     }
 
     function resetAdminDirectoryToDefaults() {
-      if (!confirm('Reset all Student and Teacher accounts back to default factory roster (81 Students & 3 Teachers)?')) return;
+      if (!confirm('Reset all Student, Teacher, and Course records back to default factory data (81 Students, 3 Teachers, 6 Courses)?')) return;
       localStorage.removeItem('atht_admin_students');
       localStorage.removeItem('atht_admin_teachers');
+      localStorage.removeItem('atht_admin_courses_synced');
+
+      if (typeof defaultCoursesCatalogSnapshot !== 'undefined') {
+        Object.keys(coursesCatalog).forEach(k => delete coursesCatalog[k]);
+        Object.assign(coursesCatalog, JSON.parse(JSON.stringify(defaultCoursesCatalogSnapshot)));
+      }
 
       Object.keys(studentDirectory).forEach(k => delete studentDirectory[k]);
       Object.assign(studentDirectory, JSON.parse(JSON.stringify(defaultStudentDirectorySnapshot)));
@@ -725,10 +772,305 @@
       if (typeof syncAllATHTData === 'function') syncAllATHTData();
       if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
       if (typeof renderCalendar === 'function') renderCalendar();
-      addAdminAuditLog('Directory Reset', 'Restored default 81 Students and 3 Faculty Instructors.', 'RESET');
+      addAdminAuditLog('Directory Reset', 'Restored default 81 Students, 3 Faculty Instructors, and 6 Courses.', 'RESET');
       renderAdminScreen();
       updateBreadcrumbUI('admin');
-      alertMessage('Directory restored to default 81 Students & 3 Teachers.');
+      alertMessage('Directory & Courses restored to defaults.');
+    }
+
+    function scrollToAdminCoursesPanel() {
+      const panel = document.getElementById('adminCourseManagerSection');
+      if (panel && typeof panel.scrollIntoView === 'function') {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function syncCourseTeachersFromDirectory() {
+      const teachersList = Object.values(teacherDirectory || {});
+      Object.entries(coursesCatalog || {}).forEach(([cCode, course]) => {
+        if (!course) return;
+        const assigned = teachersList.filter(t => t && Array.isArray(t.courses) && t.courses.includes(cCode));
+        course.assignedTeacherIds = assigned.map(t => t.id);
+        if (assigned.length > 0) {
+          course.teacher = assigned
+            .map(t => String(t.fullName || t.shortName || '').replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.|Dr\.)\s*/i, '').trim())
+            .filter(Boolean)
+            .join(', ');
+        } else {
+          course.teacher = 'TBA';
+        }
+      });
+    }
+
+    function syncDynamicCourseSelectors() {
+      const allCodes = Object.keys(coursesCatalog || {});
+      const adminFilterSel = document.getElementById('adminCourseFilterSelect');
+      if (adminFilterSel) {
+        const prev = adminFilterSel.value || 'ALL';
+        const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        adminFilterSel.innerHTML = `<option value="ALL">${isTh ? 'ทุกรายวิชา' : 'All Courses'}</option>` +
+          allCodes.map(code => {
+            const c = coursesCatalog[code];
+            return `<option value="${escapeHtml(code)}">${escapeHtml(code)} ${escapeHtml(c ? c.title : '')}</option>`;
+          }).join('');
+        adminFilterSel.value = allCodes.includes(prev) ? prev : 'ALL';
+      }
+
+      if (typeof renderProjectsFilterPills === 'function') {
+        renderProjectsFilterPills();
+      }
+      if (typeof populateLoginDemoDropdowns === 'function') {
+        populateLoginDemoDropdowns();
+      }
+    }
+
+    function renderAdminCoursesManager() {
+      const grid = document.getElementById('adminCoursesGrid');
+      if (!grid) return;
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+      const titleEl = document.getElementById('adminCoursesPanelTitle');
+      const descEl = document.getElementById('adminCoursesPanelDesc');
+      const addLabelEl = document.getElementById('adminAddCourseBtnLabel');
+      if (titleEl) titleEl.innerText = isTh ? 'จัดการรายวิชาและสิทธิ์อาจารย์ผู้สอน' : 'Course Management & Instructor Access';
+      if (descEl) {
+        descEl.innerText = isTh
+          ? 'เพิ่ม แก้ไข หรือลบรายวิชา พร้อมกำหนดว่าอาจารย์ท่านใดเห็นรายวิชานี้ได้ และซิงค์กับอาจารย์-นักศึกษาทันที'
+          : 'Create courses, assign which instructors can view/manage each subject, and sync immediately with teachers & students.';
+      }
+      if (addLabelEl) addLabelEl.innerText = isTh ? 'เพิ่มรายวิชา' : 'Add Course';
+
+      const query = (document.getElementById('adminCourseSearchInput')?.value || '').toLowerCase().trim();
+      const teachersList = Object.values(teacherDirectory || {});
+      const courses = Object.values(coursesCatalog || {}).filter(c => {
+        if (!c) return false;
+        if (!query) return true;
+        return (c.code || '').toLowerCase().includes(query) ||
+          (c.title || '').toLowerCase().includes(query) ||
+          (c.teacher || '').toLowerCase().includes(query);
+      });
+
+      if (courses.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-xs text-neutral-400 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl">${isTh ? 'ไม่พบรายวิชาที่ค้นหา' : 'No courses match your search.'}</div>`;
+        return;
+      }
+
+      grid.innerHTML = courses.map(c => {
+        const assignedTeachers = teachersList.filter(t => Array.isArray(t.courses) && t.courses.includes(c.code));
+        const projCount = (typeof studentProjectsList !== 'undefined' && Array.isArray(studentProjectsList))
+          ? studentProjectsList.filter(p => p && p.course === c.code).length
+          : 0;
+        const taskCount = Array.isArray(c.tasks) ? c.tasks.length : 0;
+        const isHiddenStu = c.studentVisibility === 'hidden';
+        const stuBadge = isHiddenStu
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">${isTh ? 'ซ่อนจากนักศึกษา' : 'Hidden from Students'}</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">${isTh ? 'ซิงค์นักศึกษาทุกคน' : 'Synced: All Students'}</span>`;
+
+        const teachersHtml = assignedTeachers.length > 0
+          ? assignedTeachers.map(t => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50">👨‍🏫 ${escapeHtml(t.shortName || t.fullName)}</span>`).join(' ')
+          : `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">${isTh ? 'ยังไม่ได้กำหนดอาจารย์' : 'No Instructor Assigned'}</span>`;
+
+        const safeCodeAttr = escapeHtml(c.code).replace(/'/g, "\\'");
+        const safeTitleAttr = escapeHtml(c.title || c.code).replace(/'/g, "\\'");
+
+        return `
+          <div class="p-4 rounded-2xl bg-neutral-50/70 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-700/80 flex flex-col justify-between gap-3">
+            <div class="space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <span class="text-xs font-black tracking-wide block" style="color: var(--gz-primary)">${escapeHtml(c.code)}</span>
+                  <h4 class="text-sm font-bold text-neutral-900 dark:text-white leading-snug">${escapeHtml(c.title)}</h4>
+                </div>
+                ${stuBadge}
+              </div>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400">${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule || '', currentLanguage) : (c.schedule || ''))}</p>
+              <div class="flex flex-wrap gap-1.5 pt-0.5">${teachersHtml}</div>
+            </div>
+
+            <div class="pt-2.5 border-t border-neutral-200/70 dark:border-neutral-700/60 flex items-center justify-between gap-2 text-[11px]">
+              <span class="text-neutral-400 font-mono">${projCount} ${isTh ? 'โปรเจกต์' : 'Proj'} • ${taskCount} ${isTh ? 'งาน' : 'Tasks'}</span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="openAdminCourseModal('edit', '${safeCodeAttr}')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-700 font-bold transition">
+                  ${isTh ? 'แก้ไข / กำหนดสิทธิ์' : 'Edit / Assign'}
+                </button>
+                <button type="button" onclick="openAdminDeleteCourseModal('${safeCodeAttr}', '${safeTitleAttr}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold transition" title="Remove Course">
+                  🗑
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openAdminCourseModal(mode = 'create', courseCode = '') {
+      const modal = document.getElementById('modalAdminCourseForm');
+      if (!modal) return;
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+
+      document.getElementById('adminCourseFormMode').value = mode;
+      document.getElementById('adminCourseOrigCode').value = mode === 'edit' ? courseCode : '';
+
+      const titleEl = document.getElementById('adminCourseModalTitle');
+      const submitBtn = document.getElementById('adminCourseFormSubmitBtn');
+      const codeInput = document.getElementById('adminCourseCodeInput');
+      const schedInput = document.getElementById('adminCourseScheduleInput');
+      const nameInput = document.getElementById('adminCourseTitleInput');
+      const visSelect = document.getElementById('adminCourseStudentVisibilitySelect');
+
+      const course = mode === 'edit' ? coursesCatalog[courseCode] : null;
+      if (mode === 'edit' && course) {
+        if (titleEl) titleEl.innerText = isTh ? `แก้ไขรายวิชา: ${course.code}` : `Edit Course: ${course.code}`;
+        if (submitBtn) submitBtn.innerText = isTh ? 'บันทึกรายวิชา' : 'Save Course Changes';
+        if (codeInput) codeInput.value = course.code;
+        if (nameInput) nameInput.value = course.title || '';
+        if (schedInput) schedInput.value = course.schedule || 'Wednesday (13:30 - 16:30)';
+        if (visSelect) visSelect.value = course.studentVisibility || 'all';
+      } else {
+        if (titleEl) titleEl.innerText = isTh ? 'เพิ่มรายวิชาใหม่' : 'Add New Course';
+        if (submitBtn) submitBtn.innerText = isTh ? 'สร้างและซิงค์รายวิชา' : 'Create & Sync Course';
+        if (codeInput) codeInput.value = '';
+        if (nameInput) nameInput.value = '';
+        if (schedInput) schedInput.value = 'Wednesday (13:30 - 16:30)';
+        if (visSelect) visSelect.value = 'all';
+      }
+
+      const teachersBox = document.getElementById('adminCourseTeachersCheckboxes');
+      if (teachersBox) {
+        const teachers = Object.values(teacherDirectory || {});
+        if (teachers.length === 0) {
+          teachersBox.innerHTML = `<p class="text-[11px] text-neutral-400 italic">${isTh ? 'ไม่พบบัญชีอาจารย์ในระบบ' : 'No teacher accounts found.'}</p>`;
+        } else {
+          teachersBox.innerHTML = teachers.map(t => {
+            const isAssigned = course
+              ? (Array.isArray(t.courses) && t.courses.includes(course.code))
+              : false;
+            return `
+              <label class="flex items-center justify-between gap-2 p-2 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-700/80 cursor-pointer hover:border-blue-400 transition">
+                <span class="flex items-center gap-2 min-w-0">
+                  <input type="checkbox" class="admin-course-teacher-cb rounded text-blue-600" value="${escapeHtml(t.id)}" ${isAssigned ? 'checked' : ''} />
+                  <span class="font-bold text-neutral-900 dark:text-white truncate">${escapeHtml(t.fullName)}</span>
+                </span>
+                <span class="text-[10px] font-mono text-neutral-400 shrink-0">${escapeHtml(t.facultyCode || t.id)}</span>
+              </label>
+            `;
+          }).join('');
+        }
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeAdminCourseModal() {
+      const modal = document.getElementById('modalAdminCourseForm');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function toggleAdminCourseAllTeachers(checkAll) {
+      document.querySelectorAll('.admin-course-teacher-cb').forEach(cb => {
+        cb.checked = !!checkAll;
+      });
+    }
+
+    function openAdminDeleteCourseModal(courseCode, courseTitle) {
+      if (Object.keys(coursesCatalog || {}).length <= 1) {
+        alertMessage(currentLanguage === 'th' ? 'ไม่สามารถลบรายวิชาสุดท้ายของระบบได้' : 'Cannot delete the last remaining course.');
+        return;
+      }
+      openAdminDeleteModal('course', courseCode, courseTitle);
+    }
+
+    function handleSaveAdminCourse(e, overrideTeacherIds = null) {
+      if (e && e.preventDefault) e.preventDefault();
+      const mode = document.getElementById('adminCourseFormMode').value;
+      const origCode = (document.getElementById('adminCourseOrigCode').value || '').trim().toUpperCase();
+      const rawCode = (document.getElementById('adminCourseCodeInput').value || '').trim().toUpperCase().replace(/\s+/g, '');
+      const title = (document.getElementById('adminCourseTitleInput').value || '').trim();
+      const schedule = (document.getElementById('adminCourseScheduleInput').value || '').trim() || 'Wednesday (13:30 - 16:30)';
+      const studentVisibility = document.getElementById('adminCourseStudentVisibilitySelect').value || 'all';
+
+      if (!rawCode || !title) {
+        alertMessage(currentLanguage === 'th' ? 'กรุณากรอกรหัสวิชาและชื่อรายวิชาให้ครบ' : 'Please fill in Course Code and Course Title.');
+        return;
+      }
+      if (mode === 'create' && coursesCatalog[rawCode]) {
+        alertMessage(currentLanguage === 'th' ? `มีรายวิชา ${rawCode} อยู่ในระบบแล้ว` : `Course code "${rawCode}" already exists.`);
+        return;
+      }
+      if (mode === 'edit' && origCode && origCode !== rawCode && coursesCatalog[rawCode]) {
+        alertMessage(currentLanguage === 'th' ? `มีรายวิชา ${rawCode} อยู่ในระบบแล้ว` : `Course code "${rawCode}" already exists.`);
+        return;
+      }
+
+      const selectedTeacherIds = Array.isArray(overrideTeacherIds)
+        ? overrideTeacherIds
+        : Array.from(document.querySelectorAll('.admin-course-teacher-cb:checked')).map(cb => cb.value);
+
+      if (mode === 'edit' && origCode && origCode !== rawCode && coursesCatalog[origCode]) {
+        const oldCourse = coursesCatalog[origCode];
+        delete coursesCatalog[origCode];
+        coursesCatalog[rawCode] = { ...oldCourse, code: rawCode };
+        (studentProjectsList || []).forEach(p => {
+          if (p && p.course === origCode) p.course = rawCode;
+        });
+        Object.values(teacherDirectory || {}).forEach(t => {
+          if (t && Array.isArray(t.courses) && t.courses.includes(origCode)) {
+            t.courses = t.courses.map(c => c === origCode ? rawCode : c);
+          }
+        });
+      }
+
+      const existing = coursesCatalog[rawCode] || {};
+      coursesCatalog[rawCode] = {
+        ...existing,
+        code: rawCode,
+        title,
+        schedule,
+        progress: typeof existing.progress === 'number' ? existing.progress : 0,
+        tasks: Array.isArray(existing.tasks) ? existing.tasks : [],
+        isAdminCreated: existing.isAdminCreated !== undefined ? existing.isAdminCreated : (mode === 'create'),
+        _adminManagedTeachers: true,
+        studentVisibility
+      };
+
+      Object.values(teacherDirectory || {}).forEach(t => {
+        if (!t) return;
+        if (!Array.isArray(t.courses)) t.courses = [];
+        const hasCourse = t.courses.includes(rawCode);
+        const shouldHave = selectedTeacherIds.includes(t.id);
+        if (shouldHave && !hasCourse) {
+          t.courses.push(rawCode);
+          t._adminEdited = true;
+        } else if (!shouldHave && hasCourse) {
+          t.courses = t.courses.filter(c => c !== rawCode);
+          t._adminEdited = true;
+        }
+      });
+
+      syncCourseTeachersFromDirectory();
+      localStorage.setItem('atht_admin_courses_synced', 'true');
+      saveAdminPersistedDirectories();
+      if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      if (typeof renderCalendar === 'function') renderCalendar();
+
+      const teacherNamesLog = selectedTeacherIds.length > 0
+        ? selectedTeacherIds.map(id => teacherDirectory[id]?.shortName || id).join(', ')
+        : 'None';
+      addAdminAuditLog(
+        mode === 'edit' ? 'Updated Course' : 'Created Course',
+        `${rawCode} - ${title} • Instructors: ${teacherNamesLog} • Students: ${studentVisibility}`,
+        'COURSE'
+      );
+
+      closeAdminCourseModal();
+      renderAdminScreen();
+      if (typeof currentScreen !== 'undefined' && currentScreen === 'courses' && typeof renderCoursesCatalog === 'function') {
+        renderCoursesCatalog();
+      }
+      updateBreadcrumbUI(typeof currentScreen !== 'undefined' ? currentScreen : 'admin');
+      alertMessage(currentLanguage === 'th'
+        ? `บันทึกรายวิชา ${rawCode} และซิงค์กับอาจารย์/นักศึกษาเรียบร้อย`
+        : `Course "${rawCode}" saved and synced cleanly!`);
     }
 
     function exportAdminUsersCSV() {
@@ -778,7 +1120,7 @@
         'modalMemberEdit', 'modalAddTask', 'modalStudentAddTask', 'modalStudentEditTask',
         'createProjectModal', 'modalTeacherAddTask', 'modalStepComment', 'modalUserProfile',
         'modalLogout', 'modalProjectStep', 'modalSubmitStepProgress', 'modalTeacherStepInspect',
-        'modalMobileCalendar', 'modalAdminUserForm', 'modalAdminDeleteConfirm'
+        'modalMobileCalendar', 'modalAdminUserForm', 'modalAdminDeleteConfirm', 'modalAdminCourseForm'
       ];
       ids.forEach(id => {
         const el = document.getElementById(id);

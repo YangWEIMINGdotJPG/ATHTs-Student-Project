@@ -373,14 +373,19 @@
       </section>
 
       <section id="screen-courses" class="hidden screen-fade space-y-4">
-        <div class="flex items-center justify-between pb-2 border-b border-neutral-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-neutral-100">
           <div>
             <h2 class="text-base sm:text-lg font-bold text-neutral-900">Enrolled Courses</h2>
             <p class="text-xs text-neutral-500">Semester 1 / 2026 Academic Term • Computer Multimedia</p>
           </div>
-          <span class="text-xs font-semibold bg-neutral-100 text-neutral-700 px-3 py-1 rounded-lg">
-            3 Active Subjects
-          </span>
+          <div class="flex items-center gap-2">
+            <span id="coursesScreenCountBadge" class="text-xs font-semibold bg-neutral-100 text-neutral-700 px-3 py-1 rounded-lg">
+              6 Active Subjects
+            </span>
+            <button type="button" id="btnCoursesScreenAdminAdd" onclick="openAdminCourseModal('create')" class="hidden px-3.5 py-1.5 rounded-xl genz-primary-btn text-xs font-bold shadow-xs transition pressable">
+              + Add Course
+            </button>
+          </div>
         </div>
 
         <div id="allCoursesListContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-5"></div>
@@ -596,7 +601,7 @@
 
           <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 w-full md:w-auto">
 
-            <div class="flex flex-wrap sm:flex-nowrap items-center bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl text-[11px] sm:text-xs font-semibold gap-1">
+            <div id="projFilterBar" class="flex flex-wrap sm:flex-nowrap items-center bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl text-[11px] sm:text-xs font-semibold gap-1">
               <button onclick="setProjectsFilter('ALL')" id="projFilterALL" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-bold shadow-2xs transition whitespace-nowrap">All</button>
               <button onclick="setProjectsFilter('CMM321')" id="projFilterCMM321" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM321</button>
               <button onclick="setProjectsFilter('CMM349')" id="projFilterCMM349" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition font-medium whitespace-nowrap">CMM349</button>
@@ -1385,7 +1390,7 @@
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm sm:text-base font-bold shrink-0">✓</div>
           </div>
 
-          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs flex items-start sm:items-center justify-between gap-2">
+          <div onclick="scrollToAdminCoursesPanel()" class="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs hover:border-neutral-400 transition cursor-pointer pressable flex items-start sm:items-center justify-between gap-2">
             <div class="min-w-0">
               <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block truncate">Active Courses</span>
               <span id="adminKpiCourses" class="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-0.5 block">6</span>
@@ -1484,6 +1489,30 @@
 
           </div>
 
+        </div>
+
+        <div id="adminCourseManagerSection" class="bg-white dark:bg-neutral-900 rounded-3xl p-4 sm:p-7 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-300 flex items-center justify-center text-sm font-bold shrink-0">📚</span>
+                <h3 id="adminCoursesPanelTitle" class="text-sm sm:text-base font-black text-neutral-900 dark:text-white">Course Management &amp; Instructor Access</h3>
+              </div>
+              <p id="adminCoursesPanelDesc" class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">Create courses, control which instructors can view/manage each subject, and sync immediately with teachers &amp; students.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
+              <div class="relative flex-1 sm:w-52">
+                <input type="text" id="adminCourseSearchInput" oninput="renderAdminCoursesManager()" placeholder="Search course..." class="w-full pl-8 pr-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs text-neutral-900 dark:text-white focus:outline-none" />
+                <span class="absolute left-2.5 top-2 text-neutral-400 text-xs">🔍</span>
+              </div>
+              <button type="button" onclick="openAdminCourseModal('create')" class="px-4 py-2 rounded-xl genz-primary-btn font-bold text-xs shadow-xs transition pressable flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span>+</span>
+                <span id="adminAddCourseBtnLabel">Add Course</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="adminCoursesGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5"></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
@@ -2269,7 +2298,7 @@
         <input type="hidden" id="adminFormMode" value="create" />
         <input type="hidden" id="adminFormOriginalId" value="" />
 
-        <div>
+        <div id="adminFormRoleSelectorGroup">
           <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1.5 uppercase tracking-wider text-[10px]">Account Role</label>
           <div class="grid grid-cols-2 gap-2 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
             <button type="button" id="adminFormRoleBtnStudent" onclick="setAdminModalRoleType('student')" class="py-2 rounded-lg font-extrabold text-xs transition bg-neutral-900 text-white shadow-2xs flex items-center justify-center gap-1.5">
@@ -2346,7 +2375,7 @@
 
           <div>
             <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">Assigned Courses</label>
-            <div class="flex flex-wrap items-center gap-3 p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+            <div id="adminFormCourseCheckboxes" class="flex flex-wrap items-center gap-3 p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
               <label class="inline-flex items-center gap-1.5 cursor-pointer font-semibold">
                 <input type="checkbox" class="admin-course-checkbox rounded text-neutral-900" value="CMM321" checked />
                 <span>CMM321 (Graphics Math)</span>
@@ -2407,6 +2436,71 @@
           Yes, Remove
         </button>
       </div>
+    </div>
+  </div>
+
+  <div id="modalAdminCourseForm" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="if(event.target===this) closeAdminCourseModal()">
+    <div class="bg-white dark:bg-neutral-900 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-7 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-lg shadow-xs">📚</div>
+          <div>
+            <h3 id="adminCourseModalTitle" class="text-base font-black text-neutral-900 dark:text-white">Add New Course</h3>
+            <p class="text-[11px] text-neutral-400">Sync course details with Teachers &amp; Students</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAdminCourseModal()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveAdminCourse(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="adminCourseFormMode" value="create" />
+        <input type="hidden" id="adminCourseOrigCode" value="" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label id="adminCourseCodeLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Course Code *</label>
+            <input type="text" id="adminCourseCodeInput" required placeholder="e.g. CMM450" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label id="adminCourseScheduleLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Class Schedule *</label>
+            <input type="text" id="adminCourseScheduleInput" required placeholder="e.g. Wednesday (13:30 - 16:30)" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <div>
+          <label id="adminCourseTitleLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Course Title *</label>
+          <input type="text" id="adminCourseTitleInput" required placeholder="e.g. Interactive AI & Multimedia Studio" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label id="adminCourseTeachersLabel" class="font-bold text-neutral-700 dark:text-neutral-300">Visible to Instructors (กำหนดอาจารย์ที่เห็นรายวิชานี้)</label>
+            <div class="flex items-center gap-2 text-[11px]">
+              <button type="button" onclick="toggleAdminCourseAllTeachers(true)" class="font-bold text-blue-600 dark:text-sky-400 hover:underline">Select All</button>
+              <span class="text-neutral-300">|</span>
+              <button type="button" onclick="toggleAdminCourseAllTeachers(false)" class="font-semibold text-neutral-500 hover:underline">Clear</button>
+            </div>
+          </div>
+          <div id="adminCourseTeachersCheckboxes" class="space-y-2 max-h-44 overflow-y-auto p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"></div>
+        </div>
+
+        <div>
+          <label id="adminCourseStudentVisLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Student Visibility (การมองเห็นฝั่งนักศึกษา)</label>
+          <select id="adminCourseStudentVisibilitySelect" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold focus:outline-none">
+            <option value="all">Sync & Visible to All Students (แสดงให้นักศึกษาทุกคนเห็นทันที)</option>
+            <option value="hidden">Hidden from Students (ซ่อนจากนักศึกษา — เห็นเฉพาะ Admin & อาจารย์ที่เลือก)</option>
+          </select>
+        </div>
+
+        <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-2.5">
+          <button type="button" onclick="closeAdminCourseModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+            Cancel
+          </button>
+          <button type="submit" id="adminCourseFormSubmitBtn" class="px-5 py-2.5 rounded-xl genz-primary-btn font-extrabold text-xs shadow-xs transition pressable">
+            Save Course
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

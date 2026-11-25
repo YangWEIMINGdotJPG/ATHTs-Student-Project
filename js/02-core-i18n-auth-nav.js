@@ -1676,13 +1676,9 @@
         ? studentProjectsList
         : [];
 
-      let allowedCodes = Object.keys(coursesCatalog || {});
-      if (currentUserRole === 'teacher') {
-        const teacher = typeof getCurrentTeacher === 'function' ? getCurrentTeacher() : null;
-        allowedCodes = typeof getTeacherAssignedCourseCodes === 'function'
-          ? getTeacherAssignedCourseCodes(teacher)
-          : allowedCodes;
-      }
+      let allowedCodes = typeof getVisibleCourseCodesForCurrentRole === 'function'
+        ? getVisibleCourseCodesForCurrentRole()
+        : Object.keys(coursesCatalog || {});
 
       allProjects.forEach(p => {
         if (!p || !p.id || seenProjIds.has(p.id)) return;

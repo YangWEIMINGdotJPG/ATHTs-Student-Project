@@ -47,7 +47,16 @@
           ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5'
           : 'grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5';
         coursesContainer.innerHTML = '';
-        allowedCodes.map(code => coursesCatalog[code]).filter(Boolean).forEach(c => {
+        const teacherCourses = allowedCodes.map(code => coursesCatalog[code]).filter(Boolean);
+        if (teacherCourses.length === 0) {
+          coursesContainer.className = 'grid grid-cols-1 gap-4';
+          coursesContainer.innerHTML = `
+            <div class="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-dashed border-neutral-300 dark:border-neutral-700 text-center text-xs text-neutral-500 dark:text-neutral-400">
+              ${isThai ? 'ยังไม่มีรายวิชาที่ได้รับมอบหมาย กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อกำหนดรายวิชา' : 'No courses assigned yet. Contact System Admin to assign your teaching courses.'}
+            </div>
+          `;
+        }
+        teacherCourses.forEach(c => {
           const doneCount = c.tasks.filter(t => t.isFinished).length;
           const pct = c.tasks.length > 0 ? Math.round((doneCount / c.tasks.length) * 100) : c.progress;
           const card = document.createElement('div');
@@ -1549,7 +1558,7 @@
       const totalStudentsInDir = Object.keys(studentDirectory).length;
 
       const completedTasksCount = tasksList.filter(t => t.isFinished || (t.status && t.status.toLowerCase().includes('graded'))).length;
-      const pctCourse = tasksList.length > 0 ? Math.round((completedTasksCount / tasksList.length) * 100) : 67;
+      const pctCourse = tasksList.length > 0 ? Math.round((completedTasksCount / tasksList.length) * 100) : 0;
 
       const courseCodeEl = document.getElementById('teacherReviewCourseCode');
       if (courseCodeEl) courseCodeEl.innerText = course.code;
@@ -1668,7 +1677,17 @@
       }
 
       const memberCourseSelect = document.getElementById('teacherMemberCourseSelect');
-      if (memberCourseSelect) memberCourseSelect.value = course.code;
+      if (memberCourseSelect) {
+        const selectableCodes = currentUserRole === 'teacher'
+          ? allowedCodes
+          : Object.keys(coursesCatalog || {});
+        if (selectableCodes.length > 0) {
+          memberCourseSelect.innerHTML = selectableCodes.map(code =>
+            `<option value="${escapeHtml(code)}">${escapeHtml(code)}</option>`
+          ).join('');
+        }
+        memberCourseSelect.value = course.code;
+      }
       const stCourseCode = document.getElementById('teacherStudentCourseCode');
       if (stCourseCode) stCourseCode.innerText = course.code;
       const stCourseName = document.getElementById('teacherStudentCourseName');
@@ -2388,24 +2407,20 @@
 
           <div class="pt-3 mt-2 border-t border-neutral-100 dark:border-neutral-800">
             <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-4 block mb-1">${isTh ? 'เข้าถึงรายวิชาด่วน' : 'Quick Courses'}</span>
-            <button onclick="drawerOpenCourse('CMM321')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
-              • ${isTh ? 'CMM321 คณิตศาสตร์คอมพิวเตอร์กราฟิก' : 'CMM321 Graphics Math'}
-            </button>
-            <button onclick="drawerOpenCourse('CMM349')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
-              • ${isTh ? 'CMM349 การพัฒนาเว็บแอปพลิเคชัน' : 'CMM349 Web App Dev'}
-            </button>
-            <button onclick="drawerOpenCourse('CMM310')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
-              • ${isTh ? 'CMM310 การออกแบบและพัฒนาเกม' : 'CMM310 Game Design'}
-            </button>
-            <button onclick="drawerOpenCourse('CMM390')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
-              • ${isTh ? 'CMM390 การจัดการโครงการ' : 'CMM390 Project Management'}
-            </button>
-            <button onclick="drawerOpenCourse('CMM320')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
-              • ${isTh ? 'CMM320 ฟิสิกส์แสงและเสียง' : 'CMM320 Light and Sound Physics'}
-            </button>
-            <button onclick="drawerOpenCourse('GEN121')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
-              • ${isTh ? 'GEN121 การเรียนรู้และการแก้ปัญหา' : 'GEN121 Learning & Problem Solving'}
-            </button>
+            ${(typeof getVisibleCourseCodesForCurrentRole === 'function' ? getVisibleCourseCodesForCurrentRole() : Object.keys(coursesCatalog || {})).map(code => {
+              const c = coursesCatalog[code];
+              if (!c) return '';
+              const thaiTitles = {
+                CMM321: 'คณิตศาสตร์คอมพิวเตอร์กราฟิก',
+                CMM349: 'การพัฒนาเว็บแอปพลิเคชัน',
+                CMM310: 'การออกแบบและพัฒนาเกม',
+                CMM390: 'การจัดการโครงการ',
+                CMM320: 'ฟิสิกส์แสงและเสียง',
+                GEN121: 'การเรียนรู้และการแก้ปัญหา'
+              };
+              const dispTitle = isTh ? (c.titleTh || thaiTitles[code] || c.title) : c.title;
+              return `<button onclick="drawerOpenCourse('${escapeHtml(code)}')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">• ${escapeHtml(code)} ${escapeHtml(dispTitle)}</button>`;
+            }).join('')}
           </div>
         `;
       }

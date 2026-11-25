@@ -611,11 +611,21 @@ const coursesCatalog = {
 
     function getTeacherAssignedCourseCodes(teacher = null) {
       const t = teacher || getCurrentTeacher();
-      if (t && Array.isArray(t.courses) && t.courses.length > 0) {
-        const valid = t.courses.filter(code => Boolean(coursesCatalog[code]));
-        if (valid.length > 0) return valid;
+      if (t && Array.isArray(t.courses)) {
+        return t.courses.filter(code => Boolean(coursesCatalog[code]));
       }
       return Object.keys(coursesCatalog || {});
+    }
+
+    function getVisibleCourseCodesForCurrentRole() {
+      const allCodes = Object.keys(coursesCatalog || {});
+      if (typeof currentUserRole !== 'undefined' && currentUserRole === 'teacher') {
+        return getTeacherAssignedCourseCodes();
+      }
+      if (typeof currentUserRole !== 'undefined' && currentUserRole === 'student') {
+        return allCodes.filter(code => coursesCatalog[code] && coursesCatalog[code].studentVisibility !== 'hidden');
+      }
+      return allCodes;
     }
 
     function getTeacherProfile(identifier) {
