@@ -199,7 +199,63 @@
       ['Exported CSV', 'ส่งออกไฟล์ CSV'],
       ['Tracking v2', 'ติดตามผล v2'],
       ['No Projects Found', 'ไม่พบโปรเจกต์'],
-      ['Review & Grade', 'ตรวจและให้คะแนน']
+      ['Review & Grade', 'ตรวจและให้คะแนน'],
+      ['ATHT Navigation', 'เมนูนำทาง ATHT'],
+      ['KMUTT Mobile Portal', 'พอร์ทัลมือถือ มจธ.'],
+      ['System Admin', 'ผู้ดูแลระบบ'],
+      ['Select a subject to manage projects, due dates, and student submissions', 'เลือกรายวิชาเพื่อจัดการโปรเจกต์ กำหนดส่ง และตรวจงานนักศึกษา'],
+      ['STUDENT MEMBERS', 'รายชื่อนักศึกษา'],
+      ['Project Tasks', 'งานในโปรเจกต์'],
+      ['Modify assessment guidelines, milestones, and submission deadline', 'แก้ไขคำอธิบายงาน เกณฑ์การประเมิน และกำหนดส่ง'],
+      ['Name', 'ชื่องาน'],
+      ['Due Time', 'เวลาส่ง'],
+      ['Save Task', 'บันทึกงาน'],
+      ['Remove', 'ลบ'],
+      ['Create or update course project details', 'สร้างหรือแก้ไขรายละเอียดโปรเจกต์ของรายวิชา'],
+      ['Project Name *', 'ชื่อโปรเจกต์ *'],
+      ['Time', 'เวลาส่ง'],
+      ['Step Evaluation', 'ประเมินผลตามขั้นตอน'],
+      ['Step Status', 'สถานะขั้นตอน'],
+      ['Approved / Passed', 'ผ่าน / อนุมัติแล้ว'],
+      ['Revision Requested', 'ส่งกลับแก้ไข'],
+      ['In Review', 'กำลังตรวจสอบ'],
+      ['Add New Assessment Task', 'เพิ่มงานประเมินใหม่'],
+      ['Create a task milestone for this course', 'สร้างหัวข้องานหรือเป้าหมายการส่งสำหรับวิชานี้'],
+      ['Task Title', 'ชื่องาน'],
+      ['Assignment Type', 'รูปแบบงาน'],
+      ['Individual (1 Member)', 'งานเดี่ยว (1 คน)'],
+      ['Pair (2 Members)', 'งานคู่ (2 คน)'],
+      ['Group Project (4 Members)', 'งานกลุ่ม (4 คน)'],
+      ['Add Project Task', 'เพิ่มงานในโปรเจกต์'],
+      ['Add a deliverable milestone or assignment to this project', 'เพิ่มหัวข้องานหรือเป้าหมายย่อยในโปรเจกต์นี้'],
+      ['Task Title *', 'ชื่องาน *'],
+      ['Task Type', 'ประเภทงาน'],
+      ['Group Project', 'งานกลุ่ม'],
+      ['Individual', 'งานเดี่ยว'],
+      ['Team Members (Group Project)', 'สมาชิกในทีม (งานกลุ่ม)'],
+      ['+ Add', '+ เพิ่ม'],
+      ['Update task title and description', 'แก้ไขชื่องานและรายละเอียด'],
+      ['Due date is set by the course instructor. Task status is updated automatically upon submission and grading.', 'กำหนดส่งถูกตั้งโดยอาจารย์ผู้สอน สถานะงานจะอัปเดตอัตโนมัติเมื่อส่งงานและตรวจให้คะแนน'],
+      ['Save Changes', 'บันทึกการแก้ไข'],
+      ['Create New Project', 'สร้างโปรเจกต์ใหม่'],
+      ['Initiate a team project for grading and review', 'เริ่มต้นโปรเจกต์กลุ่มเพื่อติดตามงานและส่งอาจารย์ตรวจ'],
+      ['Project Title *', 'ชื่อโปรเจกต์ *'],
+      ['Course *', 'รายวิชา *'],
+      ['Project Summary / Scope', 'สรุปขอบเขตโปรเจกต์'],
+      ['Repository or Figma URL', 'ลิงก์ GitHub หรือ Figma'],
+      ['Defaults to your active student ID. You can add more teammates.', 'ค่าเริ่มต้นเป็นรหัสของคุณ สามารถเพิ่มเพื่อนร่วมทีมได้'],
+      ['Project Team', 'สมาชิกทีมโปรเจกต์'],
+      ['Reply', 'ตอบกลับ'],
+      ['Contact Support', 'ติดต่อฝ่ายสนับสนุน'],
+      ['Privacy Policy', 'นโยบายความเป็นส่วนตัว'],
+      ['System Version 2.4', 'เวอร์ชันระบบ 2.4'],
+      ['Sun', 'อา.'],
+      ['Mon', 'จ.'],
+      ['Tue', 'อ.'],
+      ['Wed', 'พ.'],
+      ['Thu', 'พฤ.'],
+      ['Fri', 'ศ.'],
+      ['Sat', 'ส.']
     ];
 
     const uiEnToTh = new Map(uiPhrasePairs);
@@ -248,6 +304,10 @@
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Teachers?$/i))) return `แสดงอาจารย์ ${m[1]} ท่าน`;
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Users?$/i))) return `แสดงผู้ใช้ทั้งหมด ${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Enrolled\s+Courses?$/i))) return `ลงทะเบียน ${m[1]} รายวิชา`;
+        if ((m = trimmed.match(/^(\d+)\s+Active\s+Subjects?$/i))) return `เรียน ${m[1]} วิชา`;
+        if ((m = trimmed.match(/^(\d+)\s+Tasks?\s+in\s+this\s+course$/i))) return `${m[1]} งานในวิชานี้`;
+        if ((m = trimmed.match(/^Group\s+Project\s*\((\d+)\s+Members?\)$/i))) return `งานกลุ่ม (${m[1]} คน)`;
+        if ((m = trimmed.match(/^Teacher:\s*(.+)$/i))) return `อาจารย์ผู้สอน: ${m[1]}`;
         if ((m = trimmed.match(/^(\d+)\s+Users?$/i))) return `ผู้ใช้ ${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Students?$/i))) return `${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Tasks?$/i))) return `${m[1]} งาน`;
@@ -263,6 +323,10 @@
         if ((m = trimmed.match(/^แสดงอาจารย์\s+(\d+)\s+ท่าน$/))) return `Showing ${m[1]} Teachers`;
         if ((m = trimmed.match(/^แสดงผู้ใช้ทั้งหมด\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Users`;
         if ((m = trimmed.match(/^ลงทะเบียน\s+(\d+)\s+รายวิชา$/))) return `${m[1]} Enrolled Courses`;
+        if ((m = trimmed.match(/^เรียน\s+(\d+)\s+วิชา$/))) return `${m[1]} Active Subjects`;
+        if ((m = trimmed.match(/^(\d+)\s+งานในวิชานี้$/))) return `${m[1]} Tasks in this course`;
+        if ((m = trimmed.match(/^งานกลุ่ม\s*\((\d+)\s+คน\)$/))) return `Group Project (${m[1]} Members)`;
+        if ((m = trimmed.match(/^อาจารย์ผู้สอน:\s*(.+)$/))) return `Teacher: ${m[1]}`;
         if ((m = trimmed.match(/^ผู้ใช้\s+(\d+)\s+คน$/))) return `${m[1]} Users`;
         if ((m = trimmed.match(/^ส่งแล้ว\s*\((\d+\/\d+)\s*งาน\)$/))) return `Submitted (${m[1]} Tasks)`;
         if ((m = trimmed.match(/^รอแก้\s*\((\d+\/\d+)\s*งาน\)$/))) return `Revision (${m[1]} Tasks)`;
@@ -315,9 +379,15 @@
 
       const placeholderPairs = [
         ['Search ID, Name, Email...', 'ค้นหารหัส, ชื่อ, อีเมล...'],
-        ['ค้นหาชื่อนักศึกษา หรือรหัส ID...', 'Search student name or ID...'],
-        ['พิมพ์ข้อเสนอแนะหรือจุดที่ต้องแก้ไข...', 'Write feedback or revision notes...'],
-        ['Reply to instructor...', 'ตอบกลับอาจารย์ผู้สอน...']
+        ['Search student name or ID...', 'ค้นหาชื่อนักศึกษา หรือรหัส ID...'],
+        ['Write feedback or revision notes...', 'พิมพ์ข้อเสนอแนะหรือจุดที่ต้องแก้ไข...'],
+        ['Reply to instructor...', 'ตอบกลับอาจารย์ผู้สอน...'],
+        ['Reply...', 'ตอบกลับ...'],
+        ['Search projects or team...', 'ค้นหาโปรเจกต์ หรือสมาชิก...'],
+        ['Describe the task scope, rubric, and deliverables...', 'อธิบายขอบเขตงาน เกณฑ์การให้คะแนน และสิ่งที่ต้องส่ง...'],
+        ['Brief explanation of technical objectives and deliverables...', 'สรุปวัตถุประสงค์และสิ่งที่ต้องส่งของโปรเจกต์...'],
+        ['Task requirements and submission guidelines...', 'ระบุข้อกำหนดและแนวทางการส่งงาน...'],
+        ['Provide actionable feedback for this step milestone...', 'ระบุข้อเสนอแนะสำหรับขั้นตอนนี้...']
       ];
       document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(inp => {
         if (!inp.dataset) return;

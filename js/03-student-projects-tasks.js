@@ -58,7 +58,7 @@
           </div>
 
           <div class="space-y-1.5">
-            <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">Teacher: ${escapeHtml(c.teacher)}</p>
+            <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">${isThai ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${escapeHtml(c.teacher)}</p>
             <div class="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
               <div class="h-full rounded-full transition-all duration-500" style="width: ${pct}%; background: linear-gradient(90deg, var(--gz-primary), var(--gz-secondary));"></div>
             </div>
@@ -81,18 +81,19 @@
       container.innerHTML = '';
 
       Object.values(coursesCatalog).forEach(c => {
+        const isThai = currentLanguage === 'th';
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl p-4 border border-neutral-200/90 shadow-xs hover:border-neutral-300 transition pressable cursor-pointer space-y-3';
+        card.className = 'bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-xs hover:border-neutral-300 transition pressable cursor-pointer space-y-3';
         card.onclick = () => selectCourse(c.code);
 
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div>
-              <span class="text-xs font-bold text-neutral-900">${escapeHtml(c.code)}</span>
-              <h3 class="text-sm font-bold text-neutral-800">${escapeHtml(c.title)}</h3>
-              <p class="text-[11px] text-neutral-400">Teacher: ${escapeHtml(c.teacher)}</p>
+              <span class="text-xs font-bold text-neutral-900 dark:text-white">${escapeHtml(c.code)}</span>
+              <h3 class="text-sm font-bold text-neutral-800 dark:text-neutral-200">${escapeHtml(c.title)}</h3>
+              <p class="text-[11px] text-neutral-400">${isThai ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${escapeHtml(c.teacher)}</p>
             </div>
-            <span class="text-[10px] font-semibold bg-neutral-100 text-neutral-700 px-2 py-0.5 rounded">Semester 1</span>
+            <span class="text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded">${isThai ? 'ภาคเรียนที่ 1' : 'Semester 1'}</span>
           </div>
 
           <div class="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100 space-y-1.5">
@@ -175,7 +176,7 @@
       const courseNameEl = document.getElementById('detailCourseName');
       if (courseNameEl) courseNameEl.innerText = course.title;
       const teacherEl = document.getElementById('detailTeacher');
-      if (teacherEl) teacherEl.innerText = `Teacher: ${course.teacher}`;
+      if (teacherEl) teacherEl.innerText = `${currentLanguage === 'th' ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${course.teacher}`;
       const scheduleEl = document.getElementById('detailSchedule');
       if (scheduleEl) scheduleEl.innerText = course.schedule || 'Wednesday 09:30 - 12:30';
 
@@ -2233,11 +2234,12 @@
       container.innerHTML = '';
 
       if (list.length === 0) {
+        const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
         container.innerHTML = `
           <div class="col-span-full py-16 text-center space-y-3 bg-white dark:bg-neutral-900 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-800">
             <span class="text-4xl">📁</span>
-            <h3 class="text-sm font-bold text-neutral-800 dark:text-neutral-200">No Projects Found</h3>
-            <p class="text-xs text-neutral-500 max-w-sm mx-auto">There are no projects matching your current filter criteria. Create one using the "+ Create Project" button above.</p>
+            <h3 class="text-sm font-bold text-neutral-800 dark:text-neutral-200">${isThai ? 'ไม่พบโปรเจกต์' : 'No Projects Found'}</h3>
+            <p class="text-xs text-neutral-500 max-w-sm mx-auto">${isThai ? 'ไม่พบโปรเจกต์ที่ตรงกับเงื่อนไขการค้นหา ลองสร้างใหม่ด้วยปุ่ม "+ สร้างโปรเจกต์" ด้านบน' : 'There are no projects matching your current filter criteria. Create one using the "+ Create Project" button above.'}</p>
           </div>
         `;
         return;

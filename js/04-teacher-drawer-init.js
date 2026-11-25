@@ -11,7 +11,9 @@
       }
       const mobileWelcomeEl = document.getElementById('teacherMobileWelcomeName');
       if (mobileWelcomeEl) {
-        mobileWelcomeEl.innerText = `Welcome, ${currentTeacher.shortName}!`;
+        mobileWelcomeEl.innerText = isThai
+          ? `ยินดีต้อนรับ, ${currentTeacher.shortName}!`
+          : `Welcome, ${currentTeacher.shortName}!`;
       }
 
       const teacherDeptEl = document.getElementById('teacherDashboardDept');
@@ -2203,36 +2205,37 @@
 
       const isTeacher = currentUserRole === 'teacher';
       const isAdmin = currentUserRole === 'admin';
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
 
       if (isAdmin) {
         container.innerHTML = `
-          <button onclick="switchAdminTab('students'); drawerNavigate('admin')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between font-bold">
-            <span>🎓 Manage Students</span>
+          <button onclick="switchAdminTab('students'); drawerNavigate('admin')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between font-bold">
+            <span>🎓 ${isTh ? 'จัดการนักศึกษา' : 'Manage Students'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="switchAdminTab('teachers'); drawerNavigate('admin')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between font-bold">
-            <span>👨‍🏫 Manage Teachers</span>
+          <button onclick="switchAdminTab('teachers'); drawerNavigate('admin')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between font-bold">
+            <span>👨‍🏫 ${isTh ? 'จัดการอาจารย์' : 'Manage Teachers'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="switchAdminTab('all'); drawerNavigate('admin')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>👥 All Directory</span>
+          <button onclick="switchAdminTab('all'); drawerNavigate('admin')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>👥 ${isTh ? 'รายชื่อทั้งหมด' : 'All Directory'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="drawerNavigate('projects')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>📁 Projects</span>
+          <button onclick="drawerNavigate('projects')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>📁 ${isTh ? 'โปรเจกต์' : 'Projects'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="drawerNavigate('courses')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>📚 Courses</span>
+          <button onclick="drawerNavigate('courses')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>📚 ${isTh ? 'รายวิชา' : 'Courses'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <div class="pt-3 border-t border-neutral-100">
-            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-3 block mb-1">Portal Role Switcher</span>
-            <button onclick="toggleMobileDrawer(false); switchRoleFromAdmin('student')" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • Switch to Student View
+          <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800">
+            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-3 block mb-1">${isTh ? 'สลับบทบาทมุมมองระบบ' : 'Portal Role Switcher'}</span>
+            <button onclick="toggleMobileDrawer(false); switchRoleFromAdmin('student')" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'สลับเป็นมุมมองนักศึกษา' : 'Switch to Student View'}
             </button>
-            <button onclick="toggleMobileDrawer(false); switchRoleFromAdmin('teacher')" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • Switch to Teacher View
+            <button onclick="toggleMobileDrawer(false); switchRoleFromAdmin('teacher')" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'สลับเป็นมุมมองอาจารย์' : 'Switch to Teacher View'}
             </button>
           </div>
         `;
@@ -2241,78 +2244,82 @@
 
       if (isTeacher) {
         container.innerHTML = `
-          <button onclick="navigateTo('teacher-dashboard'); toggleMobileDrawer(false);" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>Home</span>
+          <button onclick="navigateTo('teacher-dashboard'); toggleMobileDrawer(false);" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>${isTh ? 'หน้าหลัก' : 'Home'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="switchTeacherViewMode('assessment'); drawerNavigate('teacher-review')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>Course</span>
+          <button onclick="switchTeacherViewMode('assessment'); drawerNavigate('teacher-review')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>${isTh ? 'รายวิชา' : 'Course'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="drawerNavigate('projects')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>Project</span>
+          <button onclick="drawerNavigate('projects')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>${isTh ? 'โปรเจกต์' : 'Project'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="switchTeacherViewMode('students'); drawerNavigate('teacher-review')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>Members</span>
+          <button onclick="switchTeacherViewMode('students'); drawerNavigate('teacher-review')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>${isTh ? 'สมาชิก' : 'Members'}</span>
             <span class="text-neutral-400">→</span>
           </button>
-          <button onclick="drawerNavigate('notifications')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 flex items-center justify-between">
-            <span>Notifications</span>
+          <button onclick="drawerNavigate('notifications')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between">
+            <span>${isTh ? 'การแจ้งเตือน' : 'Notifications'}</span>
             <span class="text-neutral-400">→</span>
           </button>
 
-          <div class="pt-3 border-t border-neutral-100">
-            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-3 block mb-1">${t('filterTaughtSubjects', 'Filter Taught Subjects')}</span>
-            <button onclick="setTeacherCourseFilter('ALL'); drawerNavigate('teacher-dashboard');" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              ${t('allStudentGroups', '• My Assigned Courses')}
+          <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800">
+            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-3 block mb-1">${isTh ? 'กรองรายวิชาที่สอน' : 'Filter Taught Subjects'}</span>
+            <button onclick="setTeacherCourseFilter('ALL'); drawerNavigate('teacher-dashboard');" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              ${isTh ? '• รายวิชาที่สอนทั้งหมด' : '• My Assigned Courses'}
             </button>
             ${getTeacherAssignedCourseCodes().map(code => {
               const c = coursesCatalog[code];
-              return `<button onclick="setTeacherCourseFilter('${code}'); drawerNavigate('teacher-dashboard');" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">• ${escapeHtml(code)} ${escapeHtml(c ? c.title : '')}</button>`;
+              return `<button onclick="setTeacherCourseFilter('${code}'); drawerNavigate('teacher-dashboard');" class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">• ${escapeHtml(code)} ${escapeHtml(c ? c.title : '')}</button>`;
             }).join('')}
           </div>
         `;
       } else {
+        const badgeTxt = (document.getElementById('pendingCountBadge')?.innerText || '').match(/\d+/)?.[0] || '0';
         container.innerHTML = `
           <button onclick="drawerNavigate('dashboard')" class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between font-bold text-sm">
-            <span>Course</span>
+            <span>${isTh ? 'รายวิชา' : 'Course'}</span>
             <span class="text-neutral-400">→</span>
           </button>
           <button onclick="activeTasksCourseFilter = null; activeTasksProjectFilter = null; drawerNavigate('tasks-hub')" class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between font-bold text-sm">
             <span class="flex items-center gap-2">
-              <span>All Tasks</span>
-              <span class="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full">3</span>
+              <span>${isTh ? 'งานทั้งหมด' : 'All Tasks'}</span>
+              <span class="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full">${badgeTxt}</span>
             </span>
             <span class="text-neutral-400">→</span>
           </button>
           <button onclick="drawerNavigate('notifications')" class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-between font-bold text-sm">
-            <span>Notification</span>
+            <span>${isTh ? 'การแจ้งเตือน' : 'Notification'}</span>
             <span class="text-neutral-400">→</span>
           </button>
 
           <div class="pt-3 mt-2 border-t border-neutral-100 dark:border-neutral-800">
-            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-4 block mb-1">${t('quickCourses', 'Quick Courses')}</span>
-            <button onclick="drawerOpenCourse('CMM321')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • CMM321 Graphics Math
+            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider px-4 block mb-1">${isTh ? 'เข้าถึงรายวิชาด่วน' : 'Quick Courses'}</span>
+            <button onclick="drawerOpenCourse('CMM321')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'CMM321 คณิตศาสตร์คอมพิวเตอร์กราฟิก' : 'CMM321 Graphics Math'}
             </button>
-            <button onclick="drawerOpenCourse('CMM349')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • CMM349 Web App Dev
+            <button onclick="drawerOpenCourse('CMM349')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'CMM349 การพัฒนาเว็บแอปพลิเคชัน' : 'CMM349 Web App Dev'}
             </button>
-            <button onclick="drawerOpenCourse('CMM310')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • CMM310 Game Design
+            <button onclick="drawerOpenCourse('CMM310')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'CMM310 การออกแบบและพัฒนาเกม' : 'CMM310 Game Design'}
             </button>
-            <button onclick="drawerOpenCourse('CMM390')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • CMM390 Project Management
+            <button onclick="drawerOpenCourse('CMM390')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'CMM390 การจัดการโครงการ' : 'CMM390 Project Management'}
             </button>
-            <button onclick="drawerOpenCourse('CMM320')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • CMM320 Light and Sound Physics
+            <button onclick="drawerOpenCourse('CMM320')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'CMM320 ฟิสิกส์แสงและเสียง' : 'CMM320 Light and Sound Physics'}
             </button>
-            <button onclick="drawerOpenCourse('GEN121')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 text-[11px] text-neutral-600">
-              • GEN121 Learning &amp; Problem Solving
+            <button onclick="drawerOpenCourse('GEN121')" class="w-full text-left px-4 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-300">
+              • ${isTh ? 'GEN121 การเรียนรู้และการแก้ปัญหา' : 'GEN121 Learning & Problem Solving'}
             </button>
           </div>
         `;
+      }
+      if (typeof translateDOM === 'function' && currentLanguage === 'th') {
+        translateDOM('th');
       }
     }
 
