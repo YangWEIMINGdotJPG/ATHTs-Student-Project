@@ -81,22 +81,32 @@
       ['Course Projects', 'โปรเจกต์ในรายวิชา'],
       ['Student Projects', 'โปรเจกต์นักศึกษา'],
       ['← Projects', '← กลับหน้าโปรเจกต์'],
-      ['← รายชื่อนักศึกษา', '← รายชื่อนักศึกษา'],
-      ['← กลับหน้ารายชื่อนักศึกษา', '← กลับหน้ารายชื่อนักศึกษา'],
+      ['← Back to Projects', '← กลับไปรายการโครงงาน (Back to Projects)'],
+      ['← Student Roster', '← รายชื่อนักศึกษา'],
+      ['← Back to Student Roster', '← กลับหน้ารายชื่อนักศึกษา'],
       ['📁 Projects', '📁 โปรเจกต์'],
       ['Filter: All Status', 'ตัวกรอง: ทุกสถานะ'],
-      ['Filter: ส่งแล้ว (Complete)', 'ตัวกรอง: ส่งแล้ว'],
-      ['Filter: รอแก้ (Revision)', 'ตัวกรอง: รอแก้'],
-      ['Filter: ยังไม่ส่ง (Uncompleted)', 'ตัวกรอง: ยังไม่ส่ง'],
-      ['Sort: ID น้อย → มาก', 'เรียง: รหัส น้อย → มาก'],
-      ['Sort: ID มาก → น้อย', 'เรียง: รหัส มาก → น้อย'],
-      ['Sort: ชื่อ A → Z', 'เรียง: ชื่อ A → Z'],
-      ['ส่งแก้ (รอแก้)', 'ส่งแก้ (รอแก้)'],
-      ['กำลังตรวจงานนักศึกษา', 'กำลังตรวจงานนักศึกษา'],
-      ['รายการงานที่ส่งในรายวิชานี้ (Tasks)', 'รายการงานที่ส่งในรายวิชานี้ (Tasks)'],
-      ['ยังไม่มีไฟล์ส่งงาน', 'ยังไม่มีไฟล์ส่งงาน'],
-      ['นักศึกษายังไม่ได้อัปโหลดไฟล์งาน', 'นักศึกษายังไม่ได้อัปโหลดไฟล์งาน'],
-      ['ยังไม่มีประวัติการส่งงาน', 'ยังไม่มีประวัติการส่งงาน'],
+      ['Filter: Completed', 'ตัวกรอง: ส่งแล้ว'],
+      ['Filter: Revision', 'ตัวกรอง: รอแก้'],
+      ['Filter: Uncompleted', 'ตัวกรอง: ยังไม่ส่ง'],
+      ['Sort: ID Asc', 'เรียง: รหัส น้อย → มาก'],
+      ['Sort: ID Desc', 'เรียง: รหัส มาก → น้อย'],
+      ['Sort: Name A → Z', 'เรียง: ชื่อ A → Z'],
+      ['Request Revision', 'ส่งแก้ (รอแก้)'],
+      ['Reviewing Student Work', 'กำลังตรวจงานนักศึกษา'],
+      ['Submitted Tasks in Course', 'รายการงานที่ส่งในรายวิชานี้ (Tasks)'],
+      ['No file submitted yet', 'ยังไม่มีไฟล์ส่งงาน'],
+      ['Student has not uploaded a file yet', 'นักศึกษายังไม่ได้อัปโหลดไฟล์งาน'],
+      ['No submission history yet', 'ยังไม่มีประวัติการส่งงาน'],
+      ['COURSE PROJECTS', 'โปรเจกต์ในรายวิชา'],
+      ['👥 View Members →', '👥 ดูสมาชิก (Members) →'],
+      ['Overall Progress', 'ความก้าวหน้าภาพรวม'],
+      ['Members:', 'สมาชิกกลุ่ม:'],
+      ['+ Add Step', '+ เพิ่มขั้นตอน (Add Step)'],
+      ['Project Milestones', 'แผนการทำงานและขั้นตอนโครงงาน (Milestone Tasks)'],
+      ['Student teams can add, edit, or submit work by target date.', 'กลุ่มนักศึกษาสามารถเพิ่ม แก้ไข หรือส่งงานตาม Target Date ได้เอง'],
+      ['Mark All Read', 'อ่านทั้งหมดแล้ว'],
+      ['Clear Read', 'ล้างที่อ่านแล้ว'],
       ['System Festival Theme (Global)', 'ธีมเทศกาลทั้งระบบ (ใช้ร่วมกันทุกบทบาท)'],
       ['Notifications & Announcements', 'การแจ้งเตือนและประกาศ'],
       ['Class announcements, grades published, & project team updates', 'ประกาศจากชั้นเรียน ผลคะแนน และความคืบหน้าของทีม'],
@@ -272,19 +282,17 @@
     uiThToEn.set('Filter: ส่งแล้ว (Complete)', 'Filter: Complete');
     uiThToEn.set('Filter: รอแก้ (Revision)', 'Filter: Revision');
     uiThToEn.set('Filter: ยังไม่ส่ง (Uncompleted)', 'Filter: Uncompleted');
-    uiThToEn.set('เรียง: รหัส น้อย → มาก', 'Sort: ID Asc');
-    uiThToEn.set('เรียง: รหัส มาก → น้อย', 'Sort: ID Desc');
-    uiThToEn.set('เรียง: ชื่อ A → Z', 'Sort: Name A → Z');
     uiThToEn.set('Sort: ID น้อย → มาก', 'Sort: ID Asc');
     uiThToEn.set('Sort: ID มาก → น้อย', 'Sort: ID Desc');
     uiThToEn.set('Sort: ชื่อ A → Z', 'Sort: Name A → Z');
     uiThToEn.set('ส่งแก้ (รอแก้)', 'Request Revision');
     uiThToEn.set('กำลังตรวจงานนักศึกษา', 'Reviewing Student Submission');
-    uiThToEn.set('รายการงานที่ส่งในรายวิชานี้ (Tasks)', 'Submitted Tasks History (Tasks)');
-    uiThToEn.set('← รายชื่อนักศึกษา', '← Student List');
-    uiThToEn.set('ยังไม่มีไฟล์ส่งงาน', 'No file submitted yet');
-    uiThToEn.set('นักศึกษายังไม่ได้อัปโหลดไฟล์งาน', 'Student has not uploaded a file yet');
-    uiThToEn.set('ยังไม่มีประวัติการส่งงาน', 'No submission history yet');
+    uiThToEn.set('รายการงานที่ส่งในรายวิชานี้ (Tasks)', 'Submitted Tasks in Course');
+    uiThToEn.set('← รายชื่อนักศึกษา', '← Student Roster');
+    uiThToEn.set('← กลับไปรายการโครงงาน (Back to Projects)', '← Back to Projects');
+    uiThToEn.set('👥 ดูสมาชิก (Members) →', '👥 View Members →');
+    uiThToEn.set('+ เพิ่มขั้นตอน (Add Step)', '+ Add Step');
+    uiThToEn.set('แผนการทำงานและขั้นตอนโครงงาน (Milestone Tasks)', 'Project Milestones');
     uiThToEn.set('ยังไม่มีข้อเสนอแนะ', 'No feedback yet');
     uiThToEn.set('ส่งแล้ว', 'Submitted');
     uiThToEn.set('รอแก้', 'Revision');
@@ -309,15 +317,19 @@
         if ((m = trimmed.match(/^(\d+)\s+Tasks?\s+in\s+this\s+course$/i))) return `${m[1]} งานในวิชานี้`;
         if ((m = trimmed.match(/^Group\s+Project\s*\((\d+)\s+Members?\)$/i))) return `งานกลุ่ม (${m[1]} คน)`;
         if ((m = trimmed.match(/^Teacher:\s*(.+)$/i))) return `อาจารย์ผู้สอน: ${m[1]}`;
+        if ((m = trimmed.match(/^Task\s*#?(\d+)\s*:\s*(.+)$/i))) return `งานครั้งที่ ${m[1]}: ${m[2]}`;
+        if ((m = trimmed.match(/^(\d+)\s+of\s+(\d+)\s+steps?\s+approved$/i))) return `ผ่าน ${m[1]} จาก ${m[2]} ขั้นตอน`;
         if ((m = trimmed.match(/^(\d+)\s+Users?$/i))) return `ผู้ใช้ ${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Students?$/i))) return `${m[1]} คน`;
         if ((m = trimmed.match(/^(\d+)\s+Tasks?$/i))) return `${m[1]} งาน`;
         if ((m = trimmed.match(/^(\d+)\s+Members?$/i))) return `${m[1]} สมาชิก`;
+        if ((m = trimmed.match(/^All\s+Members\s*\((\d+)\)\s*→$/i))) return `สมาชิกทั้งหมด (${m[1]}) →`;
         if ((m = trimmed.match(/^(\d+)\s+Projects?$/i))) return `${m[1]} โปรเจกต์`;
         return null;
       } else {
         if (uiThToEn.has(trimmed)) return uiThToEn.get(trimmed);
         let m;
+        if ((m = trimmed.match(/^สมาชิกทั้งหมด\s*\((\d+)\)\s*→$/))) return `All Members (${m[1]}) →`;
         if ((m = trimmed.match(/^วันนี้,\s*(.+)$/))) return `Today, ${m[1]}`;
         if ((m = trimmed.match(/^ส่งออกข้อมูลผู้ใช้\s+(\d+)\s+รายการเป็น CSV แล้ว$/))) return `Exported ${m[1]} user records to CSV.`;
         if ((m = trimmed.match(/^แสดงนักศึกษา\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Students`;
@@ -340,6 +352,10 @@
           return `Attempt #${m[1]} (${tag})`;
         }
         if ((m = trimmed.match(/^ส่งงานทั้งหมด\s*(\d+)\s*ครั้ง$/))) return `${m[1]} Submissions`;
+        if ((m = trimmed.match(/^ผ่าน\s+(\d+)\s+จาก\s+(\d+)\s+ขั้นตอน$/))) return `${m[1]} of ${m[2]} steps approved`;
+        if ((m = trimmed.match(/^อนุมัติแล้ว\s+(\d+)\s+Step$/i))) return `${m[1]} steps approved`;
+        if ((m = trimmed.match(/^งานครั้งที่\s*(\d+)\s*:\s*(.+)$/))) return `Task #${m[1]}: ${m[2]}`;
+        if ((m = trimmed.match(/^งานครั้งที่\s*(\d+)\s*\(รวม\s*(\d+)\s*งาน\)$/))) return `Task #${m[1]} (${m[2]} Tasks)`;
         if ((m = trimmed.match(/^(\d+)\s+คน$/))) return `${m[1]} Students`;
         if ((m = trimmed.match(/^(\d+)\s+งาน$/))) return `${m[1]} Tasks`;
         if ((m = trimmed.match(/^(\d+)\s+สมาชิก$/))) return `${m[1]} Members`;
@@ -434,13 +450,22 @@
 
       if (currentScreen) {
         updateBreadcrumbUI(currentScreen);
+        if (typeof renderDynamicPills === 'function') renderDynamicPills(currentScreen);
         renderDrawerLinks();
         if (typeof renderCalendar === 'function') renderCalendar();
         if (currentScreen === 'dashboard' && typeof renderDashboardCourses === 'function') renderDashboardCourses();
         if (currentScreen === 'teacher-dashboard' && typeof renderTeacherDashboard === 'function') renderTeacherDashboard();
         if (currentScreen === 'teacher-review' && typeof renderTeacherReviewScreen === 'function') renderTeacherReviewScreen();
-        if (currentScreen === 'projects' && typeof renderProjectsScreen === 'function') renderProjectsScreen();
+        if (currentScreen === 'projects') {
+          const mv = document.getElementById('projectDetailMilestoneView');
+          if (mv && !mv.classList.contains('hidden') && typeof activeViewingProjectId !== 'undefined' && activeViewingProjectId && typeof openProjectMilestoneDetail === 'function') {
+            openProjectMilestoneDetail(activeViewingProjectId);
+          } else if (typeof renderProjectsScreen === 'function') {
+            renderProjectsScreen();
+          }
+        }
         if (currentScreen === 'tasks-hub' && typeof renderGlobalTasksHub === 'function') renderGlobalTasksHub();
+        if (currentScreen === 'notifications' && typeof renderNotificationsScreen === 'function') renderNotificationsScreen();
         if (currentScreen === 'course-detail' && typeof renderCourseDetailPage === 'function') renderCourseDetailPage();
         if (currentScreen === 'task-detail' && typeof renderTaskDetailPage === 'function') renderTaskDetailPage();
         if (currentScreen === 'admin' && typeof renderAdminScreen === 'function') renderAdminScreen();
@@ -1463,33 +1488,33 @@
       }
 
       if (currentUserRole === 'teacher') {
-
+        const isThP = currentLanguage === 'th';
         const isHome = activeScreenId === 'teacher-dashboard';
         const isMembers = activeScreenId === 'teacher-review' && (teacherReviewViewMode === 'students' || teacherReviewViewMode === 'grading');
         const isProject = activeScreenId === 'projects';
-        const isTasks = activeScreenId === 'teacher-review' && (teacherReviewViewMode === 'assessment' || teacherReviewViewMode === 'editTask');
+        const isTasks = activeScreenId === 'teacher-review' && (teacherReviewViewMode === 'assessment' || teacherReviewViewMode === 'projectTasks' || teacherReviewViewMode === 'editTask');
         const isNotifs = activeScreenId === 'notifications';
 
         container.innerHTML = `
           <button onclick="navigateTo('teacher-dashboard')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isHome ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Home
+            ${isThP ? 'หน้าหลัก' : 'Home'}
           </button>
           <button onclick="switchTeacherViewMode('students'); navigateTo('teacher-review')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isMembers ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Members
+            ${isThP ? 'สมาชิก' : 'Members'}
           </button>
           <button onclick="navigateTo('projects')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isProject ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Project
+            ${isThP ? 'โปรเจกต์' : 'Project'}
           </button>
           <button onclick="switchTeacherViewMode('assessment'); navigateTo('teacher-review')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isTasks ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Tasks
+            ${isThP ? 'รายการงาน' : 'Tasks'}
           </button>
           <button onclick="navigateTo('notifications')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isNotifs ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            <span>Notifications</span>
+            <span>${isThP ? 'การแจ้งเตือน' : 'Notifications'}</span>
             ${(typeof hasUnreadNotifications !== 'function' || hasUnreadNotifications()) ? '<span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>' : ''}
           </button>
         `;
       } else {
-
+        const isThP = currentLanguage === 'th';
         const isHome = activeScreenId === 'dashboard';
         const isCourses = activeScreenId === 'courses' || activeScreenId === 'course-detail';
         const isProject = activeScreenId === 'projects';
@@ -1498,20 +1523,20 @@
 
         container.innerHTML = `
           <button onclick="navigateTo('dashboard')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isHome ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Home
+            ${isThP ? 'หน้าหลัก' : 'Home'}
           </button>
           <button onclick="navigateTo('courses')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isCourses ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Courses
+            ${isThP ? 'รายวิชา' : 'Courses'}
           </button>
           <button onclick="navigateTo('projects')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable ${isProject ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            Project
+            ${isThP ? 'โปรเจกต์' : 'Project'}
           </button>
           <button onclick="openAllTasksHub()" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isTasks ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            <span>All Tasks</span>
+            <span>${isThP ? 'งานทั้งหมด' : 'All Tasks'}</span>
             <span class="bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">3 Due</span>
           </button>
           <button onclick="navigateTo('notifications')" class="shrink-0 px-3.5 sm:px-4 py-1.5 rounded-full text-xs transition pressable flex items-center gap-1.5 ${isNotifs ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 font-medium'}">
-            <span>Notifications</span>
+            <span>${isThP ? 'การแจ้งเตือน' : 'Notifications'}</span>
             ${(typeof hasUnreadNotifications !== 'function' || hasUnreadNotifications()) ? '<span class="w-1.5 h-1.5 rounded-full bg-appOrange"></span>' : ''}
           </button>
         `;
@@ -1544,93 +1569,80 @@
       return { year: y, month: m, day: d };
     }
 
+    function resolveCalendarProjectDue(proj, course) {
+      if (proj && proj.dueDate) return proj.dueDate;
+      const tasks = (course && Array.isArray(course.tasks)) ? course.tasks : [];
+      const linked = tasks.find(t => t && t.projectId === proj.id && t.due);
+      if (linked) return linked.due;
+      const fallback = tasks.find(t => t && t.due);
+      return fallback ? fallback.due : 'Sep 30, 2026';
+    }
+
     function getCalendarScopedTasks() {
       if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
       const out = [];
-      const seenTaskIds = new Set();
+      const seenProjIds = new Set();
+      const allProjects = (typeof studentProjectsList !== 'undefined' && Array.isArray(studentProjectsList))
+        ? studentProjectsList
+        : [];
 
+      let allowedCodes = Object.keys(coursesCatalog || {});
       if (currentUserRole === 'teacher') {
         const teacher = typeof getCurrentTeacher === 'function' ? getCurrentTeacher() : null;
-        const allowedCodes = typeof getTeacherAssignedCourseCodes === 'function'
+        allowedCodes = typeof getTeacherAssignedCourseCodes === 'function'
           ? getTeacherAssignedCourseCodes(teacher)
-          : Object.keys(coursesCatalog);
-        allowedCodes.forEach(cCode => {
-          const course = coursesCatalog[cCode];
-          if (!course || !Array.isArray(course.tasks)) return;
-          course.tasks.forEach(t => {
-            if (!t || !t.id || seenTaskIds.has(t.id)) return;
-            if (String(t.id).startsWith('sim-')) return;
-            seenTaskIds.add(t.id);
-            out.push({ courseCode: course.code || cCode, courseTitle: course.title, task: t });
-          });
-        });
-        return out;
+          : allowedCodes;
       }
 
-      if (currentUserRole === 'student' && typeof getCurrentStudent === 'function') {
-        const curStd = getCurrentStudent();
-        Object.entries(coursesCatalog).forEach(([cCode, course]) => {
-          if (!course) return;
-          const myTasks = typeof getStudentTasksInCourse === 'function'
-            ? getStudentTasksInCourse(curStd.id, course.code || cCode)
-            : (course.tasks || []).filter(t => t && (t.createdBy === curStd.id || (t.members || []).some(m => m.id === curStd.id)));
-          myTasks.forEach(t => {
-            if (!t || !t.id || seenTaskIds.has(t.id)) return;
-            seenTaskIds.add(t.id);
-            out.push({ courseCode: course.code || cCode, courseTitle: course.title, task: t });
-          });
-        });
-        return out;
-      }
-
-      Object.entries(coursesCatalog).forEach(([cCode, course]) => {
-        if (!course || !Array.isArray(course.tasks)) return;
-        course.tasks.forEach(t => {
-          if (!t || !t.id || seenTaskIds.has(t.id) || String(t.id).startsWith('sim-')) return;
-          seenTaskIds.add(t.id);
-          out.push({ courseCode: course.code || cCode, courseTitle: course.title, task: t });
+      allProjects.forEach(p => {
+        if (!p || !p.id || seenProjIds.has(p.id)) return;
+        const cCode = p.course || '';
+        if (!cCode || !allowedCodes.includes(cCode)) return;
+        const course = coursesCatalog[cCode];
+        if (!course) return;
+        seenProjIds.add(p.id);
+        const dueStr = resolveCalendarProjectDue(p, course);
+        out.push({
+          isProject: true,
+          courseCode: course.code || cCode,
+          courseTitle: course.title,
+          project: p,
+          due: dueStr
         });
       });
+
       return out;
     }
 
-    function getCalendarTaskVisualMeta(task, courseCode) {
-      let statusStr = typeof computeTaskStatus === 'function' ? computeTaskStatus(task, courseCode) : (task.status || 'Active');
-      if (currentUserRole === 'teacher') {
-        const isDoneT = !!(task.isFinished || String(task.status || '').toLowerCase().includes('graded') || String(task.status || '').toLowerCase().includes('finish'));
-        statusStr = isDoneT ? (String(task.status || '').toLowerCase().includes('graded') ? task.status : 'Finished') : 'Active';
-      }
-      const s = String(statusStr || '').toLowerCase();
-      const isRevision = s.includes('revision') || s.includes('รอแก้');
-      const isDone = !isRevision && (s.includes('graded') || s.includes('finish') || s.includes('complete'));
-      const color = isRevision ? 'amber' : (isDone ? 'emerald' : 'rose');
-      const rawTitle = String(task.title || '').trim();
+    function getCalendarTaskVisualMeta(projOrTask, courseCode) {
+      const rawTitle = String((projOrTask && projOrTask.title) || '').trim();
       const cleanPrefix = new RegExp(`^${String(courseCode || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[:-]?\\s*`, 'i');
       const displayTitle = rawTitle.replace(cleanPrefix, '').trim() || rawTitle;
-      return { statusStr, isDone, isRevision, color, displayTitle };
+      return { statusStr: 'Due', isDone: false, isRevision: false, color: 'blue', displayTitle };
     }
 
     function getCalendarEventsForMonth(year, month) {
       const map = {};
       const scoped = getCalendarScopedTasks();
 
-      scoped.forEach(({ courseCode, courseTitle, task }) => {
-        const p = parseTaskDueDate(task.due);
+      scoped.forEach(({ courseCode, courseTitle, project, due }) => {
+        const dueStr = due || (project && project.dueDate) || '';
+        const p = parseTaskDueDate(dueStr);
         if (!p || p.year !== year || p.month !== month) return;
         if (!map[p.day]) map[p.day] = [];
-        const meta = getCalendarTaskVisualMeta(task, courseCode);
+        const meta = getCalendarTaskVisualMeta(project, courseCode);
         map[p.day].push({
-          isTask: true,
-          type: 'task',
+          isProject: true,
+          isTask: false,
+          type: 'project',
           courseCode,
           courseTitle,
-          task,
+          project,
+          projectId: project.id,
           title: meta.displayTitle,
-          statusStr: meta.statusStr,
-          isDone: meta.isDone,
-          isRevision: meta.isRevision,
-          due: task.due,
-          color: meta.color
+          description: (project && project.description) || '',
+          due: dueStr,
+          color: 'blue'
         });
       });
 
@@ -1646,11 +1658,11 @@
       calendarLastFocusedUserKey = userKey;
 
       const scoped = getCalendarScopedTasks()
-        .map(item => ({ ...item, parsed: parseTaskDueDate(item.task.due), meta: getCalendarTaskVisualMeta(item.task, item.courseCode) }))
+        .map(item => ({ ...item, parsed: parseTaskDueDate(item.due) }))
         .filter(item => item.parsed)
         .sort((a, b) => (a.parsed.year - b.parsed.year) || (a.parsed.month - b.parsed.month) || (a.parsed.day - b.parsed.day));
 
-      const target = scoped.find(item => !item.meta.isDone) || scoped[0];
+      const target = scoped[0];
       if (target && target.parsed) {
         calendarYear = target.parsed.year;
         calendarMonth = target.parsed.month;
@@ -1756,17 +1768,7 @@
           }
 
           if (hasItems) {
-            const hasRev = items.some(it => it.color === 'amber');
-            const hasUnfinished = items.some(it => it.color === 'rose');
-            const color = hasRev ? 'amber' : (hasUnfinished ? 'rose' : 'emerald');
-
-            if (color === 'rose') {
-              btn.className = `${baseClasses} text-white bg-gradient-to-br from-rose-500 to-pink-600 shadow-xs hover:brightness-110`;
-            } else if (color === 'amber') {
-              btn.className = `${baseClasses} text-white bg-gradient-to-br from-amber-500 to-orange-500 shadow-xs hover:brightness-110`;
-            } else {
-              btn.className = `${baseClasses} text-white bg-gradient-to-br from-emerald-500 to-teal-600 shadow-xs hover:brightness-110`;
-            }
+            btn.className = `${baseClasses} text-white bg-gradient-to-br from-blue-600 to-sky-500 shadow-xs hover:brightness-110`;
 
             if (items.length > 1) {
               btn.innerHTML = `<span>${d}</span><span class="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-neutral-900 text-white text-[8px] font-black flex items-center justify-center border border-white/80">${items.length}</span>`;
@@ -1794,21 +1796,20 @@
         }
       });
 
+      const totalProjInMonth = Object.values(eventsMap).reduce((sum, arr) => sum + arr.length, 0);
       const statusLegendBar = `
         <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 mb-1 border-b border-neutral-100 dark:border-neutral-800/80 text-[9px] font-bold text-neutral-500 dark:text-neutral-400">
-          <div class="flex items-center gap-2.5">
-            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>${isThai ? 'ส่งแล้ว' : 'Done'}</span>
-            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>${isThai ? 'รอแก้' : 'Revision'}</span>
-            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>${isThai ? 'ยังไม่ส่ง' : 'Due'}</span>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-600"></span>${isThai ? 'วันกำหนดส่งโปรเจกต์' : 'Project Due Date'}</span>
           </div>
-          <span class="text-[9px] text-neutral-400">${Object.values(eventsMap).reduce((sum, arr) => sum + arr.length, 0)} ${isThai ? 'งาน' : 'Tasks'}</span>
+          <span class="text-[9px] text-neutral-400">${totalProjInMonth} ${isThai ? 'โปรเจกต์' : (totalProjInMonth === 1 ? 'Project' : 'Projects')}</span>
         </div>
       `;
 
       legendEls.forEach(legendEl => {
         const daysWithEvents = Object.keys(eventsMap).map(Number).sort((a, b) => a - b);
         if (daysWithEvents.length === 0) {
-          legendEl.innerHTML = `${statusLegendBar}<p class="text-[10px] text-neutral-400 italic py-2 text-center">${isThai ? 'ไม่มีกำหนดส่งงานของคุณในเดือนนี้' : 'No tasks due in this month.'}</p>`;
+          legendEl.innerHTML = `${statusLegendBar}<p class="text-[10px] text-neutral-400 italic py-2 text-center">${isThai ? 'ไม่มีกำหนดส่งโปรเจกต์ในเดือนนี้' : 'No project due dates in this month.'}</p>`;
         } else {
           const monthAbbr = isThai
             ? ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][calendarMonth]
@@ -1816,22 +1817,15 @@
           const rowsHtml = daysWithEvents.map(day => {
             const dayItems = eventsMap[day];
             return dayItems.map(it => {
-              const dotColor = it.color === 'emerald' ? 'bg-emerald-500' : it.color === 'amber' ? 'bg-amber-500' : 'bg-rose-500';
-              const tagCls = it.color === 'emerald'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60'
-                : it.color === 'amber'
-                  ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60'
-                  : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/60';
-              const shortStatus = it.isDone ? (isThai ? 'ส่งแล้ว' : 'Done') : (it.isRevision ? (isThai ? 'รอแก้' : 'Revise') : (isThai ? 'ยังไม่ส่ง' : 'Due'));
               return `
                 <div onclick="handleCalendarDayClick(${day})" class="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-50/90 hover:bg-neutral-100 dark:bg-neutral-800/70 dark:hover:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/70 transition pressable cursor-pointer group">
                   <div class="flex items-center gap-2 min-w-0 flex-1">
-                    <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+                    <span class="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
                     <span class="px-1.5 py-0.5 rounded-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-[9px] font-black text-neutral-700 dark:text-neutral-200 shrink-0">${day} ${monthAbbr}</span>
                     <span class="text-[10px] font-extrabold text-blue-600 dark:text-sky-400 shrink-0">${escapeHtml(it.courseCode)}</span>
                     <span class="truncate group-hover:text-blue-600 dark:group-hover:text-sky-300 transition font-semibold text-[11px] text-neutral-800 dark:text-neutral-100">${escapeHtml(it.title)}</span>
                   </div>
-                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border shrink-0 ${tagCls}">${shortStatus}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border shrink-0 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-sky-300 dark:border-blue-800/60">${isThai ? 'กำหนดส่ง' : 'Due'}</span>
                 </div>
               `;
             }).join('');
@@ -1888,10 +1882,10 @@
       if (items.length === 0) {
         const noTasksAction = isTeacher
           ? `<button onclick="switchTeacherViewMode('assessment'); navigateTo('teacher-review')" class="text-xs font-semibold text-blue-600 hover:underline mt-1.5 inline-block">
-               ${isThai ? 'ดูรายการงานและข้อกำหนดทั้งหมด →' : 'View Course Tasks & Assessments →'}
+               ${isThai ? 'ดูโปรเจกต์ทั้งหมดในรายวิชา →' : 'View All Course Projects →'}
              </button>`
-          : `<button onclick="openAllTasksHub()" class="text-xs font-semibold text-blue-600 hover:underline mt-1.5 inline-block">
-               ${isThai ? 'ดูงานทั้งหมดในระบบ (Tasks Hub) →' : 'View All Tasks in Hub →'}
+          : `<button onclick="navigateTo('projects')" class="text-xs font-semibold text-blue-600 hover:underline mt-1.5 inline-block">
+               ${isThai ? 'ดูโปรเจกต์ทั้งหมด →' : 'View All Projects →'}
              </button>`;
 
         box.innerHTML = `
@@ -1904,7 +1898,7 @@
           </div>
           <div class="py-1">
             <p class="text-xs text-neutral-500 dark:text-neutral-400">
-              ${isThai ? 'ไม่มีงานหรือกำหนดส่งที่ตรงกับวันนี้' : 'No assignment or course milestone due on this date.'}
+              ${isThai ? 'ไม่มีกำหนดส่งโปรเจกต์ในวันนี้' : 'No project due on this date.'}
             </p>
             ${noTasksAction}
           </div>
@@ -1914,18 +1908,14 @@
 
       let itemsHTML = '';
       items.forEach(it => {
-        if (it.isTask && it.task) {
-          const task = it.task;
-          const computedStatus = computeTaskStatus(task, it.courseCode);
-          const statusColor = getTaskStatusBadgeClasses(computedStatus);
-
+        if (it.isProject && it.project) {
           const actionBtn = isTeacher
-            ? `<button type="button" onclick="closeMobileCalendarModal(); inspectTeacherTaskAndGrade('${task.id}')" class="w-full mt-1.5 py-2 px-3 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition pressable touch-manipulation">
-                 <span>${isThai ? 'ดูผลงานและให้คะแนน' : 'View Submissions & Grade'}</span>
+            ? `<button type="button" onclick="closeMobileCalendarModal(); openProjectTasks('${escapeHtml(it.projectId)}')" class="w-full mt-1.5 py-2 px-3 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition pressable touch-manipulation">
+                 <span>${isThai ? 'เปิดดูโปรเจกต์นี้' : 'Open Project'}</span>
                  <span>→</span>
                </button>`
-            : `<button type="button" onclick="closeMobileCalendarModal(); openTaskDetails('${task.id}')" class="w-full mt-1.5 py-2 px-3 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition pressable touch-manipulation">
-                 <span>${isThai ? 'เข้าสู่หน้ารายละเอียดงานนี้' : 'Go to Task Details'}</span>
+            : `<button type="button" onclick="closeMobileCalendarModal(); openStudentProjectTaskDetail('${escapeHtml(it.projectId)}')" class="w-full mt-1.5 py-2 px-3 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition pressable touch-manipulation">
+                 <span>${isThai ? 'เปิดดูโปรเจกต์นี้' : 'Open Project'}</span>
                  <span>→</span>
                </button>`;
 
@@ -1935,27 +1925,27 @@
                 <span class="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-lg border border-neutral-200 dark:border-neutral-700">
                   ${escapeHtml(it.courseCode)} • ${escapeHtml(it.courseTitle)}
                 </span>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg border ${statusColor}">
-                  ${escapeHtml(computedStatus)}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg border bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-sky-300 dark:border-blue-800">
+                  ${isThai ? 'กำหนดส่ง' : 'Due Date'}
                 </span>
               </div>
 
               <div>
-                <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">${isThai ? 'ตัวอย่างชื่องาน' : 'Task Preview'}</span>
+                <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">${isThai ? 'โปรเจกต์ที่ต้องส่ง' : 'Project Due'}</span>
                 <h5 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white leading-snug">
-                  ${escapeHtml(task.title)}
+                  ${escapeHtml(it.title)}
                 </h5>
               </div>
 
               <div class="flex items-center gap-2 text-[10px] text-neutral-500 dark:text-neutral-400">
-                <span>👥 ${escapeHtml(task.type || 'Individual')}</span>
-                <span>•</span>
-                <span>⏰ ${escapeHtml(task.due)}</span>
+                <span>⏰ ${escapeHtml(it.due)}</span>
               </div>
 
-              <p class="text-[11px] text-neutral-600 dark:text-neutral-300 line-clamp-2 leading-relaxed bg-neutral-50 dark:bg-neutral-800/50 p-2 rounded-lg border border-neutral-100 dark:border-neutral-700">
-                ${escapeHtml(task.description)}
-              </p>
+              ${it.description ? `
+                <p class="text-[11px] text-neutral-600 dark:text-neutral-300 line-clamp-2 leading-relaxed bg-neutral-50 dark:bg-neutral-800/50 p-2 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                  ${escapeHtml(it.description)}
+                </p>
+              ` : ''}
 
               ${actionBtn}
             </div>

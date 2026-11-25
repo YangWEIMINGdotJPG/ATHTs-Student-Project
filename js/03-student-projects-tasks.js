@@ -236,11 +236,12 @@
             if (currentUserRole === 'student' && typeof getCurrentStudent === 'function') {
               const curStd = getCurrentStudent();
               const sInfo = getStudentCourseTaskInfo(curStd.id, course.code, p.id);
+              const isThCourse = currentLanguage === 'th';
               isComplete = sInfo.submissionStatus === 'complete';
               isRevision = sInfo.submissionStatus === 'revision';
               statusText = isComplete
-                ? 'ส่งแล้ว'
-                : (isRevision ? 'รอแก้' : 'ยังไม่ส่ง');
+                ? (isThCourse ? 'ส่งแล้ว' : 'Submitted')
+                : (isRevision ? (isThCourse ? 'รอแก้' : 'Revision') : (isThCourse ? 'ยังไม่ส่ง' : 'Not Submitted'));
               desktopStatusText = statusText;
             }
             const projBadgeCls = isComplete
@@ -885,17 +886,18 @@
         btnEditUpload.classList.toggle('hidden', isGradedLocked);
       }
 
+      const isThTask = currentLanguage === 'th';
       const hintEl = document.getElementById('submissionFileNameHint');
       if (hintEl) {
         const sizePart = (myLatestRev && myLatestRev.fileSize) ? ` (${myLatestRev.fileSize})` : '';
         const pendingSizePart = task.pendingFileSize ? ` (${task.pendingFileSize})` : '';
         hintEl.innerText = isGradedLocked
           ? (myLatestRev
-              ? `คะแนน: ${myLatestRev.score} • ${myLatestRev.file}${sizePart}`
+              ? `${isThTask ? 'คะแนน' : 'Score'}: ${myLatestRev.score} • ${myLatestRev.file}${sizePart}`
               : `${computedStatus}`)
           : (task.pendingFile
-              ? `Ready: ${task.pendingFile}${pendingSizePart}`
-              : (myLatestRev ? `ล่าสุด: ${myLatestRev.file}${sizePart} • ${myLatestRev.submittedAt || ''}` : `student_${curStd.id}_task.zip`));
+              ? `${isThTask ? 'พร้อมส่ง' : 'Ready'}: ${task.pendingFile}${pendingSizePart}`
+              : (myLatestRev ? `${isThTask ? 'ล่าสุด' : 'Latest'}: ${myLatestRev.file}${sizePart} • ${myLatestRev.submittedAt || ''}` : `student_${curStd.id}_task.zip`));
       }
       const uploadStatusText = document.getElementById('uploadStatusText');
       if (uploadStatusText) {
@@ -1323,7 +1325,8 @@
         createdByName: 'Chonchanok C.',
         members: ['67080500208 Chonchanok C.', '67080500210 Naptanut C.', '67080500273 Supachaya L.'],
         status: 'Ready for Review',
-        createdAt: '2026-09-18'
+        createdAt: '2026-09-18',
+        dueDate: 'October 1, 2026 at 23:00'
       },
       {
         id: 'proj-2',
@@ -1335,7 +1338,8 @@
         createdByName: 'Chonchanok C.',
         members: ['67080500208 Chonchanok C.', '67080500202 Kanyarat M.'],
         status: 'Ready for Review',
-        createdAt: '2026-09-22'
+        createdAt: '2026-09-22',
+        dueDate: 'Sep 10, 2026 (23:59)'
       },
       {
         id: 'proj-3',
@@ -1347,7 +1351,8 @@
         createdByName: 'Natthaphon R.',
         members: ['67080500203 Natthaphon R.', '67080500208 Chonchanok C.'],
         status: 'In Progress',
-        createdAt: '2026-09-25'
+        createdAt: '2026-09-25',
+        dueDate: 'Sep 05, 2026 (23:59)'
       },
       {
         id: 'proj-4',
@@ -1359,7 +1364,8 @@
         createdByName: 'Chonchanok S.',
         members: ['67080200501 Chonchanok S.', '67080500201 Thanawat P.'],
         status: 'In Review',
-        createdAt: '2026-09-20'
+        createdAt: '2026-09-20',
+        dueDate: 'Sep 30, 2026 (23:59)'
       },
       {
         id: 'proj-5',
@@ -1371,7 +1377,8 @@
         createdByName: 'Chonchanok S.',
         members: ['67080200501 Chonchanok S.', '67080500204 Varin K.', '67080500205 Pimchanok T.'],
         status: 'In Progress',
-        createdAt: '2026-09-23'
+        createdAt: '2026-09-23',
+        dueDate: 'Oct 14, 2026 (23:59)'
       },
       {
         id: 'proj-6',
@@ -1383,7 +1390,8 @@
         createdByName: 'Chonchanok S.',
         members: ['67080200501 Chonchanok S.', '67080500204 Varin K.', '67080500205 Pimchanok T.'],
         status: 'In Progress',
-        createdAt: '2026-09-21'
+        createdAt: '2026-09-21',
+        dueDate: 'Oct 02, 2026 (23:59)'
       },
       {
         id: 'proj-7',
@@ -1395,7 +1403,8 @@
         createdByName: 'Chonchanok S.',
         members: ['67080200501 Chonchanok S.', '67080500201 Thanawat P.', '67080500202 Kanyarat M.'],
         status: 'In Progress',
-        createdAt: '2026-09-18'
+        createdAt: '2026-09-18',
+        dueDate: 'Sep 18, 2026 (23:59)'
       },
       {
         id: 'proj-8',
@@ -1407,7 +1416,8 @@
         createdByName: 'Chonchanok S.',
         members: ['67080200501 Chonchanok S.', '67080500203 Natthaphon R.'],
         status: 'In Progress',
-        createdAt: '2026-09-20'
+        createdAt: '2026-09-20',
+        dueDate: 'Sep 22, 2026 (23:59)'
       },
       {
         id: 'proj-9',
@@ -1419,7 +1429,8 @@
         createdByName: 'Chonchanok S.',
         members: ['67080200501 Chonchanok S.', '67080500204 Varin K.', '67080500205 Pimchanok T.'],
         status: 'In Progress',
-        createdAt: '2026-09-19'
+        createdAt: '2026-09-19',
+        dueDate: 'Sep 16, 2026 (23:59)'
       }
     ];
 
@@ -1428,13 +1439,22 @@
         const raw = localStorage.getItem('atht_student_projects');
         if (raw) {
           const list = JSON.parse(raw);
-          if (Array.isArray(list) && list.length >= defaultStudentProjects.length) return list;
+          if (Array.isArray(list)) {
+            const defaultById = {};
+            defaultStudentProjects.forEach(dp => { defaultById[dp.id] = dp; });
+            list.forEach(p => {
+              if (p && !p.dueDate && defaultById[p.id] && defaultById[p.id].dueDate) {
+                p.dueDate = defaultById[p.id].dueDate;
+              }
+            });
+            if (list.length >= defaultStudentProjects.length) return list;
 
-          const existingIds = new Set(list.map(p => p.id));
-          defaultStudentProjects.forEach(dp => {
-            if (!existingIds.has(dp.id)) list.push(dp);
-          });
-          return list;
+            const existingIds = new Set(list.map(p => p.id));
+            defaultStudentProjects.forEach(dp => {
+              if (!existingIds.has(dp.id)) list.push(dp);
+            });
+            return list;
+          }
         }
       } catch (e) {}
       return defaultStudentProjects;
@@ -1444,6 +1464,9 @@
       try {
         localStorage.setItem('atht_student_projects', JSON.stringify(list));
       } catch (e) {}
+      if (hasSeededSimulatedTasks && typeof renderCalendar === 'function') {
+        try { renderCalendar(); } catch (e) {}
+      }
     }
 
     const COURSES_CATALOG_STORAGE_KEY = 'atht_v2_courses_catalog_rev6';
@@ -2734,7 +2757,8 @@
         createdByName: cur.shortName,
         members,
         status: 'In Progress',
-        createdAt: new Date().toISOString().split('T')[0]
+        createdAt: new Date().toISOString().split('T')[0],
+        dueDate: 'November 28, 2026 at 23:00'
       };
 
       studentProjectsList.unshift(newProj);
@@ -2929,10 +2953,49 @@
     }
 
     let activeNotificationFilterTab = 'all';
+    let notifUnreadOnly = false;
+    let notifShowAll = false;
+    const NOTIF_COMPACT_LIMIT = 5;
 
     function setNotificationFilterTab(tab) {
       activeNotificationFilterTab = tab || 'all';
+      notifShowAll = false;
       renderNotificationsScreen();
+    }
+
+    function toggleNotifUnreadOnly() {
+      notifUnreadOnly = !notifUnreadOnly;
+      notifShowAll = false;
+      renderNotificationsScreen();
+    }
+
+    function toggleNotifShowAll() {
+      notifShowAll = !notifShowAll;
+      renderNotificationsScreen();
+    }
+
+    function clearReadNotifications() {
+      const isTeacher = currentUserRole === 'teacher';
+      const curStd = getCurrentStudent();
+      const remaining = loadStoredNotifications().filter(n => {
+        if (!n) return false;
+        const belongsToCurrent = isTeacher
+          ? n.targetRole === 'teacher'
+          : ((!n.targetRole || n.targetRole === 'student') && (!Array.isArray(n.targetStudentIds) || n.targetStudentIds.includes(curStd.id)));
+        if (belongsToCurrent && !n.isNew) return false;
+        return true;
+      });
+      saveStoredNotifications(remaining);
+      if (!isTeacher && Array.isArray(notificationsList)) {
+        for (let i = notificationsList.length - 1; i >= 0; i--) {
+          if (!notificationsList[i].isNew) notificationsList.splice(i, 1);
+        }
+      }
+      if (typeof renderDynamicPills === 'function') renderDynamicPills(currentScreen);
+      renderNotificationsScreen();
+      if (typeof alertMessage === 'function') {
+        alertMessage(currentLanguage === 'th' ? 'ล้างรายการที่อ่านแล้วเรียบร้อย' : 'Cleared read notifications.');
+      }
     }
 
     function saveStoredNotifications(list) {
@@ -2986,7 +3049,7 @@
         if (Array.isArray(n.targetStudentIds) && !n.targetStudentIds.includes(curStd.id)) return false;
         return true;
       });
-      return [...dynamicNotifs, ...notificationsList];
+      return isTeacher ? dynamicNotifs : [...dynamicNotifs, ...notificationsList];
     }
 
     function hasUnreadNotifications() {
@@ -3075,13 +3138,16 @@
 
     function buildTeacherGroupedNotifications(items) {
       const result = [];
-      const subGroups = new Map();
+      const groups = new Map();
       items.forEach(item => {
-        if (item.type === 'submission') {
-          const key = `${item.course || 'CMM321'}::${item.projectId || item.taskId || 'default'}`;
-          if (!subGroups.has(key)) {
+        const kind = item.type === 'comment' ? 'comment' : (item.type === 'submission' ? 'submission' : '');
+        if (kind) {
+          const key = `${kind}::${item.course || 'CMM321'}::${item.projectId || item.taskId || 'default'}`;
+          if (!groups.has(key)) {
             const grp = {
-              isGroupedSubmission: true,
+              isGroupedSubmission: kind === 'submission',
+              isGroupedComment: kind === 'comment',
+              type: kind,
               key,
               course: item.course || 'CMM321',
               projectId: item.projectId || '',
@@ -3089,10 +3155,10 @@
               uniqueSubmitters: new Set(),
               isNew: false
             };
-            subGroups.set(key, grp);
+            groups.set(key, grp);
             result.push(grp);
           }
-          const grp = subGroups.get(key);
+          const grp = groups.get(key);
           grp.items.push(item);
           if (item.studentId) grp.uniqueSubmitters.add(item.studentId);
           if (item.isNew) grp.isNew = true;
@@ -3100,7 +3166,7 @@
           result.push(item);
         }
       });
-      return result;
+      return result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
     }
 
     function renderNotificationsScreen() {
@@ -3115,7 +3181,7 @@
       const displaySource = isTeacher ? buildTeacherGroupedNotifications(rawMerged) : rawMerged;
 
       const isSubmissionKind = (x) => x.isGroupedSubmission || x.type === 'submission' || (!isTeacher && x.type === 'grade');
-      const isCommentKind = (x) => x.type === 'comment';
+      const isCommentKind = (x) => x.isGroupedComment || x.type === 'comment';
 
       const totalCount = displaySource.length;
       const subCount = displaySource.filter(isSubmissionKind).length;
@@ -3130,6 +3196,17 @@
       const markAllText = document.getElementById('btnNotifMarkAllReadText');
       if (markAllText) {
         markAllText.innerText = isTh ? 'อ่านทั้งหมดแล้ว' : 'Mark All Read';
+      }
+      const clearReadText = document.getElementById('btnNotifClearReadText');
+      if (clearReadText) {
+        clearReadText.innerText = isTh ? 'ล้างที่อ่านแล้ว' : 'Clear Read';
+      }
+      const unreadToggleEl = document.getElementById('notifTabUnreadOnly');
+      if (unreadToggleEl) {
+        unreadToggleEl.innerText = isTh ? `เฉพาะยังไม่อ่าน (${unreadCount})` : `Unread (${unreadCount})`;
+        unreadToggleEl.className = notifUnreadOnly
+          ? 'ml-auto px-3 py-1.5 rounded-full bg-amber-500 text-white text-xs font-bold transition pressable'
+          : 'ml-auto px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable';
       }
 
       const tabConfigs = [
@@ -3154,6 +3231,7 @@
       });
 
       const filteredDisplay = displaySource.filter(item => {
+        if (notifUnreadOnly && !item.isNew) return false;
         if (activeNotificationFilterTab === 'submission') return isSubmissionKind(item);
         if (activeNotificationFilterTab === 'comment') return isCommentKind(item);
         return true;
@@ -3161,7 +3239,7 @@
 
       if (filteredDisplay.length === 0) {
         container.innerHTML = `
-          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-8 text-center text-neutral-400 border border-neutral-200 dark:border-neutral-800">
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl p-6 text-center text-neutral-400 border border-neutral-200 dark:border-neutral-800">
             <p class="text-xs font-medium">${isTh ? 'ไม่มีการแจ้งเตือนในหมวดนี้' : 'No notifications in this category'}</p>
           </div>
         `;
@@ -3170,12 +3248,27 @@
 
       const allProjects = typeof getStoredProjects === 'function' ? getStoredProjects() : studentProjectsList;
       const totalClassSize = Math.max(1, Object.keys(studentDirectory || {}).length || 81);
+      const formatNotifTitle = (rawTitle) => {
+        const txt = String(rawTitle || '');
+        if (isTh) return txt;
+        let m;
+        if ((m = txt.match(/^(.+?)\s+ส่งงานแล้ว\s+\(กลุ่ม\s+(\d+)\s+คน\)$/))) return `${m[1]} submitted work (Group of ${m[2]})`;
+        if ((m = txt.match(/^(.+?)\s+ส่งงานแล้ว$/))) return `${m[1]} submitted work`;
+        if ((m = txt.match(/^(.+?)\s+ส่งข้อความในงาน$/))) return `${m[1]} sent a task message`;
+        if ((m = txt.match(/^ตรวจงานแล้ว\s*\(([^)]+)\):\s*(.+)$/))) return `Graded (${m[1]}): ${m[2]}`;
+        if ((m = txt.match(/^สั่งแก้ไขงาน\s*\(รอแก้\):\s*(.+)$/))) return `Revision Requested: ${m[1]}`;
+        return txt;
+      };
+      const visibleItems = (!notifShowAll && filteredDisplay.length > NOTIF_COMPACT_LIMIT)
+        ? filteredDisplay.slice(0, NOTIF_COMPACT_LIMIT)
+        : filteredDisplay;
 
-      filteredDisplay.forEach((entry, idx) => {
+      visibleItems.forEach((entry, idx) => {
         const card = document.createElement('div');
-        card.className = 'bg-white dark:bg-neutral-900 rounded-2xl sm:rounded-3xl px-3.5 sm:px-6 py-3.5 sm:py-4 border border-neutral-200/90 dark:border-neutral-800 shadow-sm hover:shadow-md transition space-y-2.5';
+        card.className = 'bg-white dark:bg-neutral-900 rounded-xl sm:rounded-2xl px-3.5 sm:px-5 py-2.5 sm:py-3 border border-neutral-200/90 dark:border-neutral-800 shadow-xs hover:shadow-sm transition space-y-2';
 
-        if (entry.isGroupedSubmission && entry.items.length > 1) {
+        if ((entry.isGroupedSubmission || entry.isGroupedComment) && entry.items.length > 1) {
+          const isCommentGrp = !!entry.isGroupedComment;
           const latest = entry.items[0];
           const projObj = (allProjects || []).find(p => p.id === entry.projectId);
           const projTitle = projObj ? projObj.title : (latest.taskTitle || entry.course);
@@ -3189,50 +3282,50 @@
             ? 'bg-neutral-900 hover:bg-black text-white dark:bg-neutral-800 dark:hover:bg-neutral-700'
             : 'bg-neutral-700 hover:bg-neutral-900 text-white';
 
-          const recentItemsHtml = entry.items.slice(0, 8).map(subItem => `
+          const recentItemsHtml = entry.items.slice(0, 6).map(subItem => `
             <div class="flex items-center justify-between text-[11px] py-1 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0">
-              <span class="font-semibold text-neutral-700 dark:text-neutral-200 truncate pr-2">• ${escapeHtml(subItem.title)} — ${escapeHtml(subItem.taskTitle)}</span>
+              <span class="font-semibold text-neutral-700 dark:text-neutral-200 truncate pr-2">• ${escapeHtml(formatNotifTitle(subItem.title))} — ${escapeHtml(subItem.taskTitle)}</span>
               <span class="text-[10px] text-neutral-400 shrink-0">${escapeHtml(subItem.time || 'Just now')}</span>
             </div>
           `).join('');
 
+          const headline = isCommentGrp
+            ? (isTh ? `💬 ข้อความใหม่ ${submitCount} คน (${entry.items.length} ข้อความ) • ${escapeHtml(projTitle)}` : `💬 ${entry.items.length} Messages (${submitCount}) • ${escapeHtml(projTitle)}`)
+            : (isTh ? `ส่งงานแล้ว ${submitCount}/${totalClassSize} คน • ${escapeHtml(projTitle)}` : `${submitCount}/${totalClassSize} Submitted • ${escapeHtml(projTitle)}`);
+
           card.innerHTML = `
-            <div class="flex items-center justify-between gap-2.5 sm:gap-4">
-              <div onclick="${actionFn}" class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 cursor-pointer">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 flex items-center justify-center shrink-0 text-base sm:text-xl mt-0.5 sm:mt-0">
-                  📦
+            <div class="flex items-center justify-between gap-2.5 sm:gap-3">
+              <div onclick="${actionFn}" class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 cursor-pointer">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 flex items-center justify-center shrink-0 text-sm sm:text-base">
+                  ${isCommentGrp ? '💬' : '📦'}
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="text-xs sm:text-base font-black text-neutral-900 dark:text-white leading-tight truncate">${isTh ? `ส่งงานแล้ว ${submitCount}/${totalClassSize} คน • ${escapeHtml(projTitle)}` : `${submitCount}/${totalClassSize} Submitted • ${escapeHtml(projTitle)}`}</span>
-                    ${entry.isNew ? '<span class="text-[9px] sm:text-[10px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
+                    <span class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white leading-tight truncate">${headline}</span>
+                    ${entry.isNew ? '<span class="text-[9px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-1.5 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
                   </div>
-                  <p class="text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(entry.course)} • ${isTh ? 'ล่าสุด:' : 'Latest:'} ${escapeHtml(latest.title)}</p>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[10px] sm:text-[11px] text-neutral-400 font-medium">${escapeHtml(latest.time)} (${entry.items.length} ${isTh ? 'รายการ' : 'submissions'})</span>
-                    <button type="button" onclick="toggleNotifGroupDetails('${groupDomId}', event)" class="text-[10px] font-bold text-blue-600 dark:text-sky-400 hover:underline">${isTh ? 'ดูรายชื่อล่าสุด ▾' : 'Recent list ▾'}</button>
-                  </div>
+                  <p class="text-[11px] text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(entry.course)} • ${isTh ? 'ล่าสุด:' : 'Latest:'} ${escapeHtml(formatNotifTitle(latest.title))} • <button type="button" onclick="toggleNotifGroupDetails('${groupDomId}', event)" class="font-bold text-blue-600 dark:text-sky-400 hover:underline">${isTh ? `ดูย่อ (${entry.items.length}) ▾` : `List (${entry.items.length}) ▾`}</button></p>
                 </div>
               </div>
 
-              <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
-                <span>${isTh ? 'ดูสมาชิกโปรเจกต์ →' : 'Project Members →'}</span>
+              <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
+                <span>${isTh ? 'ดูสมาชิก →' : 'Members →'}</span>
               </button>
             </div>
-            <div id="${groupDomId}" class="hidden pl-11 sm:pl-14 pr-2 pt-1 space-y-0.5">
+            <div id="${groupDomId}" class="hidden pl-10 pr-2 pt-1 space-y-0.5">
               ${recentItemsHtml}
-              ${entry.items.length > 8 ? `<div class="text-[10px] text-neutral-400 pt-1">${isTh ? `และอีก ${entry.items.length - 8} รายการ...` : `+${entry.items.length - 8} more...`}</div>` : ''}
+              ${entry.items.length > 6 ? `<div class="text-[10px] text-neutral-400 pt-1">${isTh ? `และอีก ${entry.items.length - 6} รายการ...` : `+${entry.items.length - 6} more...`}</div>` : ''}
             </div>
           `;
           container.appendChild(card);
           return;
         }
 
-        const item = entry.isGroupedSubmission ? entry.items[0] : entry;
+        const item = (entry.isGroupedSubmission || entry.isGroupedComment) ? entry.items[0] : entry;
         const tId = item.taskId || item.targetTaskId || 'cmm321-t1';
         const sId = item.studentId || curStd.id;
         const pId = item.projectId || '';
-        const actionLabel = isTh ? (isTeacher ? 'ดูสมาชิกโปรเจกต์ →' : 'ดูรายละเอียดงาน →') : (isTeacher ? 'Project Members →' : 'View Task →');
+        const actionLabel = isTh ? (isTeacher ? 'ดูสมาชิก →' : 'ดูงาน →') : (isTeacher ? 'Members →' : 'View →');
         const actionFn = isTeacher
           ? `openTeacherNotificationTarget('${escapeHtml(item.course || 'CMM321')}', '${escapeHtml(tId)}', '${escapeHtml(sId)}', '${escapeHtml(pId)}')`
           : `openTaskDetails('${escapeHtml(tId)}')`;
@@ -3241,26 +3334,37 @@
           : 'bg-neutral-700 hover:bg-neutral-900 text-white';
 
         card.innerHTML = `
-          <div class="flex items-center justify-between gap-2.5 sm:gap-4">
-            <div onclick="${actionFn}" class="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 cursor-pointer">
-              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 text-base sm:text-xl mt-0.5 sm:mt-0">
+          <div class="flex items-center justify-between gap-2.5 sm:gap-3">
+            <div onclick="${actionFn}" class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 cursor-pointer">
+              <div class="w-8 h-8 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 text-sm sm:text-base">
                 ${item.type === 'grade' ? '🏅' : item.type === 'comment' ? '💬' : '🏅'}
               </div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="text-xs sm:text-base font-black text-neutral-900 dark:text-white leading-tight truncate">${escapeHtml(item.title)}</span>
-                  ${item.isNew ? '<span class="text-[9px] sm:text-[10px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
+                  <span class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white leading-tight truncate">${escapeHtml(formatNotifTitle(item.title))}</span>
+                  ${item.isNew ? '<span class="text-[9px] font-extrabold bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white px-1.5 py-0.5 rounded-full shrink-0">NEW</span>' : ''}
                 </div>
-                <p class="text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(item.course)}: ${escapeHtml(item.taskTitle)}</p>
-                <span class="text-[10px] sm:text-[11px] text-neutral-400 font-medium block mt-0.5">${escapeHtml(item.time)}</span>
+                <p class="text-[11px] text-neutral-600 dark:text-neutral-300 truncate mt-0.5">${escapeHtml(item.course)}: ${escapeHtml(item.taskTitle)} • <span class="text-neutral-400">${escapeHtml(item.time)}</span></p>
               </div>
             </div>
 
-            <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
+            <button onclick="${actionFn}" class="shrink-0 px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs font-bold ${btnClass} rounded-full transition pressable flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap">
               <span>${actionLabel}</span>
             </button>
           </div>
         `;
         container.appendChild(card);
       });
+
+      if (filteredDisplay.length > NOTIF_COMPACT_LIMIT) {
+        const moreWrap = document.createElement('div');
+        moreWrap.className = 'pt-1 text-center';
+        const rem = filteredDisplay.length - NOTIF_COMPACT_LIMIT;
+        moreWrap.innerHTML = `
+          <button type="button" onclick="toggleNotifShowAll()" class="px-4 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            ${notifShowAll ? (isTh ? 'ย่อรายการ ▴' : 'Show Less ▴') : (isTh ? `แสดงเพิ่มอีก ${rem} รายการ ▾` : `Show ${rem} More ▾`)}
+          </button>
+        `;
+        container.appendChild(moreWrap);
+      }
     }

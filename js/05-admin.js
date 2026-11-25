@@ -763,9 +763,6 @@
     const debouncedFilterProjectsList = debounceFn(() => {
       if (typeof filterProjectsList === 'function') filterProjectsList();
     }, 150);
-    const debouncedRenderTeacherQuickSub = debounceFn(() => {
-      if (typeof renderTeacherQuickSubmissionResults === 'function') renderTeacherQuickSubmissionResults();
-    }, 150);
     const debouncedRenderTeacherCourseMembers = debounceFn(() => {
       if (typeof renderTeacherCourseMembersPanel === 'function') renderTeacherCourseMembersPanel();
     }, 150);

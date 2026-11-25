@@ -34,9 +34,18 @@
         if (mobileDateEl) mobileDateEl.innerText = dateFormatted;
       }
 
+      const totalStudents = typeof studentDirectory === 'object' ? Object.keys(studentDirectory).length : 81;
+      const membersBtn = document.getElementById('teacherDashboardMembersBtn');
+      if (membersBtn) {
+        membersBtn.innerText = isThai ? `สมาชิกทั้งหมด (${totalStudents}) →` : `All Members (${totalStudents}) →`;
+      }
+
       const allowedCodes = getTeacherAssignedCourseCodes(currentTeacher);
       const coursesContainer = document.getElementById('teacherCourseCards');
       if (coursesContainer) {
+        coursesContainer.className = allowedCodes.length >= 3
+          ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5'
+          : 'grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5';
         coursesContainer.innerHTML = '';
         allowedCodes.map(code => coursesCatalog[code]).filter(Boolean).forEach(c => {
           const doneCount = c.tasks.filter(t => t.isFinished).length;
@@ -60,8 +69,11 @@
               <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 shrink-0">${pct}%</span>
             </div>
 
-            <div class="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-500" style="width: ${pct}%; background: linear-gradient(90deg, var(--gz-primary), var(--gz-secondary));"></div>
+            <div class="space-y-1.5">
+              <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">${isThai ? 'อาจารย์ผู้สอน' : 'Teacher'}: ${escapeHtml(c.teacher)}</p>
+              <div class="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500" style="width: ${pct}%; background: linear-gradient(90deg, var(--gz-primary), var(--gz-secondary));"></div>
+              </div>
             </div>
 
             <div class="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 flex items-center justify-between pt-0.5">
@@ -72,8 +84,6 @@
           coursesContainer.appendChild(card);
         });
       }
-
-      renderTeacherQuickSubmissionResults();
 
       const container = document.getElementById('teacherProjectsContainer');
       if (!container) return;
@@ -724,23 +734,11 @@
         if (info && info.taskId) selectedTeacherAssessmentTaskId = info.taskId;
       }
       teacherReviewViewMode = 'grading';
+      if (currentScreen !== 'teacher-review') {
+        navigateTo('teacher-review');
+      }
       renderTeacherReviewScreen();
       switchTeacherViewMode('grading');
-    }
-
-    let teacherQuickSubFilter = 'all';
-
-    function setTeacherQuickSubFilter(mode) {
-      teacherQuickSubFilter = mode;
-      const activeCls = 'px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-2xs transition';
-      const inactiveCls = 'px-2.5 py-1 rounded-lg text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 transition';
-      const bAll = document.getElementById('tQuickSubFilterAll');
-      const bSub = document.getElementById('tQuickSubFilterSubmitted');
-      const bPen = document.getElementById('tQuickSubFilterPending');
-      if (bAll) bAll.className = mode === 'all' ? activeCls : inactiveCls;
-      if (bSub) bSub.className = mode === 'submitted' ? activeCls : inactiveCls;
-      if (bPen) bPen.className = mode === 'pending' ? activeCls : inactiveCls;
-      renderTeacherQuickSubmissionResults();
     }
 
     function getStudentSubmissionSummary(studentId) {
@@ -819,83 +817,6 @@
         allSubmitted: submittedCount === totalCount,
         items
       };
-    }
-
-    function renderTeacherQuickSubmissionResults() {
-      const container = document.getElementById('teacherQuickSubmissionResults');
-      if (!container) return;
-
-      const query = (document.getElementById('teacherDashboardStudentSearchInput')?.value || '').toLowerCase().trim();
-      const allIds = Object.keys(studentDirectory);
-
-      let matches = allIds
-        .map(id => getStudentSubmissionSummary(id))
-        .filter(sum => {
-          const s = sum.student;
-          const matchQuery = !query ||
-            s.id.toLowerCase().includes(query) ||
-            s.fullName.toLowerCase().includes(query) ||
-            s.shortName.toLowerCase().includes(query) ||
-            s.email.toLowerCase().includes(query);
-          if (!matchQuery) return false;
-          if (teacherQuickSubFilter === 'submitted') return sum.hasSubmittedAny;
-          if (teacherQuickSubFilter === 'pending') return !sum.hasSubmittedAny;
-          return true;
-        });
-
-      const displayList = query ? matches.slice(0, 12) : matches.slice(0, 4);
-
-      if (displayList.length === 0) {
-        container.innerHTML = `
-          <div class="py-8 text-center text-neutral-400 space-y-1 bg-neutral-50 dark:bg-neutral-800/40 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-700">
-            <span class="text-2xl block">🔍</span>
-            <p class="text-xs font-bold text-neutral-700 dark:text-neutral-300">ไม่พบนักศึกษาที่ตรงกับ "${escapeHtml(query)}"</p>
-            <p class="text-[11px]">ลองค้นหาด้วยชื่อภาษาอังกฤษ หรือรหัสนักศึกษา 11 หลัก</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = displayList.map(sum => {
-        const s = sum.student;
-        const badgeHtml = sum.hasSubmittedAny
-          ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">✓ ส่งงานแล้ว (${sum.submittedCount}/${sum.totalCount})</span>`
-          : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200 dark:border-rose-800">⏳ ยังไม่ส่งงาน (0/${sum.totalCount})</span>`;
-
-        const itemsPreview = sum.items.slice(0, 3).map(it => `
-          <div class="flex items-center justify-between gap-2 text-[11px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200/70 dark:border-neutral-700">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span class="font-bold text-neutral-500 shrink-0">${escapeHtml(it.course)}</span>
-              <span class="text-neutral-800 dark:text-neutral-200 truncate font-medium">${escapeHtml(it.title)}</span>
-            </div>
-            <span class="shrink-0 font-bold ${it.isSubmitted ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${escapeHtml(it.statusText)}</span>
-          </div>
-        `).join('');
-
-        return `
-          <div class="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700 space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center text-xs font-extrabold shrink-0">${escapeHtml(s.initials)}</div>
-                <div class="min-w-0">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white truncate">${escapeHtml(s.fullName)}</span>
-                    <span class="text-[10px] font-mono font-bold text-neutral-500 bg-white dark:bg-neutral-900 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-700">${escapeHtml(s.id)}</span>
-                  </div>
-                  <span class="text-[10px] text-neutral-400 font-mono block truncate">${escapeHtml(s.email)}</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                ${badgeHtml}
-                <button onclick="openTeacherStudentTasks('${s.id}')" class="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-black text-white text-[11px] font-bold transition pressable">ตรวจงาน →</button>
-              </div>
-            </div>
-            <div class="space-y-1">
-              ${itemsPreview}
-            </div>
-          </div>
-        `;
-      }).join('') + (matches.length > displayList.length ? `<p class="text-[10px] text-center text-neutral-400 pt-1">แสดง ${displayList.length} จาก ${matches.length} รายการ (พิมพ์ชื่อหรือรหัสเพื่อเจาะจง)</p>` : '');
     }
 
     let teacherMemberSortMode = 'id-asc';
@@ -1045,6 +966,7 @@
         return;
       }
 
+      const isThRow = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
       filtered.forEach(info => {
         const prof = info.student;
         const st = info.submissionStatus;
@@ -1055,15 +977,15 @@
             : 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800';
         const statusLabel = info.taskCount > 1
           ? (st === 'complete'
-              ? `ส่งแล้ว (${info.submittedTasksCount}/${info.taskCount} งาน)`
+              ? (isThRow ? `ส่งแล้ว (${info.submittedTasksCount}/${info.taskCount} งาน)` : `Submitted (${info.submittedTasksCount}/${info.taskCount} Tasks)`)
               : st === 'revision'
-                ? `รอแก้ (${info.submittedTasksCount}/${info.taskCount} งาน)`
-                : `ยังไม่ส่ง (0/${info.taskCount} งาน)`)
+                ? (isThRow ? `รอแก้ (${info.submittedTasksCount}/${info.taskCount} งาน)` : `Revision (${info.submittedTasksCount}/${info.taskCount} Tasks)`)
+                : (isThRow ? `ยังไม่ส่ง (0/${info.taskCount} งาน)` : `Not Submitted (0/${info.taskCount} Tasks)`))
           : (st === 'complete'
-              ? 'ส่งแล้ว'
+              ? (isThRow ? 'ส่งแล้ว' : 'Submitted')
               : st === 'revision'
-                ? 'รอแก้'
-                : 'ยังไม่ส่ง');
+                ? (isThRow ? 'รอแก้' : 'Revision')
+                : (isThRow ? 'ยังไม่ส่ง' : 'Not Submitted'));
 
         const row = document.createElement('div');
         row.className = 'grid grid-cols-12 items-center py-3 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition';
@@ -1083,7 +1005,7 @@
             <span class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate block">
               ${escapeHtml(info.taskTitle)}
             </span>
-            ${info.taskCount > 1 ? `<span class="text-[10px] font-bold text-blue-600 dark:text-sky-400 block">งานครั้งที่ ${info.taskCount} (รวม ${info.taskCount} งาน)</span>` : ''}
+            ${info.taskCount > 1 ? `<span class="text-[10px] font-bold text-blue-600 dark:text-sky-400 block">${isThRow ? `งานครั้งที่ ${info.taskCount} (รวม ${info.taskCount} งาน)` : `Task #${info.taskCount} (${info.taskCount} Tasks)`}</span>` : ''}
           </div>
 
           <div class="col-span-2 sm:col-span-2 hidden sm:block text-xs text-neutral-600 dark:text-neutral-400 font-medium truncate">
@@ -1808,6 +1730,7 @@
       const stuBadgeEl = document.getElementById('teacherGradingStudentBadge');
       if (stuBadgeEl) stuBadgeEl.innerText = `${currentStudent.id} • ${currentStudent.fullName}`;
 
+      const isThGr = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
       const scopeProjId = (activeTask && activeTask.projectId) || activeProjectId || null;
       const studentTasksInCourse = typeof getStudentTasksInCourse === 'function'
         ? getStudentTasksInCourse(currentStudent.id, course.code, scopeProjId)
@@ -1815,7 +1738,7 @@
       const taskCountBadgeEl = document.getElementById('teacherGradingTaskCountBadge');
       if (taskCountBadgeEl) {
         const cnt = studentTasksInCourse.length || (activeTask ? 1 : 0);
-        taskCountBadgeEl.innerText = `${cnt} งาน`;
+        taskCountBadgeEl.innerText = isThGr ? `${cnt} งาน` : `${cnt} ${cnt === 1 ? 'Task' : 'Tasks'}`;
       }
       const taskSelectorBar = document.getElementById('teacherGradingTaskSelectorBar');
       if (taskSelectorBar) {
@@ -1824,11 +1747,14 @@
           const isSelected = activeTask && tItem.id === activeTask.id;
           const tRevs = ensureStudentSubmissionRevisions(tItem, currentStudent.id, course.code);
           const tLatest = tRevs.length > 0 ? tRevs[tRevs.length - 1] : null;
-          const tStatusTag = !tLatest ? 'ยังไม่ส่ง' : (tLatest.status === 'revision' ? 'รอแก้' : 'ส่งแล้ว');
+          const tStatusTag = !tLatest
+            ? (isThGr ? 'ยังไม่ส่ง' : 'Not Submitted')
+            : (tLatest.status === 'revision' ? (isThGr ? 'รอแก้' : 'Revision') : (isThGr ? 'ส่งแล้ว' : 'Submitted'));
           const pillCls = isSelected
             ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
             : 'bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700';
-          return `<button type="button" onclick="gradeStudentTask('${currentStudent.id}', '${tItem.id}')" class="px-3 py-1.5 rounded-full text-[11px] font-bold border transition pressable flex items-center gap-1.5 ${pillCls}"><span>งานครั้งที่ ${idx + 1}: ${escapeHtml(tItem.title)}</span><span class="text-[10px] opacity-80">(${tStatusTag})</span></button>`;
+          const prefixLabel = isThGr ? `งานครั้งที่ ${idx + 1}:` : `Task #${idx + 1}:`;
+          return `<button type="button" onclick="gradeStudentTask('${currentStudent.id}', '${tItem.id}')" class="px-3 py-1.5 rounded-full text-[11px] font-bold border transition pressable flex items-center gap-1.5 ${pillCls}"><span>${prefixLabel} ${escapeHtml(tItem.title)}</span><span class="text-[10px] opacity-80">(${tStatusTag})</span></button>`;
         }).join('');
       }
 
@@ -1841,22 +1767,25 @@
             ? 'px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
             : 'px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800';
         stuStatusBadgeEl.innerText = st === 'complete'
-          ? 'ส่งแล้ว'
+          ? (isThGr ? 'ส่งแล้ว' : 'Submitted')
           : st === 'revision'
-            ? 'รอแก้'
-            : 'ยังไม่ส่ง';
+            ? (isThGr ? 'รอแก้' : 'Revision')
+            : (isThGr ? 'ยังไม่ส่ง' : 'Not Submitted');
       }
 
       const fileNameEl = document.getElementById('teacherGradingFileName');
       if (fileNameEl) {
-        fileNameEl.innerText = activeRev ? activeRev.file : 'ยังไม่มีไฟล์ส่งงาน';
+        fileNameEl.innerText = activeRev ? activeRev.file : (isThGr ? 'ยังไม่มีไฟล์ส่งงาน' : 'No file submitted yet');
       }
       const fileMetaEl = document.getElementById('teacherGradingFileMeta');
       if (fileMetaEl) {
         const sizeLabel = (activeRev && activeRev.fileSize) ? activeRev.fileSize : '14.2 MB';
+        const revStatusDisp = activeRev && activeRev.status === 'revision'
+          ? (isThGr ? 'รอแก้' : 'Revision')
+          : (isThGr ? 'ส่งแล้ว' : 'Submitted');
         fileMetaEl.innerText = activeRev
-          ? `${sizeLabel} • ส่งเมื่อ ${activeRev.submittedAt} (${activeRev.statusLabel || 'ส่งแล้ว'})`
-          : 'นักศึกษายังไม่ได้อัปโหลดไฟล์งาน';
+          ? (isThGr ? `${sizeLabel} • ส่งเมื่อ ${activeRev.submittedAt} (${revStatusDisp})` : `${sizeLabel} • Submitted ${activeRev.submittedAt} (${revStatusDisp})`)
+          : (isThGr ? 'นักศึกษายังไม่ได้อัปโหลดไฟล์งาน' : 'Student has not uploaded a file yet');
       }
       const dlBtn = document.getElementById('btnTeacherGradingDownload');
       if (dlBtn) {
@@ -2797,25 +2726,25 @@
           statusBadgeHtml = `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 animate-pulse">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span>รอตรวจ: ${pendingReviewTask.title.split(':')[0]}</span>
+              <span>${isTh ? 'รอตรวจ:' : 'Needs Review:'} ${pendingReviewTask.title.split(':')[0]}</span>
             </span>
           `;
         } else if (revisionTask) {
           statusBadgeHtml = `
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-200">
-              <span>⚠️ รอแก้ไข</span>
+              <span>${isTh ? '⚠️ รอแก้ไข' : '⚠️ Revision'}</span>
             </span>
           `;
         } else if (pct === 100) {
           statusBadgeHtml = `
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200">
-              <span>✓ ผ่านครบทุก Step</span>
+              <span>${isTh ? '✓ ผ่านครบทุก Step' : '✓ All Steps Approved'}</span>
             </span>
           `;
         } else {
           statusBadgeHtml = `
             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-              กำลังทำ
+              ${isTh ? 'กำลังทำ' : 'In Progress'}
             </span>
           `;
         }
@@ -2842,15 +2771,15 @@
             ${!isAdmin ? `
             <div class="space-y-1.5 pt-1">
               <div class="flex justify-between text-xs font-semibold">
-                <span class="text-neutral-500">ความก้าวหน้ารวม</span>
+                <span class="text-neutral-500">${isTh ? 'ความก้าวหน้ารวม' : 'Overall Progress'}</span>
                 <span class="text-orange-600 dark:text-orange-400 font-bold">${pct}%</span>
               </div>
               <div class="w-full bg-neutral-100 dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
                 <div class="bg-gradient-to-r from-orange-500 to-amber-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
               </div>
               <div class="flex justify-between text-[11px] text-neutral-400">
-                <span>${approvedTasks}/${totalTasks} ขั้นตอนผ่านแล้ว</span>
-                <span>${totalTasks - approvedTasks} คงเหลือ</span>
+                <span>${isTh ? `${approvedTasks}/${totalTasks} ขั้นตอนผ่านแล้ว` : `${approvedTasks}/${totalTasks} steps approved`}</span>
+                <span>${isTh ? `${totalTasks - approvedTasks} คงเหลือ` : `${totalTasks - approvedTasks} remaining`}</span>
               </div>
             </div>
             ` : ''}
@@ -2863,7 +2792,7 @@
                   </span>
                 `).join('')}
               </div>
-              <span class="text-[10px] text-neutral-400">${projMembers.length} คน</span>
+              <span class="text-[10px] text-neutral-400">${projMembers.length} ${isTh ? 'คน' : (projMembers.length === 1 ? 'member' : 'members')}</span>
             </div>
           </div>
 
@@ -2873,7 +2802,7 @@
                 ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs'
                 : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200'
             }">
-              <span>${isAdmin ? (isTh ? 'ดูรายละเอียดโปรเจกต์' : 'View Project Details') : (isTeacher ? (pendingReviewTask ? 'ตรวจงาน (รอตรวจ)' : 'ตรวจความคืบหน้า') : 'เปิดแผนงาน & ส่งงาน')}</span>
+              <span>${isAdmin ? (isTh ? 'ดูรายละเอียดโปรเจกต์' : 'View Project Details') : (isTeacher ? (pendingReviewTask ? (isTh ? 'ตรวจงาน (รอตรวจ)' : 'Review Submission') : (isTh ? 'ตรวจความคืบหน้า' : 'Review Progress')) : (isTh ? 'เปิดแผนงาน & ส่งงาน' : 'Open Plan & Submit'))}</span>
               <span>→</span>
             </button>
             ${!isTeacher ? `
@@ -2935,22 +2864,24 @@
 
         document.getElementById('pdetailProgressPct').textContent = pct + '%';
         document.getElementById('pdetailProgressBar').style.width = pct + '%';
-        document.getElementById('pdetailStepsSummary').textContent = 'ผ่าน ' + approvedTasks + ' จาก ' + totalTasks + ' ขั้นตอน';
+        document.getElementById('pdetailStepsSummary').textContent = isTh
+          ? ('ผ่าน ' + approvedTasks + ' จาก ' + totalTasks + ' ขั้นตอน')
+          : (approvedTasks + ' of ' + totalTasks + ' steps approved');
 
         const pendingReviewTask = tasks.find(t => t.status === 'Needs Review');
         const revisionTask = tasks.find(t => t.status === 'Revision Requested');
         const hint = document.getElementById('pdetailStatusHint');
         if (pendingReviewTask) {
-          hint.textContent = 'มีขั้นตอนรออาจารย์ตรวจ';
+          hint.textContent = isTh ? 'มีขั้นตอนรออาจารย์ตรวจ' : 'Step awaiting review';
           hint.className = 'text-amber-500 font-semibold';
         } else if (revisionTask) {
-          hint.textContent = 'มีงานต้องปรับปรุงแก้ไข';
+          hint.textContent = isTh ? 'มีงานต้องปรับปรุงแก้ไข' : 'Revision requested';
           hint.className = 'text-rose-500 font-semibold';
         } else if (pct === 100) {
-          hint.textContent = 'โครงงานเสร็จสมบูรณ์';
+          hint.textContent = isTh ? 'โครงงานเสร็จสมบูรณ์' : 'Project completed';
           hint.className = 'text-emerald-500 font-semibold';
         } else {
-          hint.textContent = 'กำลังดำเนินการ';
+          hint.textContent = isTh ? 'กำลังดำเนินการ' : 'In Progress';
           hint.className = 'text-neutral-500 font-semibold';
         }
       }
@@ -3115,11 +3046,12 @@
         }
 
         let actionsHtml = '';
+        const isThStep = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
         if (isTeacher) {
           actionsHtml = `
             <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end">
               <button onclick="openTeacherStepInspectModal('${project.id}')" class="px-4 py-2 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-2xs">
-                <span>🔍 ตรวจและประเมินขั้นตอนนี้</span>
+                <span>${isThStep ? '🔍 ตรวจและประเมินขั้นตอนนี้' : '🔍 Review & Grade Step'}</span>
               </button>
             </div>
           `;
@@ -3130,7 +3062,7 @@
             <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2">
               <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <span>🔒</span>
-                <span>ตรวจให้คะแนนแล้ว (ไม่สามารถแก้ไขได้ ยกเว้นอาจารย์สั่งให้ส่งแก้)</span>
+                <span>${isThStep ? 'ตรวจให้คะแนนแล้ว (ไม่สามารถแก้ไขได้ ยกเว้นอาจารย์สั่งให้ส่งแก้)' : 'Graded — locked from editing unless revision is requested'}</span>
               </span>
             </div>
           `
@@ -3138,16 +3070,16 @@
             <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <button onclick="openEditProjectStepModal('${task.id}')" class="px-2.5 py-1 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition">
-                  แก้ไขข้อมูล
+                  ${isThStep ? 'แก้ไขข้อมูล' : 'Edit Step'}
                 </button>
                 <button onclick="handleDeleteProjectStep('${task.id}')" class="px-2.5 py-1 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition">
-                  ลบขั้นตอน
+                  ${isThStep ? 'ลบขั้นตอน' : 'Delete Step'}
                 </button>
               </div>
 
               <button onclick="openSubmitStepProgressModal('${task.id}')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs bg-neutral-900 hover:bg-black dark:bg-orange-600 dark:hover:bg-orange-500 text-white">
                 <span>☁️</span>
-                <span>${task.status === 'Revision Requested' ? 'ส่งงานฉบับแก้ไข' : 'ส่งตรวจความก้าวหน้า'}</span>
+                <span>${task.status === 'Revision Requested' ? (isThStep ? 'ส่งงานฉบับแก้ไข' : 'Submit Revision') : (isThStep ? 'ส่งตรวจความก้าวหน้า' : 'Submit Progress')}</span>
               </button>
             </div>
           `;

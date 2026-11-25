@@ -759,11 +759,15 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <span id="notifUnreadCountBadge" class="hidden text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200 dark:border-amber-800">0 New</span>
-            <button type="button" id="btnNotifMarkAllRead" onclick="markAllNotificationsRead()" class="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold transition pressable flex items-center gap-1.5">
+            <button type="button" id="btnNotifMarkAllRead" onclick="markAllNotificationsRead()" class="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold transition pressable flex items-center gap-1">
               <span>✓</span>
               <span id="btnNotifMarkAllReadText">อ่านทั้งหมดแล้ว</span>
+            </button>
+            <button type="button" id="btnNotifClearRead" onclick="clearReadNotifications()" class="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-rose-50 dark:bg-neutral-800 dark:hover:bg-rose-950/40 text-neutral-600 hover:text-rose-600 dark:text-neutral-300 text-xs font-bold transition pressable flex items-center gap-1">
+              <span>🗑</span>
+              <span id="btnNotifClearReadText">ล้างที่อ่านแล้ว</span>
             </button>
           </div>
         </div>
@@ -778,9 +782,12 @@
           <button type="button" id="notifTabComment" onclick="setNotificationFilterTab('comment')" class="px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
             💬 ข้อความแชท
           </button>
+          <button type="button" id="notifTabUnreadOnly" onclick="toggleNotifUnreadOnly()" class="ml-auto px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-bold transition pressable">
+            เฉพาะยังไม่อ่าน
+          </button>
         </div>
 
-        <div id="notificationsContainer" class="space-y-3.5"></div>
+        <div id="notificationsContainer" class="space-y-2.5"></div>
 
       </section>
 
@@ -788,7 +795,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-          <div class="lg:col-span-8 space-y-6">
+          <div class="lg:col-span-8 space-y-5">
 
             <div class="md:hidden bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-xs flex items-center justify-between gap-3">
               <div>
@@ -798,75 +805,51 @@
               <span id="teacherMobileDateBadge" class="text-[11px] font-bold text-neutral-700 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700 shrink-0">Sep 29, 2026</span>
             </div>
 
-            <div class="space-y-4">
-              <div class="flex items-center justify-between px-1">
-                <div>
-                  <h1 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Courses</h1>
-                  <p class="text-xs text-neutral-400 mt-0.5">Select a subject to manage projects, due dates, and student submissions</p>
-                </div>
-                <button onclick="switchTeacherViewMode('students'); navigateTo('teacher-review')" class="text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 px-3.5 py-2 rounded-full transition pressable">
-                  All Members (81) →
-                </button>
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Courses</h1>
+                <p class="text-xs text-neutral-400 mt-0.5">Select a subject to manage projects, due dates, and student submissions</p>
               </div>
-
-              <div id="teacherCourseCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-
-              </div>
+              <button id="teacherDashboardMembersBtn" onclick="switchTeacherViewMode('students'); navigateTo('teacher-review')" class="text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-3.5 py-2 rounded-full transition pressable">
+                All Members (81) →
+              </button>
             </div>
 
-            <div id="teacherQuickSubmissionSearchCard" class="bg-white dark:bg-neutral-900 rounded-3xl p-5 sm:p-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-9 h-9 rounded-2xl bg-neutral-900 text-white flex items-center justify-center text-sm font-bold shrink-0">🔍</div>
-                  <div>
-                    <h3 class="text-sm sm:text-base font-black text-neutral-900 dark:text-white leading-tight">ค้นหาสถานะการส่งงานของนักศึกษา (Submission Status Search)</h3>
-                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400">พิมพ์ชื่อ-นามสกุล หรือรหัสนักศึกษา เพื่อตรวจสอบทันทีว่าส่งงานแล้วหรือยัง</p>
-                  </div>
-                </div>
-                <div class="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl text-[11px] font-bold shrink-0">
-                  <button type="button" id="tQuickSubFilterAll" onclick="setTeacherQuickSubFilter('all')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-2xs transition">ทั้งหมด</button>
-                  <button type="button" id="tQuickSubFilterSubmitted" onclick="setTeacherQuickSubFilter('submitted')" class="px-2.5 py-1 rounded-lg text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 transition">✓ ส่งแล้ว</button>
-                  <button type="button" id="tQuickSubFilterPending" onclick="setTeacherQuickSubFilter('pending')" class="px-2.5 py-1 rounded-lg text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 transition">⏳ ยังไม่ส่ง</button>
-                </div>
-              </div>
+            <div id="teacherCourseCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
 
-              <div class="relative">
-                <input type="text" id="teacherDashboardStudentSearchInput" oninput="debouncedRenderTeacherQuickSub()" placeholder="พิมพ์ชื่อนักศึกษา เช่น Chonchanok, Thanawat, Kanyarat หรือรหัส 67080500201..." class="w-full pl-10 pr-24 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs sm:text-sm text-neutral-900 dark:text-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 transition" />
-                <span class="absolute left-3.5 top-3.5 text-neutral-400 text-sm">🔍</span>
-                <button type="button" onclick="document.getElementById('teacherDashboardStudentSearchInput').value=''; renderTeacherQuickSubmissionResults();" class="absolute right-2.5 top-2 px-3 py-1.5 rounded-xl bg-neutral-200/80 hover:bg-neutral-300 dark:bg-neutral-700 text-[11px] font-bold text-neutral-700 dark:text-neutral-200 transition">ล้างคำค้น</button>
-              </div>
-
-              <div id="teacherQuickSubmissionResults" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
             </div>
 
             <div id="teacherProjectsContainer" class="hidden"></div>
-            <span id="teacherDashboardName" class="hidden"></span>
-            <span id="teacherDashboardAvatar" class="hidden"></span>
-            <span id="teacherDashboardDept" class="hidden"></span>
-            <span id="teacherDashboardDateToday" class="hidden"></span>
 
           </div>
 
           <div class="hidden lg:block lg:col-span-4 space-y-4">
             <div class="bg-neutral-100 dark:bg-neutral-900 rounded-3xl p-5 sm:p-6 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-5">
 
-              <div class="flex flex-col items-center text-center space-y-2 pt-1">
-                <div class="w-24 h-24 rounded-full bg-neutral-300/90 dark:bg-neutral-800 text-neutral-800 dark:text-white flex items-center justify-center font-black text-2xl shadow-inner border-4 border-white dark:border-neutral-700">
-                  👨‍🏫
+              <div class="flex flex-col items-center text-center space-y-2.5 pt-1">
+                <div id="teacherDashboardAvatar" class="w-24 h-24 rounded-full bg-neutral-300/90 dark:bg-neutral-800 text-neutral-800 dark:text-white flex items-center justify-center font-black text-2xl shadow-inner border-4 border-white dark:border-neutral-700">
+                  SL
                 </div>
-                <p class="text-xs font-extrabold text-neutral-800 dark:text-neutral-200">กำหนดส่ง Project ของอาจารย์</p>
-                <span class="text-[11px] text-neutral-500">Project Due Dates & Timetable</span>
+                <div>
+                  <h2 id="teacherDashboardName" class="text-base font-black text-neutral-900 dark:text-white leading-tight">PROF. SURIPONG LERTKUL!</h2>
+                  <span id="teacherDashboardDept" class="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-0.5">Instructor • Computer Multimedia (CMM-01)</span>
+                </div>
+                <span id="teacherDashboardDateToday" class="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-3 py-1 rounded-full shadow-2xs inline-block">
+                  Sep 29, 2026
+                </span>
               </div>
 
               <div class="bg-white dark:bg-neutral-800/70 rounded-2xl p-4 border border-neutral-200/80 dark:border-neutral-700 space-y-3">
                 <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-700 pb-2">
                   <div>
-                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Timetable</span>
+                    <span data-i18n="timetable" class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Timetable</span>
                     <h4 id="teacherCalendarMonthYearTitle" class="text-xs font-bold text-neutral-900 dark:text-white">September 2026</h4>
                   </div>
                   <div class="flex items-center gap-1">
                     <button onclick="changeCalendarMonth(-1)" title="Previous Month" class="w-6 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center transition pressable">‹</button>
-                    <button onclick="resetCalendarToCurrentMonth()" title="Current Term" class="px-2 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-[10px] font-bold flex items-center justify-center transition pressable">Term</button>
+                    <button onclick="resetCalendarToCurrentMonth()" title="Current Term" class="px-2 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-[10px] font-bold flex items-center justify-center transition pressable">
+                      <span data-i18n="calToday">Term</span>
+                    </button>
                     <button onclick="changeCalendarMonth(1)" title="Next Month" class="w-6 h-6 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-bold flex items-center justify-center transition pressable">›</button>
                   </div>
                 </div>
