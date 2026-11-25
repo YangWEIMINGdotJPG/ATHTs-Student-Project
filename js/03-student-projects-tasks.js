@@ -1522,15 +1522,17 @@
         if (!task) return;
         const rawList = Array.isArray(task.members) ? task.members : [];
         const normalized = [];
+        const hasDir = typeof studentDirectory === 'object' && Object.keys(studentDirectory).length > 0;
         const seenIds = new Set();
         rawList.forEach((m, idx) => {
           if (!m) return;
           const mp = getStudentProfile(m.id || m.name);
           if (!mp || !mp.id || seenIds.has(mp.id)) return;
+          if (hasDir && !studentDirectory[mp.id]) return;
           seenIds.add(mp.id);
           normalized.push({
             id: mp.id,
-            name: mp.shortName,
+            name: (hasDir && studentDirectory[mp.id]) ? studentDirectory[mp.id].shortName : mp.shortName,
             role: idx === 0 ? 'Leader' : (m.role === 'Leader' ? 'Member' : (m.role || 'Member')),
             taskTitle: m.taskTitle || '',
             taskStatus: m.taskStatus || 'Active',
@@ -1538,14 +1540,19 @@
           });
         });
 
-        if (normalized.length === 0 && task.createdBy) {
+        if (normalized.length === 0 && task.createdBy && (!hasDir || studentDirectory[task.createdBy])) {
           const op = getStudentProfile(task.createdBy);
           if (op && op.id) {
             normalized.push({ id: op.id, name: op.shortName, role: 'Leader', taskStatus: 'Active', score: 'Pending' });
           }
         }
+        if (hasDir && normalized.length === 0) {
+          task._orphanedDeletedStudent = true;
+          return;
+        }
 
-        const ownerId = (task.createdBy && getStudentProfile(task.createdBy).id) || (normalized[0] && normalized[0].id) || null;
+        const validCreatorId = (task.createdBy && (!hasDir || studentDirectory[task.createdBy])) ? getStudentProfile(task.createdBy).id : null;
+        const ownerId = validCreatorId || (normalized[0] && normalized[0].id) || null;
         let finalMembers;
         if (ownerId && canonicalTeamByStudent.has(ownerId)) {
           const template = canonicalTeamByStudent.get(ownerId);
@@ -1596,11 +1603,91 @@
           });
         }
       });
+      course.tasks = course.tasks.filter(t => t && !t._orphanedDeletedStudent);
+    }
+
+    function syncDirectoriesIntoCatalogAndProjects() {
+      const teachersList = Object.values(typeof teacherDirectory === 'object' ? teacherDirectory : {});
+      if (teachersList.length > 0) {
+        Object.entries(coursesCatalog || {}).forEach(([cCode, course]) => {
+          if (!course) return;
+          const matchedTch = teachersList.find(t => (t.status || 'Active') === 'Active' && Array.isArray(t.courses) && t.courses.includes(cCode))
+            || teachersList.find(t => Array.isArray(t.courses) && t.courses.includes(cCode));
+          if (matchedTch && matchedTch.fullName) {
+            const cleanTeacherName = matchedTch.fullName.replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.|Dr\.)\s*/i, '').trim();
+            if (cleanTeacherName) course.teacher = cleanTeacherName;
+          }
+        });
+      }
+
+      const hasStdDir = typeof studentDirectory === 'object' && Object.keys(studentDirectory).length > 0;
+      if (hasStdDir && Array.isArray(studentProjectsList)) {
+        studentProjectsList.forEach(p => {
+          if (!p) return;
+          if (p.createdBy && studentDirectory[p.createdBy]) {
+            p.createdByName = studentDirectory[p.createdBy].shortName;
+          }
+          if (Array.isArray(p.members)) {
+            p.members = p.members
+              .map(mStr => {
+                const sidMatch = String(mStr || '').match(/\d{9,11}/);
+                if (sidMatch) {
+                  const sid = sidMatch[0];
+                  return studentDirectory[sid] ? `${sid} ${studentDirectory[sid].shortName}` : null;
+                }
+                return mStr;
+              })
+              .filter(Boolean);
+          }
+        });
+      }
+    }
+
+    function ensureNewStudentsEnrolledInCourses() {
+      const allIds = Object.keys(typeof studentDirectory === 'object' ? studentDirectory : {});
+      if (allIds.length === 0) return;
+      Object.entries(coursesCatalog || {}).forEach(([cCode, course]) => {
+        if (!course) return;
+        if (!Array.isArray(course.tasks)) course.tasks = [];
+        const coveredIds = new Set();
+        course.tasks.forEach(t => {
+          if (t.createdBy) coveredIds.add(t.createdBy);
+          (t.members || []).forEach(m => { if (m && m.id) coveredIds.add(m.id); });
+        });
+        const firstProj = (studentProjectsList || []).find(p => p.course === cCode);
+        allIds.forEach(sid => {
+          if (coveredIds.has(sid)) return;
+          const prof = studentDirectory[sid];
+          if (!prof) return;
+          const tid = `${cCode.toLowerCase()}-std-${sid}`;
+          if (course.tasks.some(t => t.id === tid)) return;
+          course.tasks.push({
+            id: tid,
+            projectId: firstProj ? firstProj.id : `proj-${cCode.toLowerCase()}-1`,
+            createdBy: sid,
+            title: `Task 1: ${cCode} Course Deliverable`,
+            due: 'Oct 15, 2026 (23:59)',
+            publishDate: 'Sep 28, 2026',
+            status: 'Active',
+            isFinished: false,
+            submitted: false,
+            score: 'Pending',
+            type: 'Individual',
+            description: `Course deliverable for ${course.title || cCode}.`,
+            members: [{ id: sid, name: prof.shortName, role: 'Leader', taskStatus: 'Active', score: 'Pending' }],
+            studentSubmissions: {
+              [sid]: { submitted: false, score: 'Pending', status: 'Pending', file: '', submittedAt: '', revisions: [] }
+            }
+          });
+        });
+      });
     }
 
     function ensureRelationalIntegrity() {
+      syncDirectoriesIntoCatalogAndProjects();
       Object.values(coursesCatalog).forEach(course => enforceCourseCanonicalTeams(course));
       seedSimulatedStudentTasks();
+      ensureNewStudentsEnrolledInCourses();
       Object.values(coursesCatalog).forEach(course => enforceCourseCanonicalTeams(course));
       const courseProjectMap = {
         CMM321: ['proj-1', 'proj-4', 'proj-5'],
@@ -1628,6 +1715,8 @@
                   : 'Please submit your project deliverable archive before the due date.'
               }
             ];
+          } else if (task.comments[0] && task.comments[0].role === 'teacher' && String(task.comments[0].author || '').startsWith('T. ')) {
+            task.comments[0].author = `T. ${course.teacher}`;
           }
           if (!task.studentSubmissions) {
             task.studentSubmissions = {};
@@ -1663,6 +1752,11 @@
       ensureRelationalIntegrity();
       saveCoursesCatalog();
       saveStoredProjects(studentProjectsList);
+      if (typeof saveAdminPersistedDirectories === 'function') saveAdminPersistedDirectories();
+      if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
+      if (typeof currentScreen !== 'undefined' && currentScreen === 'admin' && typeof renderAdminScreen === 'function') {
+        renderAdminScreen();
+      }
       return getATHTDatabaseSnapshot();
     }
 
@@ -2246,10 +2340,11 @@
       }
 
       const isTeacher = currentUserRole === 'teacher';
+      const isAdmin = currentUserRole === 'admin';
       const curStudent = getCurrentStudent();
 
       list.forEach(p => {
-        const canRemove = !isTeacher && (p.createdBy === curStudent.id || p.createdByName === curStudent.shortName || (p.members || []).some(m => m.includes(curStudent.id)));
+        const canRemove = isAdmin || (!isTeacher && (p.createdBy === curStudent.id || p.createdByName === curStudent.shortName || (p.members || []).some(m => m.includes(curStudent.id))));
         const card = document.createElement('div');
         card.className = 'bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition space-y-4 cursor-pointer group';
         card.onclick = () => openProjectTasks(p.id);
@@ -2455,7 +2550,7 @@
           members: uniqueMembers,
           studentSubmissions: initialSubs
         });
-        saveCoursesCatalog();
+        syncAllATHTData();
       }
 
       closeCreateProjectModal();
@@ -2478,7 +2573,12 @@
 
       if (confirm(confirmText)) {
         studentProjectsList = studentProjectsList.filter(x => x.id !== projectId);
-        saveStoredProjects(studentProjectsList);
+        Object.values(coursesCatalog || {}).forEach(c => {
+          if (c && Array.isArray(c.tasks)) {
+            c.tasks = c.tasks.filter(t => t.projectId !== projectId);
+          }
+        });
+        syncAllATHTData();
         alertMessage(currentLanguage === 'th' ? `ลบโปรเจกต์ "${p.title}" แล้ว` : `Project "${p.title}" removed.`);
         filterProjectsList();
       }

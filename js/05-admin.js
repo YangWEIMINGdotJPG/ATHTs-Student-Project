@@ -26,7 +26,7 @@
               'akek.pat': ['CMM310', 'GEN121']
             };
             Object.entries(defaultCoursesMap).forEach(([tid, cList]) => {
-              if (teacherDirectory[tid] && (!Array.isArray(teacherDirectory[tid].courses) || teacherDirectory[tid].courses.length < 2)) {
+              if (teacherDirectory[tid] && !teacherDirectory[tid]._adminEdited && (!Array.isArray(teacherDirectory[tid].courses) || teacherDirectory[tid].courses.length < 2)) {
                 teacherDirectory[tid].courses = cList;
               }
             });
@@ -151,6 +151,7 @@
     }
 
     function renderAdminScreen() {
+      if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
       const studentsList = Object.values(studentDirectory);
       const teachersList = Object.values(teacherDirectory);
       const totalUsers = studentsList.length + teachersList.length;
@@ -167,6 +168,17 @@
       const elTchCount = document.getElementById('adminStatTeachersCount');
       if (elTchCount) elTchCount.innerText = teachersList.length;
 
+      const courseKeys = Object.keys(coursesCatalog || {});
+      const totalProjCount = Array.isArray(studentProjectsList) ? studentProjectsList.length : 0;
+      const totalTaskCount = Object.values(coursesCatalog || {}).reduce((acc, c) => acc + ((c && Array.isArray(c.tasks)) ? c.tasks.length : 0), 0);
+      const syncStatsEl = document.getElementById('adminLiveSyncStats');
+      if (syncStatsEl) {
+        const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        syncStatsEl.innerText = isTh
+          ? `${courseKeys.length} วิชา • ${totalProjCount} โปรเจกต์ • ${totalTaskCount} งาน`
+          : `${courseKeys.length} Courses • ${totalProjCount} Projects • ${totalTaskCount} Tasks`;
+      }
+
       const donutPctEl = document.getElementById('adminActiveDonutPct');
       if (donutPctEl) donutPctEl.innerText = `${activePct}%`;
       const donutPathEl = document.getElementById('adminActiveDonutPath');
@@ -179,7 +191,9 @@
       const kpiAct = document.getElementById('adminKpiActive');
       if (kpiAct) kpiAct.innerText = totalActive;
       const kpiCrs = document.getElementById('adminKpiCourses');
-      if (kpiCrs) kpiCrs.innerText = Object.keys(coursesCatalog).length;
+      if (kpiCrs) kpiCrs.innerText = courseKeys.length;
+      const kpiCrsList = document.getElementById('adminKpiCoursesList');
+      if (kpiCrsList) kpiCrsList.innerText = courseKeys.join(' • ');
 
       const badgeStd = document.getElementById('adminTabBadgeStudents');
       if (badgeStd) badgeStd.innerText = studentsList.length;
@@ -214,7 +228,7 @@
             email: s.email,
             deptOrCourses: s.major || 'Applied Computer Science - Multimedia',
             subMeta: s.year || 'Year 2 (ID 67)',
-            courses: ['CMM321', 'CMM349', 'CMM310'],
+            courses: Object.keys(coursesCatalog || {}),
             status: s.status || 'Active',
             raw: s
           });
@@ -533,12 +547,13 @@
           faculty: 'Faculty of Industrial Education and Technology',
           specialization: spec,
           courses,
-          status
+          status,
+          _adminEdited: true
         };
 
         courses.forEach(cCode => {
           if (coursesCatalog[cCode]) {
-            coursesCatalog[cCode].teacher = fullName.replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.)\s*/i, '');
+            coursesCatalog[cCode].teacher = fullName.replace(/^(Prof\.|Assoc\.\s*Prof\.|Asst\.\s*Prof\.|Dr\.)\s*/i, '').trim();
           }
         });
 
@@ -553,6 +568,27 @@
 
         if (mode === 'edit' && origId && origId !== rawId) {
           delete studentDirectory[origId];
+          (studentProjectsList || []).forEach(p => {
+            if (p.createdBy === origId) p.createdBy = rawId;
+            if (Array.isArray(p.members)) {
+              p.members = p.members.map(m => String(m || '').includes(origId) ? `${rawId} ${shortName}` : m);
+            }
+          });
+          Object.values(coursesCatalog || {}).forEach(c => {
+            (c.tasks || []).forEach(t => {
+              if (t.createdBy === origId) t.createdBy = rawId;
+              (t.members || []).forEach(m => {
+                if (m && m.id === origId) {
+                  m.id = rawId;
+                  m.name = shortName;
+                }
+              });
+              if (t.studentSubmissions && t.studentSubmissions[origId]) {
+                t.studentSubmissions[rawId] = t.studentSubmissions[origId];
+                delete t.studentSubmissions[origId];
+              }
+            });
+          });
         }
 
         studentDirectory[rawId] = {
@@ -575,6 +611,9 @@
       }
 
       saveAdminPersistedDirectories();
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
+      if (typeof renderCalendar === 'function') renderCalendar();
       closeAdminUserModal();
       renderAdminScreen();
       updateBreadcrumbUI('admin');
@@ -596,6 +635,7 @@
         alertMessage(`${s.shortName} (${s.id}) status changed to ${s.status}`);
       }
       saveAdminPersistedDirectories();
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
       renderAdminScreen();
     }
 
@@ -633,6 +673,9 @@
       }
 
       saveAdminPersistedDirectories();
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
+      if (typeof renderCalendar === 'function') renderCalendar();
       closeAdminDeleteModal();
       renderAdminScreen();
       updateBreadcrumbUI('admin');
@@ -679,6 +722,9 @@
       Object.assign(teacherDirectory, JSON.parse(JSON.stringify(defaultTeacherDirectorySnapshot)));
 
       loadAdminPersistedDirectories();
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
+      if (typeof renderCalendar === 'function') renderCalendar();
       addAdminAuditLog('Directory Reset', 'Restored default 81 Students and 3 Faculty Instructors.', 'RESET');
       renderAdminScreen();
       updateBreadcrumbUI('admin');

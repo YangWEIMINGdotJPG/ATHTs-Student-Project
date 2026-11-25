@@ -303,6 +303,7 @@
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Students?$/i))) return `แสดงนักศึกษา ${m[1]} คน`;
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Teachers?$/i))) return `แสดงอาจารย์ ${m[1]} ท่าน`;
         if ((m = trimmed.match(/^Showing\s+(\d+)\s+Users?$/i))) return `แสดงผู้ใช้ทั้งหมด ${m[1]} คน`;
+        if ((m = trimmed.match(/^(\d+)\s+Courses?\s*•\s*(\d+)\s+Projects?\s*•\s*(\d+)\s+Tasks?$/i))) return `${m[1]} วิชา • ${m[2]} โปรเจกต์ • ${m[3]} งาน`;
         if ((m = trimmed.match(/^(\d+)\s+Enrolled\s+Courses?$/i))) return `ลงทะเบียน ${m[1]} รายวิชา`;
         if ((m = trimmed.match(/^(\d+)\s+Active\s+Subjects?$/i))) return `เรียน ${m[1]} วิชา`;
         if ((m = trimmed.match(/^(\d+)\s+Tasks?\s+in\s+this\s+course$/i))) return `${m[1]} งานในวิชานี้`;
@@ -322,6 +323,7 @@
         if ((m = trimmed.match(/^แสดงนักศึกษา\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Students`;
         if ((m = trimmed.match(/^แสดงอาจารย์\s+(\d+)\s+ท่าน$/))) return `Showing ${m[1]} Teachers`;
         if ((m = trimmed.match(/^แสดงผู้ใช้ทั้งหมด\s+(\d+)\s+คน$/))) return `Showing ${m[1]} Users`;
+        if ((m = trimmed.match(/^(\d+)\s+วิชา\s*•\s*(\d+)\s+โปรเจกต์\s*•\s*(\d+)\s+งาน$/))) return `${m[1]} Courses • ${m[2]} Projects • ${m[3]} Tasks`;
         if ((m = trimmed.match(/^ลงทะเบียน\s+(\d+)\s+รายวิชา$/))) return `${m[1]} Enrolled Courses`;
         if ((m = trimmed.match(/^เรียน\s+(\d+)\s+วิชา$/))) return `${m[1]} Active Subjects`;
         if ((m = trimmed.match(/^(\d+)\s+งานในวิชานี้$/))) return `${m[1]} Tasks in this course`;

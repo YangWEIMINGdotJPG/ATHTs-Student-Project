@@ -623,8 +623,11 @@
             saveStoredProjects(studentProjectsList);
           }
         }
-        if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
-        if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+        if (typeof syncAllATHTData === 'function') syncAllATHTData();
+        else {
+          if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+          if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+        }
       }
 
       alertMessage("Assessment task updated successfully! Publish date updated to current date.");
@@ -1535,20 +1538,6 @@
                   <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
                     ${escapeHtml(item.description)}
                   </p>
-                  ${(item.members && item.members.length > 0) ? `
-                  <div class="flex items-center gap-2 mt-2">
-                    <div class="flex -space-x-1.5">
-                      ${item.members.slice(0, 4).map(name => `
-                        <span title="${escapeHtml(name)}" class="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-sky-300 border border-white dark:border-neutral-900 ring-1 ring-blue-200/70 dark:ring-blue-800/60 flex items-center justify-center text-[9px] font-bold">
-                          ${escapeHtml(name.charAt(0).toUpperCase())}
-                        </span>
-                      `).join('')}
-                      ${item.members.length > 4 ? `
-                        <span class="w-5 h-5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-white dark:border-neutral-900 flex items-center justify-center text-[9px] font-bold">+${item.members.length - 4}</span>
-                      ` : ''}
-                    </div>
-                    <span class="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">${item.members.length} ${item.members.length === 1 ? 'Member' : 'Members'}</span>
-                  </div>` : ''}
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 pt-2 mt-1 border-t border-neutral-200/70 dark:border-neutral-800 sm:border-t-0 sm:pt-0 sm:mt-0 sm:col-span-4 sm:grid-cols-2">
@@ -1815,8 +1804,8 @@
           if (t.id === editId || matchingTasks.length === 1) t.title = title;
           t.due = due;
         });
-        if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
-        saveCoursesCatalog();
+        if (typeof syncAllATHTData === 'function') syncAllATHTData();
+        else saveCoursesCatalog();
         closeTeacherAddTaskModal();
         renderTeacherReviewScreen();
         alertMessage(`Project "${title}" updated!`);
@@ -1863,8 +1852,11 @@
           [curStd.id]: { submitted: false, score: 'Pending', status: 'Pending', file: '', submittedAt: '', revisions: [] }
         }
       });
-      if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
-      saveCoursesCatalog();
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      else {
+        if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+        saveCoursesCatalog();
+      }
 
       closeTeacherAddTaskModal();
       renderTeacherReviewScreen();
@@ -1881,8 +1873,11 @@
         const confirmRemove = confirm(`No task selected. Do you want to remove the last task: "${course.tasks[course.tasks.length - 1].title}"?`);
         if (confirmRemove) {
           const removed = course.tasks.pop();
-          if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
-          if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+          if (typeof syncAllATHTData === 'function') syncAllATHTData();
+          else {
+            if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+            if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+          }
           renderTeacherReviewScreen();
           alertMessage(`Removed task: "${removed.title}"`);
         }
@@ -1893,8 +1888,11 @@
       if (taskIndex !== -1) {
         const removed = course.tasks.splice(taskIndex, 1)[0];
         selectedTeacherAssessmentTaskId = null;
-        if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
-        if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+        if (typeof syncAllATHTData === 'function') syncAllATHTData();
+        else {
+          if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+          if (typeof saveCoursesCatalog === 'function') saveCoursesCatalog();
+        }
         renderTeacherReviewScreen();
         alertMessage(`Task "${removed.title}" removed successfully!`);
       }
