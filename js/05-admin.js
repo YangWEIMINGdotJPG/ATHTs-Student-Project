@@ -493,6 +493,13 @@
 
       if (mode === 'edit' && userId) {
         document.getElementById('adminFormOriginalId').value = userId;
+        const passInput = document.getElementById('adminFormPasswordInput');
+        if (passInput) {
+          passInput.value = '';
+          passInput.placeholder = typeof currentLanguage !== 'undefined' && currentLanguage === 'th'
+            ? 'เว้นว่างไว้หากไม่เปลี่ยนรหัสผ่าน'
+            : 'Leave blank to keep current password';
+        }
         if (targetRole === 'teacher') {
           const t = teacherDirectory[userId];
           if (!t) return;
@@ -523,6 +530,11 @@
         }
       } else {
         document.getElementById('adminFormOriginalId').value = '';
+        const passInput = document.getElementById('adminFormPasswordInput');
+        if (passInput) {
+          passInput.value = '';
+          passInput.placeholder = targetRole === 'teacher' ? 'Default: teacher1234' : 'Default: student1234';
+        }
         if (titleEl) titleEl.innerText = targetRole === 'teacher' ? 'Add New Teacher / Instructor' : 'Add New Student';
         if (submitBtn) submitBtn.innerText = targetRole === 'teacher' ? 'Create Teacher Account' : 'Create Student Account';
         document.getElementById('adminFormStatusInput').value = 'Active';
@@ -543,6 +555,10 @@
 
     function handleSaveAdminUser(e) {
       if (e && e.preventDefault) e.preventDefault();
+      if (currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) {
+        alertMessage('Only System Admin can modify user accounts.');
+        return;
+      }
 
       const mode = document.getElementById('adminFormMode').value;
       const origId = document.getElementById('adminFormOriginalId').value;
@@ -552,6 +568,7 @@
       const fullName = (document.getElementById('adminFormFullNameInput').value || '').trim();
       let shortName = (document.getElementById('adminFormShortNameInput').value || '').trim();
       const email = (document.getElementById('adminFormEmailInput').value || '').trim();
+      const rawCustomPass = (document.getElementById('adminFormPasswordInput')?.value || '').trim();
 
       if (!rawId || !fullName || !email) {
         alertMessage('Please fill in all required fields.');
@@ -571,6 +588,7 @@
         const courses = mode === 'edit' ? checkedCourses : (checkedCourses.length > 0 ? checkedCourses : []);
 
         const keyId = mode === 'edit' && origId ? origId : (email.split('@')[0].toLowerCase() || rawId.toLowerCase());
+        const existingTchPass = teacherDirectory[keyId]?.password || 'teacher1234';
         teacherDirectory[keyId] = {
           id: keyId,
           fullName,
@@ -583,6 +601,7 @@
           faculty: 'Faculty of Industrial Education and Technology',
           specialization: spec,
           courses,
+          password: rawCustomPass || existingTchPass,
           status,
           _adminEdited: true
         };
@@ -628,6 +647,7 @@
           });
         }
 
+        const prevStuPass = (origId && studentDirectory[origId]?.password) || studentDirectory[rawId]?.password || 'student1234';
         studentDirectory[rawId] = {
           id: rawId,
           fullName,
@@ -637,6 +657,7 @@
           major,
           dept: 'Department of Applied Computer Science - Multimedia',
           year,
+          password: rawCustomPass || prevStuPass,
           status
         };
 
@@ -704,6 +725,7 @@
     }
 
     function confirmAdminDeleteUser() {
+      if (currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) return;
       if (!pendingAdminDeleteUser) return;
       const { role, id, name } = pendingAdminDeleteUser;
 
@@ -742,6 +764,7 @@
     }
 
     function adminImpersonateUser(role, id) {
+      if (currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) return;
       if (role === 'teacher') {
         currentUserRole = 'teacher';
         localStorage.setItem('atht_user_role', 'teacher');
@@ -760,6 +783,7 @@
     }
 
     function switchRoleFromAdmin(targetRole) {
+      if (currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) return;
       if (targetRole === 'teacher') {
         const firstTeacherId = Object.keys(teacherDirectory)[0] || 'suripong.ler';
         adminImpersonateUser('teacher', firstTeacherId);
@@ -879,9 +903,13 @@
           : 0;
         const taskCount = Array.isArray(c.tasks) ? c.tasks.length : 0;
         const isHiddenStu = c.studentVisibility === 'hidden';
+        const isEnrolledOnly = c.studentVisibility === 'enrolled';
+        const enrolledCount = Array.isArray(c.enrolledStudentIds) ? c.enrolledStudentIds.length : 0;
         const stuBadge = isHiddenStu
           ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">${isTh ? 'ซ่อนจากนักศึกษา' : 'Hidden from Students'}</span>`
-          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">${isTh ? 'ซิงค์นักศึกษาทุกคน' : 'Synced: All Students'}</span>`;
+          : (isEnrolledOnly
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">${isTh ? `เฉพาะลงทะเบียน (${enrolledCount} คน)` : `Enrolled Only (${enrolledCount})`}</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">${isTh ? 'ซิงค์นักศึกษาทุกคน' : 'Synced: All Students'}</span>`);
 
         const teachersHtml = assignedTeachers.length > 0
           ? assignedTeachers.map(t => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50">👨‍🏫 ${escapeHtml(t.shortName || t.fullName)}</span>`).join(' ')
@@ -920,6 +948,74 @@
       }).join('');
     }
 
+    let tempAdminCourseSelectedStudents = new Set();
+    let adminCourseStudentsInitialized = false;
+
+    function onAdminCourseVisibilityChange(visVal) {
+      const sec = document.getElementById('adminCourseStudentsSection');
+      if (sec) {
+        sec.classList.toggle('hidden', visVal !== 'enrolled');
+      }
+    }
+
+    function updateAdminCourseSelectedStudentsCount() {
+      const cntEl = document.getElementById('adminCourseSelectedStudentsCount');
+      if (cntEl) cntEl.innerText = String(tempAdminCourseSelectedStudents.size);
+    }
+
+    function onAdminCourseStudentCheckboxChange(studentId, checked) {
+      if (checked) tempAdminCourseSelectedStudents.add(studentId);
+      else tempAdminCourseSelectedStudents.delete(studentId);
+      updateAdminCourseSelectedStudentsCount();
+    }
+
+    function filterAdminCourseStudentsList() {
+      renderAdminCourseStudentsChecklist();
+    }
+
+    function renderAdminCourseStudentsChecklist() {
+      const box = document.getElementById('adminCourseStudentsCheckboxes');
+      if (!box) return;
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+      const query = (document.getElementById('adminCourseStudentSearchInput')?.value || '').toLowerCase().trim();
+      const students = Object.values(studentDirectory || {})
+        .sort((a, b) => String(a.id).localeCompare(String(b.id), undefined, { numeric: true }))
+        .filter(s => {
+          if (!s) return false;
+          if (!query) return true;
+          return String(s.id || '').toLowerCase().includes(query)
+            || String(s.fullName || '').toLowerCase().includes(query)
+            || String(s.shortName || '').toLowerCase().includes(query);
+        });
+
+      updateAdminCourseSelectedStudentsCount();
+      if (students.length === 0) {
+        box.innerHTML = `<p class="text-[11px] text-neutral-400 italic">${isTh ? 'ไม่พบรายชื่อนักศึกษาที่ค้นหา' : 'No students match your search.'}</p>`;
+        return;
+      }
+      box.innerHTML = students.map(s => {
+        const isEnrolled = tempAdminCourseSelectedStudents.has(s.id);
+        return `
+          <label class="flex items-center justify-between gap-2 p-2 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-700/80 cursor-pointer hover:border-blue-400 transition">
+            <span class="flex items-center gap-2 min-w-0">
+              <input type="checkbox" class="admin-course-student-cb rounded text-blue-600" value="${escapeHtml(s.id)}" ${isEnrolled ? 'checked' : ''} onchange="onAdminCourseStudentCheckboxChange('${escapeHtml(s.id)}', this.checked)" />
+              <span class="font-bold text-neutral-900 dark:text-white truncate">${escapeHtml(s.fullName)}</span>
+            </span>
+            <span class="text-[10px] font-mono text-neutral-400 shrink-0">${escapeHtml(s.id)}</span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function toggleAdminCourseAllStudents(checkAll) {
+      if (checkAll) {
+        Object.keys(studentDirectory || {}).forEach(id => tempAdminCourseSelectedStudents.add(id));
+      } else {
+        tempAdminCourseSelectedStudents.clear();
+      }
+      renderAdminCourseStudentsChecklist();
+    }
+
     function openAdminCourseModal(mode = 'create', courseCode = '') {
       const modal = document.getElementById('modalAdminCourseForm');
       if (!modal) return;
@@ -934,6 +1030,8 @@
       const schedInput = document.getElementById('adminCourseScheduleInput');
       const nameInput = document.getElementById('adminCourseTitleInput');
       const visSelect = document.getElementById('adminCourseStudentVisibilitySelect');
+      const stuSearch = document.getElementById('adminCourseStudentSearchInput');
+      if (stuSearch) stuSearch.value = '';
 
       const course = mode === 'edit' ? coursesCatalog[courseCode] : null;
       const deleteBtn = document.getElementById('adminCourseDeleteBtn');
@@ -951,14 +1049,19 @@
         if (nameInput) nameInput.value = course.title || '';
         if (schedInput) schedInput.value = course.schedule || 'Wednesday (13:30 - 16:30)';
         if (visSelect) visSelect.value = course.studentVisibility || 'all';
+        tempAdminCourseSelectedStudents = new Set(Array.isArray(course.enrolledStudentIds) ? course.enrolledStudentIds : []);
       } else {
         if (titleEl) titleEl.innerText = isTh ? 'เพิ่มรายวิชาใหม่' : 'Add New Course';
         if (submitBtn) submitBtn.innerText = isTh ? 'สร้างและซิงค์รายวิชา' : 'Create & Sync Course';
         if (codeInput) codeInput.value = '';
         if (nameInput) nameInput.value = '';
         if (schedInput) schedInput.value = 'Wednesday (13:30 - 16:30)';
-        if (visSelect) visSelect.value = 'all';
+        if (visSelect) visSelect.value = 'enrolled';
+        tempAdminCourseSelectedStudents = new Set();
       }
+      onAdminCourseVisibilityChange(visSelect ? visSelect.value : 'enrolled');
+      adminCourseStudentsInitialized = true;
+      renderAdminCourseStudentsChecklist();
 
       const teachersBox = document.getElementById('adminCourseTeachersCheckboxes');
       if (teachersBox) {
@@ -987,6 +1090,7 @@
     }
 
     function closeAdminCourseModal() {
+      adminCourseStudentsInitialized = false;
       const modal = document.getElementById('modalAdminCourseForm');
       if (modal) modal.classList.add('hidden');
     }
@@ -1013,14 +1117,18 @@
       openAdminDeleteCourseModal(code, title);
     }
 
-    function handleSaveAdminCourse(e, overrideTeacherIds = null) {
+    function handleSaveAdminCourse(e, overrideTeacherIds = null, overrideStudentIds = null) {
       if (e && e.preventDefault) e.preventDefault();
+      if (currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) {
+        alertMessage('Only System Admin can create or edit courses.');
+        return;
+      }
       const mode = document.getElementById('adminCourseFormMode').value;
       const origCode = (document.getElementById('adminCourseOrigCode').value || '').trim().toUpperCase();
       const rawCode = (document.getElementById('adminCourseCodeInput').value || '').trim().toUpperCase().replace(/\s+/g, '');
       const title = (document.getElementById('adminCourseTitleInput').value || '').trim();
       const schedule = (document.getElementById('adminCourseScheduleInput').value || '').trim() || 'Wednesday (13:30 - 16:30)';
-      const studentVisibility = document.getElementById('adminCourseStudentVisibilitySelect').value || 'all';
+      const studentVisibility = document.getElementById('adminCourseStudentVisibilitySelect').value || 'enrolled';
 
       if (!rawCode || !title) {
         alertMessage(currentLanguage === 'th' ? 'กรุณากรอกรหัสวิชาและชื่อรายวิชาให้ครบ' : 'Please fill in Course Code and Course Title.');
@@ -1054,6 +1162,11 @@
       }
 
       const existing = coursesCatalog[rawCode] || {};
+      const enrolledStudentIds = Array.isArray(overrideStudentIds)
+        ? overrideStudentIds.filter(Boolean)
+        : (adminCourseStudentsInitialized
+            ? Array.from(tempAdminCourseSelectedStudents)
+            : (Array.isArray(existing.enrolledStudentIds) ? existing.enrolledStudentIds : []));
       coursesCatalog[rawCode] = {
         ...existing,
         code: rawCode,
@@ -1063,7 +1176,8 @@
         tasks: Array.isArray(existing.tasks) ? existing.tasks : [],
         isAdminCreated: existing.isAdminCreated !== undefined ? existing.isAdminCreated : (mode === 'create'),
         _adminManagedTeachers: true,
-        studentVisibility
+        studentVisibility,
+        enrolledStudentIds
       };
 
       Object.values(teacherDirectory || {}).forEach(t => {

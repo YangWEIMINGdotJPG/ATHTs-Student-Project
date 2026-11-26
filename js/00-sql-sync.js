@@ -417,6 +417,7 @@
   const LIVE_SAFE_INPUT_IDS = new Set([
     'replyInput',
     'teacherFeedbackNoteInput',
+    'tasksHubSearchInput',
     'projectsSearchInput',
     'teacherStudentSearchInput',
     'adminSearchInput',

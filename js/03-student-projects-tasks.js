@@ -1,3 +1,31 @@
+    function getCourseProgressForStudent(studentId, courseCode) {
+      const course = coursesCatalog[courseCode];
+      if (!course) return { done: 0, total: 0, pct: 0 };
+      const tasks = typeof getStudentTasksInCourse === 'function'
+        ? getStudentTasksInCourse(studentId, courseCode)
+        : (Array.isArray(course.tasks) ? course.tasks : []);
+      const total = tasks.length;
+      if (total === 0) return { done: 0, total: 0, pct: 0 };
+      let done = 0;
+      tasks.forEach(t => {
+        const sub = t.studentSubmissions && t.studentSubmissions[studentId];
+        const revs = sub && Array.isArray(sub.revisions) ? sub.revisions : [];
+        const latestRev = revs.length > 0 ? revs[revs.length - 1] : null;
+        const stStr = String((sub && sub.status) || t.status || '').toLowerCase();
+        const isRevision = (latestRev && latestRev.status === 'revision') || stStr.includes('revision');
+        const isCompleted = !isRevision && (
+          Boolean(sub && sub.submitted) ||
+          Boolean(latestRev && latestRev.status === 'complete') ||
+          Boolean(t.isFinished) ||
+          stStr.includes('graded') ||
+          stStr.includes('submitted') ||
+          (stStr.includes('finish') && !stStr.includes('unfinish'))
+        );
+        if (isCompleted) done++;
+      });
+      return { done, total, pct: Math.round((done / total) * 100) };
+    }
+
     function renderDashboardCourses() {
       const student = getCurrentStudent();
       const isThai = currentLanguage === 'th';
@@ -45,8 +73,10 @@
         ? getVisibleCourseCodesForCurrentRole()
         : Object.keys(coursesCatalog || {});
       visibleCodes.map(code => coursesCatalog[code]).filter(Boolean).forEach(c => {
-        const doneCount = c.tasks.filter(t => t.isFinished).length;
-        const pct = c.tasks.length > 0 ? Math.round((doneCount / c.tasks.length) * 100) : c.progress;
+        const prog = getCourseProgressForStudent(student.id, c.code);
+        const doneCount = prog.done;
+        const totalCount = prog.total;
+        const pct = prog.pct;
         const card = document.createElement('div');
         card.className = 'bg-white dark:bg-neutral-900 rounded-2xl p-4 sm:p-5 border border-neutral-200/90 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-neutral-400 transition pressable cursor-pointer space-y-3';
         card.onclick = () => selectCourse(c.code);
@@ -69,7 +99,7 @@
 
           <div class="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 flex items-center justify-between pt-0.5">
             <span>${escapeHtml(typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(c.schedule, currentLanguage) : c.schedule)}</span>
-            <span class="text-[10px] text-neutral-400 font-normal">${doneCount}/${c.tasks.length}</span>
+            <span class="text-[10px] text-neutral-400 font-normal">${doneCount}/${totalCount}</span>
           </div>
         `;
         container.appendChild(card);
@@ -112,6 +142,15 @@
           }
         };
 
+        const curStdCatalog = currentUserRole === 'student' ? getCurrentStudent() : null;
+        const courseProg = curStdCatalog
+          ? getCourseProgressForStudent(curStdCatalog.id, c.code)
+          : {
+              done: (c.tasks || []).filter(t => t && t.isFinished).length,
+              total: (c.tasks || []).length,
+              pct: (c.tasks || []).length > 0 ? Math.round(((c.tasks || []).filter(t => t && t.isFinished).length / c.tasks.length) * 100) : (c.progress || 0)
+            };
+
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div>
@@ -122,13 +161,13 @@
             <span class="text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded">${isThai ? 'ภาคเรียนที่ 1' : 'Semester 1'}</span>
           </div>
 
-          <div class="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100 space-y-1.5">
-            <div class="flex justify-between text-[10px] text-neutral-500 font-medium">
+          <div class="bg-neutral-50 dark:bg-neutral-800/60 p-2.5 rounded-xl border border-neutral-100 dark:border-neutral-700 space-y-1.5">
+            <div class="flex justify-between text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">
               <span>${isThai ? 'ความคืบหน้ารายวิชา' : 'Course Progress'}</span>
-              <span>${c.progress}%</span>
+              <span>${courseProg.pct}% (${courseProg.done}/${courseProg.total})</span>
             </div>
-            <div class="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
-              <div class="h-full bg-neutral-900 rounded-full" style="width: ${c.progress}%"></div>
+            <div class="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+              <div class="h-full bg-neutral-900 dark:bg-sky-400 rounded-full transition-all duration-500" style="width: ${courseProg.pct}%"></div>
             </div>
           </div>
 
@@ -182,6 +221,7 @@
     function openAllTasksHub() {
       activeTasksCourseFilter = null;
       activeTasksProjectFilter = null;
+      activeTasksFilter = 'all';
       navigateTo('tasks-hub');
     }
 
@@ -213,11 +253,25 @@
       const scheduleEl = document.getElementById('detailSchedule');
       if (scheduleEl) scheduleEl.innerText = typeof formatBilingualSchedule === 'function' ? formatBilingualSchedule(course.schedule || 'Wednesday 09:30 - 12:30', currentLanguage) : (course.schedule || 'Wednesday 09:30 - 12:30');
 
-      const totalItems = courseProjects.length > 0 ? courseProjects.length : course.tasks.length;
-      const completedItems = courseProjects.length > 0
+      let totalItems = courseProjects.length > 0 ? courseProjects.length : course.tasks.length;
+      let completedItems = courseProjects.length > 0
         ? courseProjects.filter(p => ['Ready for Review', 'Completed', 'Complete', 'Approved'].includes(p.status)).length
         : course.tasks.filter(t => t.isFinished || (t.status && t.status.toLowerCase().includes('graded'))).length;
-      const progressPct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+      let progressPct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+      if (currentUserRole === 'student' && typeof getCurrentStudent === 'function') {
+        const curStdDetail = getCurrentStudent();
+        const detailProg = getCourseProgressForStudent(curStdDetail.id, course.code);
+        if (detailProg.total > 0) {
+          totalItems = detailProg.total;
+          completedItems = detailProg.done;
+          progressPct = detailProg.pct;
+        } else if (courseProjects.length > 0) {
+          completedItems = courseProjects.filter(p => getStudentCourseTaskInfo(curStdDetail.id, course.code, p.id).submissionStatus === 'complete').length;
+          totalItems = courseProjects.length;
+          progressPct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+        }
+      }
 
       const totalTasksEl = document.getElementById('detailTotalTasksCount');
       if (totalTasksEl) totalTasksEl.innerText = totalItems;
@@ -2608,6 +2662,8 @@
       if (currentUserRole === 'teacher') {
         const allowedCodes = getTeacherAssignedCourseCodes();
         filtered = filtered.filter(p => allowedCodes.includes(p.course));
+      } else if (currentUserRole === 'student' && typeof isCourseVisibleToStudent === 'function') {
+        filtered = filtered.filter(p => isCourseVisibleToStudent(p.course));
       }
       if (activeProjectsFilter !== 'ALL') {
         filtered = filtered.filter(p => p.course === activeProjectsFilter);
@@ -2976,29 +3032,72 @@
       filterProjectsList();
     }
 
-    function removeProject(projectId) {
+    function canManageProjectDeletion(proj) {
+      if (!proj) return false;
+      if (currentUserRole === 'admin') return true;
+      if (currentUserRole === 'teacher') return false;
+      const curStd = typeof getCurrentStudent === 'function' ? getCurrentStudent() : null;
+      if (!curStd) return false;
+      if (proj.createdBy === curStd.id || proj.createdByName === curStd.shortName) return true;
+      const course = coursesCatalog && coursesCatalog[proj.course];
+      const linkedTask = course && Array.isArray(course.tasks) ? course.tasks.find(t => t && t.projectId === proj.id) : null;
+      if (linkedTask) {
+        if (linkedTask.createdBy === curStd.id) return true;
+        const leaderMember = Array.isArray(linkedTask.members) ? linkedTask.members.find(m => m && m.role === 'Leader') : null;
+        if (leaderMember && (leaderMember.id === curStd.id || leaderMember.name === curStd.shortName)) return true;
+      }
+      return false;
+    }
+
+    function removeProject(projectId, skipConfirm = false) {
       if (currentUserRole === 'teacher') {
         alertMessage("Teachers do not have permission to remove projects.");
-        return;
+        return false;
       }
       const p = studentProjectsList.find(x => x.id === projectId);
-      if (!p) return;
+      if (!p) return false;
+      if (!canManageProjectDeletion(p)) {
+        const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        alertMessage(isTh
+          ? 'เฉพาะหัวหน้ากลุ่ม (ผู้สร้างกลุ่ม) หรือผู้ดูแลระบบเท่านั้นที่สามารถลบโปรเจกต์นี้ได้'
+          : 'Only the group Leader (creator) or Admin can delete this project.');
+        return false;
+      }
 
       const confirmText = currentLanguage === 'th'
-        ? `คุณต้องการลบโปรเจกต์ "${p.title}" ใช่หรือไม่?`
-        : `Are you sure you want to remove project "${p.title}"?`;
+        ? `คุณต้องการลบกลุ่ม/โปรเจกต์ "${p.title}" และงานทั้งหมดในกลุ่มใช่หรือไม่?`
+        : `Are you sure you want to remove group/project "${p.title}" and its tasks?`;
 
-      if (confirm(confirmText)) {
+      if (skipConfirm || confirm(confirmText)) {
         studentProjectsList = studentProjectsList.filter(x => x.id !== projectId);
         Object.values(coursesCatalog || {}).forEach(c => {
           if (c && Array.isArray(c.tasks)) {
             c.tasks = c.tasks.filter(t => t.projectId !== projectId);
           }
         });
+        if (activeProjectId === projectId) activeProjectId = null;
+        if (activeTasksProjectFilter === projectId) activeTasksProjectFilter = null;
         syncAllATHTData();
-        alertMessage(currentLanguage === 'th' ? `ลบโปรเจกต์ "${p.title}" แล้ว` : `Project "${p.title}" removed.`);
-        filterProjectsList();
+        if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+          setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+        }
+        alertMessage(currentLanguage === 'th' ? `ลบกลุ่ม/โปรเจกต์ "${p.title}" เรียบร้อยแล้ว` : `Project "${p.title}" removed.`);
+        if (currentScreen === 'projects') {
+          filterProjectsList();
+        } else if (currentScreen === 'tasks-hub' || currentScreen === 'task-detail') {
+          navigateTo('course-detail');
+        } else if (currentScreen === 'course-detail') {
+          renderCourseDetailPage();
+        }
+        return true;
       }
+      return false;
+    }
+
+    function deleteActiveProjectFromHub() {
+      const targetProjId = activeTasksProjectFilter || activeProjectId;
+      if (!targetProjId) return;
+      removeProject(targetProjId, false);
     }
 
     function localizeTaskHubStatus(statusStr, isThai) {
@@ -3045,6 +3144,33 @@
         addBtn.classList.toggle('hidden', !isProjectTaskMode || currentUserRole === 'teacher');
         addBtn.innerHTML = `<span>+</span><span>${isThai ? 'เพิ่มงาน' : 'Add Task'}</span>`;
       }
+      const delProjBtn = document.getElementById('btnAllTasksDeleteProject');
+      const delProjLbl = document.getElementById('btnAllTasksDeleteProjectLabel');
+      const targetProj = activeTasksProjectFilter
+        ? (studentProjectsList || []).find(p => p && p.id === activeTasksProjectFilter)
+        : null;
+      if (delProjBtn) {
+        const showDel = Boolean(isProjectTaskMode && targetProj && canManageProjectDeletion(targetProj));
+        delProjBtn.classList.toggle('hidden', !showDel);
+      }
+      if (delProjLbl) {
+        delProjLbl.innerText = isThai ? 'ลบกลุ่ม / โปรเจกต์' : 'Delete Group / Project';
+      }
+
+      const searchEl = document.getElementById('tasksHubSearchInput');
+      if (searchEl) {
+        searchEl.placeholder = isThai
+          ? 'ค้นหาชื่องาน, รหัสวิชา, สถานะ หรือชื่อสมาชิก...'
+          : 'Search task, course code, status, member...';
+      }
+      const sortEl = document.getElementById('tasksHubSortSelect');
+      if (sortEl && sortEl.options && sortEl.options.length >= 5) {
+        sortEl.options[0].text = isThai ? '📅 เรียง: กำหนดส่งใกล้สุด' : '📅 Sort: Due Date (Earliest)';
+        sortEl.options[1].text = isThai ? '📚 เรียง: รหัสวิชา (A-Z)' : '📚 Sort: Course Code (A-Z)';
+        sortEl.options[2].text = isThai ? '⚡ เรียง: สถานะงาน' : '⚡ Sort: Task Status';
+        sortEl.options[3].text = isThai ? '🕒 เรียง: ประกาศล่าสุด' : '🕒 Sort: Newest Published';
+        sortEl.options[4].text = isThai ? '🔤 เรียง: ชื่องาน (ก-ฮ / A-Z)' : '🔤 Sort: Title (A-Z)';
+      }
 
       const container = document.getElementById('globalTasksListContainer');
       if (!container) return;
@@ -3062,34 +3188,113 @@
 
       let allTasks = [];
       Object.entries(coursesCatalog).forEach(([cCode, cData]) => {
-        if (currentUserRole === 'student' && cData && cData.studentVisibility === 'hidden') return;
+        if (currentUserRole === 'student' && typeof isCourseVisibleToStudent === 'function' && !isCourseVisibleToStudent(cCode, curStd.id)) return;
         if (activeTasksCourseFilter && cCode !== activeTasksCourseFilter) return;
-        cData.tasks.forEach(t => {
+        (cData.tasks || []).forEach(t => {
           if (activeTasksProjectFilter && t.projectId !== activeTasksProjectFilter) return;
           if (currentUserRole === 'student' && !isMyTask(t)) return;
-          allTasks.push({ ...t, courseCode: cCode, courseTitle: cData.title });
+          const projRef = (studentProjectsList || []).find(p => p && p.id === t.projectId);
+          allTasks.push({
+            ...t,
+            courseCode: cCode,
+            courseTitle: cData.title,
+            projectTitle: projRef ? projRef.title : ''
+          });
         });
       });
 
       const isTaskDoneForUser = (t) => {
         const st = computeTaskStatus(t, t.courseCode);
-        return st === 'Finished' || st.startsWith('Graded');
+        return st === 'Finished' || st === 'Submitted' || st.startsWith('Graded');
       };
-      let filtered = allTasks;
 
       const unfinishedCount = allTasks.filter(t => !isTaskDoneForUser(t)).length;
+      const completedCount = allTasks.filter(t => isTaskDoneForUser(t)).length;
       const unfinBtnSpan = document.querySelector('#tabFilterUnfinished span');
       if (unfinBtnSpan) unfinBtnSpan.innerText = isThai ? `ยังไม่เสร็จ (${unfinishedCount})` : `Unfinished (${unfinishedCount})`;
       const allBtnSpan = document.querySelector('#tabFilterAll span');
       if (allBtnSpan) allBtnSpan.innerText = isThai ? `ทั้งหมด (${allTasks.length})` : `All (${allTasks.length})`;
+      const compBtnSpan = document.querySelector('#tabFilterCompleted span');
+      if (compBtnSpan) compBtnSpan.innerText = isThai ? `ส่งแล้ว (${completedCount})` : `Completed (${completedCount})`;
+
+      let filtered = allTasks;
+      if (activeTasksFilter === 'unfinished') {
+        filtered = filtered.filter(t => !isTaskDoneForUser(t));
+      } else if (activeTasksFilter === 'completed') {
+        filtered = filtered.filter(t => isTaskDoneForUser(t));
+      }
+
+      const query = (searchEl ? searchEl.value : '').toLowerCase().trim();
+      if (query) {
+        filtered = filtered.filter(t => {
+          const stStr = computeTaskStatus(t, t.courseCode);
+          const stLocalized = localizeTaskHubStatus(stStr, isThai);
+          const hay = [
+            t.courseCode,
+            t.courseTitle,
+            t.projectTitle,
+            t.title,
+            t.description,
+            stStr,
+            stLocalized,
+            ...(t.members || []).map(m => `${m.id || ''} ${m.name || ''}`)
+          ].join(' ').toLowerCase();
+          return hay.includes(query);
+        });
+      }
+
+      const sortMode = sortEl ? sortEl.value : 'due_asc';
+      const parseDueMs = (str) => {
+        if (!str) return Number.MAX_SAFE_INTEGER;
+        if (typeof parseTaskDueDate === 'function') {
+          const info = parseTaskDueDate(str);
+          if (info) return new Date(info.year, info.month, info.day, 23, 59).getTime();
+        }
+        const cleaned = String(str).replace(/\sat\s/i, ' ').replace(/[()]/g, ' ');
+        const ts = Date.parse(cleaned);
+        return Number.isNaN(ts) ? Number.MAX_SAFE_INTEGER : ts;
+      };
+      const getStatusSortRank = (t) => {
+        const st = computeTaskStatus(t, t.courseCode).toLowerCase();
+        if (st.includes('revision') || st.includes('รอแก้')) return 0;
+        if (!st.includes('finished') && !st.includes('graded') && !st.includes('submitted')) return 1;
+        if (st === 'finished' || st === 'submitted') return 2;
+        return 3;
+      };
+
+      filtered = [...filtered].sort((a, b) => {
+        if (sortMode === 'course_asc') {
+          const cmp = String(a.courseCode || '').localeCompare(String(b.courseCode || ''));
+          if (cmp !== 0) return cmp;
+          return parseDueMs(a.due) - parseDueMs(b.due);
+        }
+        if (sortMode === 'status') {
+          const rCmp = getStatusSortRank(a) - getStatusSortRank(b);
+          if (rCmp !== 0) return rCmp;
+          return parseDueMs(a.due) - parseDueMs(b.due);
+        }
+        if (sortMode === 'newest') {
+          const pA = Date.parse(String(a.publishDate || '')) || 0;
+          const pB = Date.parse(String(b.publishDate || '')) || 0;
+          if (pB !== pA) return pB - pA;
+          return String(b.id || '').localeCompare(String(a.id || ''));
+        }
+        if (sortMode === 'title_asc') {
+          return String(a.title || '').localeCompare(String(b.title || ''), isThai ? 'th' : 'en');
+        }
+        // default 'due_asc'
+        const dCmp = parseDueMs(a.due) - parseDueMs(b.due);
+        if (dCmp !== 0) return dCmp;
+        return String(a.courseCode || '').localeCompare(String(b.courseCode || ''));
+      });
 
       ['unfinished', 'all', 'completed'].forEach(f => {
         const btn = document.getElementById(`tabFilter${f.charAt(0).toUpperCase() + f.slice(1)}`);
         if (btn) {
           if (f === activeTasksFilter) {
-            btn.className = 'px-2 sm:px-4 py-1.5 rounded-full bg-white text-neutral-900 font-extrabold shadow-xs transition pressable whitespace-nowrap';
+            btn.className = 'px-3 py-1.5 rounded-full bg-white text-neutral-900 font-extrabold shadow-xs transition pressable whitespace-nowrap';
           } else {
-            btn.className = 'px-2 sm:px-4 py-1.5 rounded-full text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 transition pressable font-bold whitespace-nowrap';
+            btn.className = 'px-3 py-1.5 rounded-full text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 transition pressable font-bold whitespace-nowrap';
           }
         }
       });
@@ -3139,6 +3344,10 @@
     function setTasksFilter(filter) {
       activeTasksFilter = filter;
       renderGlobalTasksHub();
+    }
+
+    function setTasksHubFilter(filter) {
+      setTasksFilter(filter);
     }
 
     let activeNotificationFilterTab = 'all';

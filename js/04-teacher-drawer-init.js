@@ -2159,6 +2159,16 @@
       alertMessage(`Evaluation & grade for ${currentStudent.shortName} saved!`);
     }
 
+    let activeModalGroupCanManage = true;
+
+    function getTaskCurrentLeaderId(task) {
+      if (!task) return '';
+      const explicitLeader = (task.members || []).find(m => m && m.role === 'Leader');
+      if (explicitLeader && explicitLeader.id) return explicitLeader.id;
+      if (task.members && task.members[0] && task.members[0].id) return task.members[0].id;
+      return task.createdBy || '';
+    }
+
     function openMemberEditModalForTask(taskId) {
       editingTaskId = taskId;
       let targetTask = null;
@@ -2171,14 +2181,58 @@
       }
 
       if (!targetTask) return;
+      if (targetTask.projectId) activeProjectId = targetTask.projectId;
+
+      const leaderId = getTaskCurrentLeaderId(targetTask);
+      const curStd = typeof getCurrentStudent === 'function' ? getCurrentStudent() : null;
+      const isLeaderOrCreator = Boolean(curStd && (curStd.id === leaderId || curStd.id === targetTask.createdBy));
+      activeModalGroupCanManage = (currentUserRole === 'admin') || (currentUserRole === 'student' && isLeaderOrCreator);
 
       document.getElementById('modalTaskTargetSubtitle').innerText = `${targetTask.title} Team`;
-      tempModalMembers = JSON.parse(JSON.stringify(targetTask.members || []));
+      tempModalMembers = JSON.parse(JSON.stringify(targetTask.members || [])).map((m, idx) => ({
+        ...m,
+        role: m.role === 'Leader' || (idx === 0 && !(targetTask.members || []).some(x => x && x.role === 'Leader')) ? 'Leader' : 'Member'
+      }));
+
+      const hintEl = document.getElementById('modalMemberLeaderHint');
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+      if (hintEl) {
+        hintEl.innerText = activeModalGroupCanManage
+          ? (isTh ? '👑 หัวหน้ากลุ่ม (Leader) สามารถโอนสิทธิ์ให้สมาชิกคนอื่น หรือลบกลุ่ม/โปรเจกต์ที่สร้างขึ้นเองได้' : '👑 Group Leader can transfer leadership to any member or delete the created group/project.')
+          : (isTh ? '🔒 ดูรายชื่อสมาชิก (เฉพาะหัวหน้ากลุ่มหรือแอดมินเท่านั้นที่แก้ไข/โอนสิทธิ์หรือลบกลุ่มได้)' : '🔒 Read-only team view (Only the Group Leader or Admin can edit, transfer leadership, or delete).');
+      }
+
+      const addBtn = document.getElementById('btnAddMemberInModal');
+      const remBtn = document.getElementById('btnRemoveMemberInModal');
+      const saveBtn = document.getElementById('btnSaveMembersInModal');
+      const delGroupBtn = document.getElementById('btnDeleteGroupInModal');
+      const delGroupLbl = document.getElementById('btnDeleteGroupInModalLabel');
+      if (addBtn) addBtn.classList.toggle('hidden', !activeModalGroupCanManage);
+      if (remBtn) remBtn.classList.toggle('hidden', !activeModalGroupCanManage);
+      if (saveBtn) saveBtn.classList.toggle('hidden', !activeModalGroupCanManage);
+      if (delGroupBtn) {
+        const linkedProj = (studentProjectsList || []).find(p => p && (p.id === targetTask.projectId || p.id === activeProjectId));
+        const canDel = activeModalGroupCanManage && (Boolean(linkedProj) || currentUserRole === 'admin' || currentUserRole === 'student');
+        delGroupBtn.classList.toggle('hidden', !canDel);
+      }
+      if (delGroupLbl) {
+        delGroupLbl.innerText = isTh ? 'ลบกลุ่ม / โปรเจกต์' : 'Delete Group';
+      }
 
       renderModalMembersList();
 
       const modal = document.getElementById('modalMemberEdit');
       if (modal) modal.classList.remove('hidden');
+    }
+
+    function transferModalMemberLeadership(idx) {
+      if (!activeModalGroupCanManage) return;
+      if (idx < 0 || idx >= tempModalMembers.length) return;
+      const chosen = tempModalMembers.splice(idx, 1)[0];
+      chosen.role = 'Leader';
+      tempModalMembers.forEach(m => { m.role = 'Member'; });
+      tempModalMembers.unshift(chosen);
+      renderModalMembersList();
     }
 
     function renderModalMembersList() {
@@ -2187,35 +2241,46 @@
       container.innerHTML = '';
 
       const allStudents = Object.values(studentDirectory);
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
 
       tempModalMembers.forEach((m, idx) => {
+        const isLeader = m.role === 'Leader' || idx === 0;
         const row = document.createElement('div');
-        row.className = 'flex items-center gap-2 bg-white dark:bg-neutral-800 p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-2xs';
+        row.className = 'flex flex-wrap sm:flex-nowrap items-center gap-2 bg-white dark:bg-neutral-800 p-2 rounded-xl border ' +
+          (isLeader ? 'border-amber-300 dark:border-amber-700' : 'border-neutral-200 dark:border-neutral-700') +
+          ' shadow-2xs';
 
         const optionsHtml = allStudents.map(s => {
           const isSel = s.id === m.id || (m.name && s.shortName.toLowerCase() === m.name.toLowerCase());
           return `<option value="${s.id}" ${isSel ? 'selected' : ''}>${escapeHtml(s.shortName)} (${s.id})</option>`;
         }).join('');
 
+        const disabledAttr = activeModalGroupCanManage ? '' : 'disabled';
         row.innerHTML = `
-          <div class="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50 flex items-center justify-center text-[10px] font-bold shrink-0">
-            ${m.name ? m.name.charAt(0) : '?'}
+          <div class="w-7 h-7 rounded-full ${isLeader ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border-blue-200/70 dark:border-blue-800/50'} border flex items-center justify-center text-[10px] font-bold shrink-0">
+            ${isLeader ? '👑' : (m.name ? escapeHtml(m.name.charAt(0)) : '?')}
           </div>
-          <div class="flex-1 min-w-0">
-            <select onchange="updateModalMemberStudent(${idx}, this.value)" class="w-full bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white rounded-lg px-2 py-1.5 border border-neutral-200 dark:border-neutral-700 focus:outline-none">
+          <div class="flex-1 min-w-[140px]">
+            <select ${disabledAttr} onchange="updateModalMemberStudent(${idx}, this.value)" class="w-full bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white rounded-lg px-2 py-1.5 border border-neutral-200 dark:border-neutral-700 focus:outline-none">
               ${optionsHtml}
             </select>
           </div>
-          <select onchange="updateModalMemberRole(${idx}, this.value)" class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-[10px] font-semibold rounded-lg px-2 py-1.5 border border-neutral-200 dark:border-neutral-700 focus:outline-none">
-            <option value="Leader" ${m.role === 'Leader' ? 'selected' : ''}>Leader</option>
-            <option value="Member" ${m.role === 'Member' ? 'selected' : ''}>Member</option>
+          <select ${disabledAttr} onchange="updateModalMemberRole(${idx}, this.value)" class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-[10px] font-semibold rounded-lg px-2 py-1.5 border border-neutral-200 dark:border-neutral-700 focus:outline-none">
+            <option value="Leader" ${isLeader ? 'selected' : ''}>👑 Leader</option>
+            <option value="Member" ${!isLeader ? 'selected' : ''}>Member</option>
           </select>
+          ${(!isLeader && activeModalGroupCanManage) ? `
+            <button type="button" onclick="transferModalMemberLeadership(${idx})" title="${isTh ? 'โอนสิทธิ์หัวหน้ากลุ่มให้คนนี้' : 'Transfer Leadership'}" class="px-2 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold whitespace-nowrap transition">
+              ${isTh ? 'ตั้งเป็นหัวหน้า' : 'Make Leader'}
+            </button>
+          ` : ''}
         `;
         container.appendChild(row);
       });
     }
 
     function updateModalMemberStudent(idx, studentId) {
+      if (!activeModalGroupCanManage) return;
       const prof = getStudentProfile(studentId);
       if (tempModalMembers[idx] && prof) {
         tempModalMembers[idx].id = prof.id;
@@ -2231,12 +2296,22 @@
     }
 
     function updateModalMemberRole(idx, val) {
+      if (!activeModalGroupCanManage) return;
       if (tempModalMembers[idx]) {
-        tempModalMembers[idx].role = val;
+        if (val === 'Leader') {
+          transferModalMemberLeadership(idx);
+        } else {
+          tempModalMembers[idx].role = val;
+          if (!tempModalMembers.some(m => m.role === 'Leader') && tempModalMembers.length > 0) {
+            tempModalMembers[0].role = 'Leader';
+          }
+          renderModalMembersList();
+        }
       }
     }
 
     function addMemberToModal() {
+      if (!activeModalGroupCanManage) return;
       const existingIds = new Set(tempModalMembers.map(m => m.id));
       const available = Object.values(studentDirectory).filter(s => !existingIds.has(s.id));
       const nextStudent = available.length > 0
@@ -2252,6 +2327,7 @@
     }
 
     function removeLastMemberFromModal() {
+      if (!activeModalGroupCanManage) return;
       if (tempModalMembers.length > 1) {
         tempModalMembers.pop();
         renderModalMembersList();
@@ -2260,7 +2336,52 @@
       }
     }
 
+    function deleteActiveGroupProjectFromModal(skipConfirm = false) {
+      if (!activeModalGroupCanManage) return;
+      let targetTask = null;
+      let targetCourse = null;
+      for (const c of Object.values(coursesCatalog || {})) {
+        const found = (c.tasks || []).find(t => t.id === editingTaskId);
+        if (found) {
+          targetTask = found;
+          targetCourse = c;
+          break;
+        }
+      }
+      const targetProjId = (targetTask && targetTask.projectId) || activeProjectId;
+      const linkedProj = targetProjId ? (studentProjectsList || []).find(p => p && p.id === targetProjId) : null;
+      if (linkedProj && typeof removeProject === 'function') {
+        const deleted = removeProject(linkedProj.id, skipConfirm);
+        if (deleted) {
+          editingTaskId = null;
+          closeMemberEditModal();
+        }
+        return;
+      }
+      if (targetTask && targetCourse) {
+        const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        if (skipConfirm || confirm(isTh ? `ลบงานกลุ่ม "${targetTask.title}" ใช่หรือไม่?` : `Delete group task "${targetTask.title}"?`)) {
+          targetCourse.tasks = targetCourse.tasks.filter(t => t.id !== targetTask.id);
+          editingTaskId = null;
+          syncAllATHTData();
+          if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+            setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+          }
+          closeMemberEditModal();
+          navigateTo('course-detail');
+          alertMessage(isTh ? 'ลบงานกลุ่มเรียบร้อยแล้ว' : 'Group task deleted.');
+        }
+      }
+    }
+
     function saveMembersFromModal() {
+      if (!activeModalGroupCanManage) {
+        closeMemberEditModal();
+        return;
+      }
+      let targetProjId = activeProjectId;
+      let newLeaderProfile = null;
+
       if (editingCourseCode) {
         const course = coursesCatalog[editingCourseCode];
         if (course) {
@@ -2271,7 +2392,15 @@
         for (const c of Object.values(coursesCatalog)) {
           const found = c.tasks.find(t => t.id === editingTaskId);
           if (found) {
-            const normalizedMembers = JSON.parse(JSON.stringify(tempModalMembers)).map((m, idx) => {
+            if (found.projectId) targetProjId = found.projectId;
+            const prevLeaderId = getTaskCurrentLeaderId(found);
+            const orderedRaw = [...tempModalMembers];
+            const leaderIdx = orderedRaw.findIndex(m => m && m.role === 'Leader');
+            if (leaderIdx > 0) {
+              const promoted = orderedRaw.splice(leaderIdx, 1)[0];
+              orderedRaw.unshift(promoted);
+            }
+            const normalizedMembers = JSON.parse(JSON.stringify(orderedRaw)).map((m, idx) => {
               const mp = getStudentProfile(m.id || m.name);
               return {
                 id: mp.id,
@@ -2282,7 +2411,10 @@
               };
             });
             const primaryId = normalizedMembers[0] && normalizedMembers[0].id;
-            const relatedTasks = primaryId ? c.tasks.filter(t => t.id === editingTaskId || t.createdBy === primaryId || (t.members || []).some(m => m.id === primaryId)) : [found];
+            newLeaderProfile = primaryId ? getStudentProfile(primaryId) : null;
+            const relatedTasks = found.projectId
+              ? c.tasks.filter(t => t.id === editingTaskId || (t.projectId === found.projectId && (!prevLeaderId || t.createdBy === prevLeaderId || (t.members || []).some(m => m.id === prevLeaderId))))
+              : [found];
             relatedTasks.forEach(t => {
               t.members = JSON.parse(JSON.stringify(normalizedMembers));
               if (primaryId) t.createdBy = primaryId;
@@ -2294,15 +2426,34 @@
         editingTaskId = null;
       }
 
-      const activeProj = studentProjectsList.find(p => p.id === activeProjectId);
+      const activeProj = studentProjectsList.find(p => p.id === targetProjId || p.id === activeProjectId);
       if (activeProj && tempModalMembers.length > 0) {
-        activeProj.members = tempModalMembers.map(m => `${m.id || ''} ${m.name}`.trim());
+        const orderedRaw = [...tempModalMembers];
+        const leaderIdx = orderedRaw.findIndex(m => m && m.role === 'Leader');
+        if (leaderIdx > 0) {
+          const promoted = orderedRaw.splice(leaderIdx, 1)[0];
+          orderedRaw.unshift(promoted);
+        }
+        activeProj.members = orderedRaw.map(m => {
+          const mp = getStudentProfile(m.id || m.name);
+          return `${mp.id || ''} ${mp.shortName || m.name}`.trim();
+        });
+        if (newLeaderProfile) {
+          activeProj.createdBy = newLeaderProfile.id;
+          activeProj.createdByName = newLeaderProfile.shortName;
+        }
         saveStoredProjects(studentProjectsList);
       }
       ensureRelationalIntegrity();
       saveCoursesCatalog();
+      if (window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+        setTimeout(() => window.__ATHT_SQL_SYNC.flushNow(), 20);
+      }
       closeMemberEditModal();
-      alertMessage("Team roster saved successfully!");
+      const isTh = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+      alertMessage(isTh
+        ? (newLeaderProfile ? `บันทึกทีมและตั้ง ${newLeaderProfile.shortName} เป็นหัวหน้ากลุ่มเรียบร้อย!` : 'บันทึกรายชื่อสมาชิกกลุ่มเรียบร้อย!')
+        : (newLeaderProfile ? `Team saved! Group Leader: ${newLeaderProfile.shortName}` : 'Team roster saved successfully!'));
 
       if (currentScreen === 'course-detail') {
         renderCourseDetailPage();
@@ -2479,6 +2630,7 @@
       localStorage.removeItem('atht_current_screen');
       localStorage.removeItem('atht_user_role');
       localStorage.removeItem('atht_student_id');
+      localStorage.removeItem('atht_teacher_id');
       localStorage.removeItem('atht_active_course');
       localStorage.removeItem('atht_active_task');
       navigationHistory = [];
@@ -2498,10 +2650,6 @@
       updateThemeIcons(document.documentElement.classList.contains('dark'));
 
       const urlParams = new URLSearchParams(window.location.search);
-      const queryScreen = urlParams.get('screen') || urlParams.get('page');
-      const queryRole = urlParams.get('role');
-      const queryCourse = urlParams.get('course');
-      const queryTask = urlParams.get('task');
       const isEmbed = urlParams.get('embed') === 'true' || urlParams.get('embed') === '1';
 
       if (isEmbed) {
@@ -2514,31 +2662,28 @@
         }
       }
 
-      if (queryScreen) {
-        if (queryRole) {
-          currentUserRole = queryRole;
-        } else if (queryScreen === 'admin') {
-          currentUserRole = 'admin';
-        } else if (queryScreen.startsWith('teacher')) {
-          currentUserRole = 'teacher';
-        } else {
-          currentUserRole = 'student';
-        }
-        if (queryCourse) activeCourseId = queryCourse;
-        if (queryTask) activeTaskId = queryTask;
-
-        if (queryScreen !== 'login') {
-          localStorage.setItem('atht_is_logged_in', 'true');
-          localStorage.setItem('atht_user_role', currentUserRole);
-        }
-        navigateTo(queryScreen, false);
-        return;
-      }
-
       const isLoggedIn = localStorage.getItem('atht_is_logged_in') === 'true';
 
       if (isLoggedIn) {
-        currentUserRole = localStorage.getItem('atht_user_role') || 'student';
+        const savedRole = localStorage.getItem('atht_user_role');
+        if (!savedRole || !['student', 'teacher', 'admin'].includes(savedRole)) {
+          confirmSignOut();
+          return;
+        }
+        if (savedRole === 'teacher') {
+          const tid = localStorage.getItem('atht_teacher_id');
+          if (!tid || !teacherDirectory[tid] || (teacherDirectory[tid].status || 'Active') === 'Inactive') {
+            confirmSignOut();
+            return;
+          }
+        } else if (savedRole === 'student') {
+          const sid = localStorage.getItem('atht_student_id');
+          if (!sid || !studentDirectory[sid] || (studentDirectory[sid].status || 'Active') === 'Inactive') {
+            confirmSignOut();
+            return;
+          }
+        }
+        currentUserRole = savedRole;
         activeCourseId = localStorage.getItem('atht_active_course') || 'CMM321';
         activeTaskId = localStorage.getItem('atht_active_task') || 'cmm321-t1';
 
