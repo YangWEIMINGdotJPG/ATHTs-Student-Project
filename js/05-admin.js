@@ -394,6 +394,10 @@
       const stdGroup = document.getElementById('adminStudentFieldsGroup');
       const tchGroup = document.getElementById('adminTeacherFieldsGroup');
       const isEdit = document.getElementById('adminFormMode').value === 'edit';
+      const resetWrap = document.getElementById('adminFormResetPassSetupWrap');
+      const passHint = document.getElementById('adminFormPasswordHint');
+      if (resetWrap) resetWrap.classList.toggle('hidden', !(isEdit && role === 'student'));
+      if (passHint) passHint.classList.toggle('hidden', role === 'teacher');
 
       const titleEl = document.getElementById('adminModalTitle');
       const submitBtn = document.getElementById('adminFormSubmitBtn');
@@ -491,6 +495,11 @@
       const titleEl = document.getElementById('adminModalTitle');
       const submitBtn = document.getElementById('adminFormSubmitBtn');
 
+      const resetWrap = document.getElementById('adminFormResetPassSetupWrap');
+      const resetCb = document.getElementById('adminFormResetPassSetupCheckbox');
+      if (resetCb) resetCb.checked = false;
+      if (resetWrap) resetWrap.classList.toggle('hidden', !(mode === 'edit' && targetRole === 'student'));
+
       if (mode === 'edit' && userId) {
         document.getElementById('adminFormOriginalId').value = userId;
         const passInput = document.getElementById('adminFormPasswordInput');
@@ -533,7 +542,9 @@
         const passInput = document.getElementById('adminFormPasswordInput');
         if (passInput) {
           passInput.value = '';
-          passInput.placeholder = targetRole === 'teacher' ? 'Default: teacher1234' : 'Default: student1234';
+          passInput.placeholder = targetRole === 'teacher'
+            ? 'Default: teacher1234'
+            : 'เว้นว่างให้นักศึกษาตั้งรหัสเองครั้งแรก';
         }
         if (titleEl) titleEl.innerText = targetRole === 'teacher' ? 'Add New Teacher / Instructor' : 'Add New Student';
         if (submitBtn) submitBtn.innerText = targetRole === 'teacher' ? 'Create Teacher Account' : 'Create Student Account';
@@ -647,7 +658,31 @@
           });
         }
 
-        const prevStuPass = (origId && studentDirectory[origId]?.password) || studentDirectory[rawId]?.password || 'student1234';
+        const resetToPending = Boolean(document.getElementById('adminFormResetPassSetupCheckbox')?.checked);
+        const existingStuObj = (origId && studentDirectory[origId]) || studentDirectory[rawId];
+        let finalStuPass = '';
+        let nextStuActivated = false;
+        let nextPendingSetup = false;
+
+        if (resetToPending) {
+          finalStuPass = '';
+          nextStuActivated = false;
+          nextPendingSetup = true;
+        } else if (rawCustomPass) {
+          finalStuPass = rawCustomPass;
+          nextStuActivated = rawCustomPass !== 'student1234';
+          nextPendingSetup = false;
+        } else if (mode === 'create') {
+          // Newly created by Admin without preset password -> student sets own password on first login
+          finalStuPass = '';
+          nextStuActivated = false;
+          nextPendingSetup = true;
+        } else {
+          finalStuPass = existingStuObj?.password !== undefined ? existingStuObj.password : 'student1234';
+          nextStuActivated = Boolean(existingStuObj?.passwordActivated || (finalStuPass && finalStuPass !== 'student1234'));
+          nextPendingSetup = Boolean(existingStuObj?.pendingPasswordSetup && !nextStuActivated);
+        }
+
         studentDirectory[rawId] = {
           id: rawId,
           fullName,
@@ -657,7 +692,9 @@
           major,
           dept: 'Department of Applied Computer Science - Multimedia',
           year,
-          password: rawCustomPass || prevStuPass,
+          password: finalStuPass,
+          passwordActivated: nextStuActivated,
+          pendingPasswordSetup: nextPendingSetup,
           status
         };
 
