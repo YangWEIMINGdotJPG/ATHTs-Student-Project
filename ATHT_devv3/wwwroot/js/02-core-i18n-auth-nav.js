@@ -756,6 +756,13 @@
     }
 
     function toggleUserRole() {
+      if (currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) {
+        const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        alertMessage(isThai
+          ? 'ไม่สามารถสลับบทบาทได้โดยตรง กรุณาออกจากระบบแล้วเข้าสู่ระบบด้วยบัญชีที่มีสิทธิ์'
+          : 'Direct role switching is disabled. Please sign out and log in with your account credentials.');
+        return;
+      }
       if (currentUserRole === 'student') {
         currentUserRole = 'teacher';
         localStorage.setItem('atht_user_role', 'teacher');
@@ -792,60 +799,32 @@
     }
 
     function populateLoginDemoDropdowns() {
-      const stuSel = document.getElementById('loginDemoStudentSelect');
-      if (stuSel && typeof studentDirectory === 'object') {
-        const curVal = stuSel.value || '67080200501';
-        stuSel.innerHTML = Object.values(studentDirectory)
-          .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
-          .map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.id)} - ${escapeHtml(s.fullName)}</option>`)
-          .join('');
-        if (studentDirectory[curVal]) stuSel.value = curVal;
-      }
-      const tchSel = document.getElementById('loginDemoTeacherSelect');
-      if (tchSel && typeof teacherDirectory === 'object') {
-        const curVal = tchSel.value || 'suripong.ler';
-        tchSel.innerHTML = Object.values(teacherDirectory)
-          .map(t => {
-            const cText = Array.isArray(t.courses) && t.courses.length ? ` (${t.courses.join(', ')})` : '';
-            return `<option value="${escapeHtml(t.id)}">${escapeHtml(t.fullName)}${escapeHtml(cText)}</option>`;
-          })
-          .join('');
-        if (teacherDirectory[curVal]) tchSel.value = curVal;
-      }
+      // Quick demo role bypass dropdowns removed in favor of RBAC credential login.
     }
 
-    function onLoginDemoSelectChange(role, val) {
-      const emailInput = document.getElementById('loginEmail');
-      const passInput = document.getElementById('loginPassword');
-      if (role === 'teacher') {
-        const t = teacherDirectory[val];
-        if (emailInput) emailInput.value = t ? t.email : `${val}@kmutt.ac.th`;
-        if (passInput) passInput.value = 'teacher1234';
-        const prev = document.getElementById('loginDemoTeacherPreview');
-        if (prev) prev.innerText = val;
-      } else {
-        if (emailInput) emailInput.value = val;
-        if (passInput) passInput.value = 'student1234';
-        const prev = document.getElementById('loginDemoStudentPreview');
-        if (prev) prev.innerText = val;
+    function quickLoginAs(role, targetId = null) {
+      if (typeof window === 'undefined' || window.__ATHT_TEST_MODE !== true) {
+        const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+        alertMessage(isThai
+          ? 'กรุณากรอก Username/อีเมล และรหัสผ่านเพื่อเข้าสู่ระบบ'
+          : 'Please sign in with your Username/Email and Password.');
+        return;
       }
-    }
-
-    function quickLoginAs(role) {
       const emailInput = document.getElementById('loginEmail');
       const passInput = document.getElementById('loginPassword');
       if (role === 'admin') {
         if (emailInput) emailInput.value = 'admin@kmutt.ac.th';
-        if (passInput) passInput.value = 'admin1234';
+        if (passInput) passInput.value = localStorage.getItem('atht_admin_password') || 'admin1234';
       } else if (role === 'teacher') {
-        const tchVal = document.getElementById('loginDemoTeacherSelect')?.value || 'suripong.ler';
+        const tchVal = targetId || (typeof els !== 'undefined' && els.loginDemoTeacherSelect && els.loginDemoTeacherSelect.value) || 'suripong.ler';
         const t = teacherDirectory[tchVal];
         if (emailInput) emailInput.value = t ? t.email : `${tchVal}@kmutt.ac.th`;
-        if (passInput) passInput.value = 'teacher1234';
+        if (passInput) passInput.value = (t && t.password) || 'teacher1234';
       } else {
-        const stuVal = document.getElementById('loginDemoStudentSelect')?.value || '67080200501';
+        const stuVal = targetId || (typeof els !== 'undefined' && els.loginDemoStudentSelect && els.loginDemoStudentSelect.value) || '67080200501';
+        const s = studentDirectory[stuVal];
         if (emailInput) emailInput.value = stuVal;
-        if (passInput) passInput.value = 'student1234';
+        if (passInput) passInput.value = (s && s.password) || 'student1234';
       }
       handleLoginSubmit({ preventDefault: () => {} });
     }
@@ -859,7 +838,7 @@
       const isThai = currentLanguage === 'th';
 
       if (!rawInput) {
-        alertMessage(isThai ? 'กรุณากรอกอีเมลหรือรหัสนักศึกษา' : 'Please enter your email or student ID.');
+        alertMessage(isThai ? 'กรุณากรอกชื่อผู้ใช้ อีเมล หรือรหัสนักศึกษา' : 'Please enter your username, email, or student ID.');
         return;
       }
       if (!rawPass) {
@@ -867,69 +846,55 @@
         return;
       }
 
-      const isAdminInput = inputVal === 'admin' ||
-                           inputVal.startsWith('admin@') ||
-                           inputVal.includes('sysadmin') ||
-                           inputVal.includes('administrator');
-
-      const isTeacherInput = !isAdminInput && (
-                             inputVal.includes('teacher') ||
-                             inputVal.includes('prof') ||
-                             inputVal.includes('ajarn') ||
-                             inputVal.includes('suripong') ||
-                             inputVal.includes('nuttapong') ||
-                             inputVal.includes('akek') ||
-                             inputVal.includes('sl@') ||
-                             Boolean(teacherDirectory[inputVal]) ||
-                             Object.values(teacherDirectory).some(t => t.email.toLowerCase() === inputVal || t.facultyCode.toLowerCase() === inputVal) ||
-                             (inputVal.includes('@kmutt.ac.th') && !inputVal.includes('mail.kmutt.ac.th') && !inputVal.match(/\d{9,11}/))
-      );
+      const isAdminInput = inputVal === 'admin' || inputVal === 'admin@kmutt.ac.th';
 
       if (isAdminInput) {
-        if (rawPass !== 'admin1234') {
-          alertMessage(isThai ? 'รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง (รหัสทดลอง: admin1234)' : 'Invalid administrator password (Demo: admin1234).');
+        const expectedAdminPass = localStorage.getItem('atht_admin_password') || 'admin1234';
+        if (rawPass !== expectedAdminPass) {
+          alertMessage(isThai ? 'รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง' : 'Invalid administrator password.');
           return;
         }
         currentUserRole = 'admin';
         localStorage.setItem('atht_user_role', 'admin');
-      } else if (isTeacherInput) {
-        const teacherProfile = getTeacherProfile(rawInput);
-        const tchRec = teacherDirectory[teacherProfile.id];
-        if (!tchRec) {
-          alertMessage(isThai ? 'ไม่พบบัญชีอาจารย์นี้ในระบบ (อาจถูกลบโดยผู้ดูแลระบบ)' : 'Instructor account not found or removed by Administrator.');
-          return;
-        }
-        const expectedTchPass = tchRec.password || 'teacher1234';
-        if (rawPass !== expectedTchPass && rawPass !== 'teacher1234') {
-          alertMessage(isThai ? 'รหัสผ่านอาจารย์ไม่ถูกต้อง (รหัสทดลอง: teacher1234)' : 'Invalid instructor password (Demo: teacher1234).');
-          return;
-        }
-        if ((tchRec.status || 'Active') === 'Inactive') {
-          alertMessage(isThai ? 'บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin' : 'This account has been suspended by Administrator.');
-          return;
-        }
-        currentUserRole = 'teacher';
-        localStorage.setItem('atht_teacher_id', teacherProfile.id);
-        localStorage.setItem('atht_user_role', 'teacher');
       } else {
-        const studentProfile = getStudentProfile(rawInput);
-        const stuRec = studentDirectory[studentProfile.id];
-        if (!stuRec) {
-          alertMessage(isThai ? 'ไม่พบบัญชีนักศึกษานี้ในระบบ (อาจถูกลบโดยผู้ดูแลระบบ)' : 'Student account not found or removed by Administrator.');
-          return;
+        const tchRec = typeof findAuthTeacherAccount === 'function'
+          ? findAuthTeacherAccount(rawInput)
+          : (teacherDirectory[inputVal] || Object.values(teacherDirectory).find(t => t && t.email.toLowerCase() === inputVal));
+
+        if (tchRec) {
+          const expectedTchPass = tchRec.password || 'teacher1234';
+          if (rawPass !== expectedTchPass) {
+            alertMessage(isThai ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' : 'Invalid username or password.');
+            return;
+          }
+          if ((tchRec.status || 'Active') === 'Inactive') {
+            alertMessage(isThai ? 'บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin' : 'This account has been suspended by Administrator.');
+            return;
+          }
+          currentUserRole = 'teacher';
+          localStorage.setItem('atht_teacher_id', tchRec.id);
+          localStorage.setItem('atht_user_role', 'teacher');
+        } else {
+          const stuRec = typeof findAuthStudentAccount === 'function'
+            ? findAuthStudentAccount(rawInput)
+            : (studentDirectory[inputVal] || Object.values(studentDirectory).find(s => s && s.email.toLowerCase() === inputVal));
+          if (!stuRec) {
+            alertMessage(isThai ? 'ไม่พบบัญชีผู้ใช้งานนี้ในระบบ หรือรหัสผ่านไม่ถูกต้อง' : 'Account not found or invalid credentials.');
+            return;
+          }
+          const expectedStuPass = stuRec.password || 'student1234';
+          if (rawPass !== expectedStuPass) {
+            alertMessage(isThai ? 'รหัสผ่านไม่ถูกต้อง' : 'Invalid password.');
+            return;
+          }
+          if ((stuRec.status || 'Active') === 'Inactive') {
+            alertMessage(isThai ? 'บัญชีนักศึกษานี้ถูกระงับการใช้งาน กรุณาติดต่อ Admin' : 'This student account has been suspended by Administrator.');
+            return;
+          }
+          currentUserRole = 'student';
+          localStorage.setItem('atht_student_id', stuRec.id);
+          localStorage.setItem('atht_user_role', 'student');
         }
-        const expectedStuPass = stuRec.password || 'student1234';
-        if (rawPass !== expectedStuPass && rawPass !== 'student1234') {
-          alertMessage(isThai ? 'รหัสผ่านนักศึกษาไม่ถูกต้อง (รหัสทดลอง: student1234)' : 'Invalid student password (Demo: student1234).');
-          return;
-        }
-        if ((stuRec.status || 'Active') === 'Inactive') {
-          alertMessage(isThai ? 'บัญชีนักศึกษานี้ถูกระงับการใช้งาน กรุณาติดต่อ Admin' : 'This student account has been suspended by Administrator.');
-          return;
-        }
-        currentUserRole = 'student';
-        localStorage.setItem('atht_student_id', studentProfile.id);
-        localStorage.setItem('atht_user_role', 'student');
       }
 
       localStorage.setItem('atht_is_logged_in', 'true');

@@ -617,15 +617,55 @@ const coursesCatalog = {
       return Object.keys(coursesCatalog || {});
     }
 
+    function isCourseVisibleToStudent(courseCode, studentId = null) {
+      const c = coursesCatalog && coursesCatalog[courseCode];
+      if (!c) return false;
+      if (c.studentVisibility === 'hidden') return false;
+      if (c.studentVisibility === 'enrolled') {
+        const sid = studentId || localStorage.getItem('atht_student_id') || '67080200501';
+        const enrolled = Array.isArray(c.enrolledStudentIds) ? c.enrolledStudentIds : [];
+        return enrolled.includes(sid);
+      }
+      return true;
+    }
+
     function getVisibleCourseCodesForCurrentRole() {
       const allCodes = Object.keys(coursesCatalog || {});
       if (typeof currentUserRole !== 'undefined' && currentUserRole === 'teacher') {
         return getTeacherAssignedCourseCodes();
       }
       if (typeof currentUserRole !== 'undefined' && currentUserRole === 'student') {
-        return allCodes.filter(code => coursesCatalog[code] && coursesCatalog[code].studentVisibility !== 'hidden');
+        const sid = localStorage.getItem('atht_student_id') || '67080200501';
+        return allCodes.filter(code => isCourseVisibleToStudent(code, sid));
       }
       return allCodes;
+    }
+
+    function findAuthStudentAccount(identifier) {
+      if (!identifier || typeof studentDirectory !== 'object') return null;
+      const clean = String(identifier).trim().toLowerCase();
+      if (!clean) return null;
+      if (studentDirectory[clean]) return studentDirectory[clean];
+      const byExactEmail = Object.values(studentDirectory).find(s =>
+        s && s.email && s.email.toLowerCase() === clean
+      );
+      if (byExactEmail) return byExactEmail;
+      return null;
+    }
+
+    function findAuthTeacherAccount(identifier) {
+      if (!identifier || typeof teacherDirectory !== 'object') return null;
+      const clean = String(identifier).trim().toLowerCase();
+      if (!clean) return null;
+      if (teacherDirectory[clean]) return teacherDirectory[clean];
+      const byExactField = Object.values(teacherDirectory).find(t =>
+        t && (
+          (t.email && t.email.toLowerCase() === clean) ||
+          (t.facultyCode && t.facultyCode.toLowerCase() === clean)
+        )
+      );
+      if (byExactField) return byExactField;
+      return null;
     }
 
     function getTeacherProfile(identifier) {
@@ -696,6 +736,9 @@ const coursesCatalog = {
 
     function switchTeacherAccount(newId) {
       if (!newId) return;
+      if (typeof currentUserRole !== 'undefined' && currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) {
+        return;
+      }
       localStorage.setItem('atht_teacher_id', newId);
       const teacher = getTeacherProfile(newId);
       updateBreadcrumbUI(currentScreen);
@@ -726,6 +769,7 @@ const coursesCatalog = {
       const deptEl = document.getElementById('userProfileModalDept');
       const majorEl = document.getElementById('userProfileModalMajor');
       const switcherContainer = document.getElementById('userProfileModalSwitcherContainer');
+      if (switcherContainer) switcherContainer.classList.add('hidden');
 
       if (isAdmin) {
         if (iconEl) iconEl.innerHTML = '<span class="text-base">🛡️</span>';
@@ -739,23 +783,6 @@ const coursesCatalog = {
         if (mailtoEl) mailtoEl.href = 'mailto:admin@kmutt.ac.th';
         if (deptEl) deptEl.innerText = 'Department of Applied Computer Science - Multimedia';
         if (majorEl) majorEl.innerText = 'System Directory & Access Control Management';
-        if (switcherContainer) {
-          switcherContainer.classList.remove('hidden');
-          const labelEl = switcherContainer.querySelector('label');
-          if (labelEl) labelEl.innerText = isThai ? 'สลับมุมมองพอร์ทัล (Admin / Teacher / Student)' : 'Quick Role Switch (Admin / Teacher / Student)';
-          const selectEl = document.getElementById('userProfileStudentSelect');
-          if (selectEl) {
-            selectEl.onchange = (e) => {
-              closeUserProfileModal();
-              quickLoginAs(e.target.value);
-            };
-            selectEl.innerHTML = `
-              <option value="admin" selected>🛡️ System Administrator (admin@kmutt.ac.th)</option>
-              <option value="teacher">👨‍🏫 Teacher Portal (Prof. Suripong L.)</option>
-              <option value="student">🎓 Student Portal (Chonchanok S. - 67080200501)</option>
-            `;
-          }
-        }
       } else if (isTeacher) {
         if (iconEl) iconEl.innerHTML = '<span class="text-base">👨‍🏫</span>';
         if (titleEl) titleEl.innerText = isThai ? 'ข้อมูลอาจารย์ผู้สอน' : 'Teacher Profile';
@@ -769,26 +796,6 @@ const coursesCatalog = {
         if (mailtoEl) mailtoEl.href = `mailto:${teacher.email}`;
         if (deptEl) deptEl.innerText = teacher.dept;
         if (majorEl) majorEl.innerText = `${teacher.faculty} (${teacher.specialization})`;
-
-        if (switcherContainer) {
-          switcherContainer.classList.remove('hidden');
-          const labelEl = switcherContainer.querySelector('label');
-          if (labelEl) labelEl.innerText = isThai ? 'สลับ / ทดสอบบัญชีอาจารย์ หรือเข้าหน้า Admin' : 'Switch Instructor Account / Open Admin Portal';
-          const selectEl = document.getElementById('userProfileStudentSelect');
-          if (selectEl) {
-            selectEl.onchange = (e) => {
-              if (e.target.value === '__ADMIN__') {
-                closeUserProfileModal();
-                quickLoginAs('admin');
-              } else {
-                switchTeacherAccount(e.target.value);
-              }
-            };
-            selectEl.innerHTML = Object.values(teacherDirectory).map(t =>
-              `<option value="${t.id}" ${t.id === teacher.id ? 'selected' : ''}>👨‍🏫 ${escapeHtml(t.fullName)} (${t.email})</option>`
-            ).join('') + `<option value="__ADMIN__">🛡️ Switch to System Admin Portal (Manage Users)</option>`;
-          }
-        }
       } else {
         if (iconEl) iconEl.innerHTML = '<img src="student-icon.png" alt="Student" class="w-5 h-5 object-contain" />';
         if (titleEl) titleEl.innerText = isThai ? 'ข้อมูลนักศึกษา' : 'Student Profile';
@@ -801,26 +808,6 @@ const coursesCatalog = {
         if (mailtoEl) mailtoEl.href = `mailto:${student.email}`;
         if (deptEl) deptEl.innerText = student.dept;
         if (majorEl) majorEl.innerText = student.major;
-
-        if (switcherContainer) {
-          switcherContainer.classList.remove('hidden');
-          const labelEl = switcherContainer.querySelector('label');
-          if (labelEl) labelEl.innerText = isThai ? `สลับรหัสนักศึกษา (${Object.keys(studentDirectory).length} คน) หรือเข้าหน้า Admin` : `Switch Student ID (${Object.keys(studentDirectory).length} Students) / Admin`;
-          const selectEl = document.getElementById('userProfileStudentSelect');
-          if (selectEl) {
-            selectEl.onchange = (e) => {
-              if (e.target.value === '__ADMIN__') {
-                closeUserProfileModal();
-                quickLoginAs('admin');
-              } else {
-                switchStudentAccount(e.target.value);
-              }
-            };
-            selectEl.innerHTML = `<option value="__ADMIN__">🛡️ Switch to System Admin Portal (Manage Users)</option>` + Object.values(studentDirectory).map(s =>
-              `<option value="${s.id}" ${s.id === student.id ? 'selected' : ''}>🎓 ${s.id} - ${escapeHtml(s.fullName)} (${s.email})</option>`
-            ).join('');
-          }
-        }
       }
 
       modal.classList.remove('hidden');
@@ -833,6 +820,9 @@ const coursesCatalog = {
 
     function switchStudentAccount(newId) {
       if (!newId) return;
+      if (typeof currentUserRole !== 'undefined' && currentUserRole !== 'admin' && (!window || window.__ATHT_TEST_MODE !== true)) {
+        return;
+      }
       localStorage.setItem('atht_student_id', newId);
       const student = getStudentProfile(newId);
       updateBreadcrumbUI(currentScreen);

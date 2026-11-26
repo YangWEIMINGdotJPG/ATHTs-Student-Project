@@ -171,7 +171,7 @@
         <div class="hidden lg:flex items-center gap-3 text-xs text-neutral-400 shrink-0 whitespace-nowrap">
           <span class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span id="sqlStatusLabel" class="font-medium text-neutral-600 dark:text-neutral-300">SQL Server Connected</span>
+            <span id="sqlStatusLabel" class="font-medium text-neutral-600 dark:text-neutral-300">KMUTT Connected</span>
           </span>
           <span>•</span>
           <span data-i18n="academicTerm" class="text-neutral-500 font-mono">Academic Term 1/2026</span>
@@ -246,46 +246,13 @@
                 </button>
               </form>
 
-              <div class="pt-5 mt-5 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
-                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">Quick Role Access (Demo Accounts)</span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div class="pt-4 mt-4 border-t border-neutral-100 dark:border-neutral-800">
+                <div class="flex items-start gap-2.5 p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/80 text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  <span class="text-sm shrink-0">🔒</span>
                   <div>
-                    <label for="loginDemoStudentSelect" class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 flex items-center gap-1 mb-1"><img src="student-icon.png" alt="Student" class="w-3.5 h-3.5 object-contain" /><span>เลือกนักศึกษา (81 คน)</span></label>
-                    <select id="loginDemoStudentSelect" onchange="onLoginDemoSelectChange('student', this.value)" class="w-full px-2.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                      <option value="67080200501">67080200501 - Chonchanok S.</option>
-                    </select>
+                    <span class="font-bold text-neutral-900 dark:text-white block">Role-Based Access Control (RBAC)</span>
+                    <span id="loginSecurityHint">กรุณาลงชื่อเข้าใช้ด้วย Username/รหัสนักศึกษา/อีเมล และรหัสผ่านของตนเอง ระบบจะกำหนดสิทธิ์ (Student / Teacher / Admin) ให้อัตโนมัติตามบัญชี</span>
                   </div>
-                  <div>
-                    <label for="loginDemoTeacherSelect" class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 block mb-1">👨‍🏫 เลือกอาจารย์ผู้สอน</label>
-                    <select id="loginDemoTeacherSelect" onchange="onLoginDemoSelectChange('teacher', this.value)" class="w-full px-2.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                      <option value="suripong.ler">Prof. Suripong Lertkul (CMM321, CMM320)</option>
-                      <option value="nuttapong.pra">Assoc. Prof. Nuttapong Prasert (CMM349, CMM390)</option>
-                      <option value="akek.pat">Asst. Prof. Akek Patt (CMM310, GEN121)</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                  <button type="button" onclick="quickLoginAs('student')" class="p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 hover:bg-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-left transition pressable group">
-                    <div class="flex items-center justify-between">
-                      <span class="inline-flex items-center gap-1.5 text-xs font-extrabold text-neutral-900 dark:text-white group-hover:text-blue-600"><img src="student-icon.png" alt="Student" class="w-4 h-4 object-contain" /><span>Student</span></span>
-                      <span class="text-[9px] text-neutral-400">→</span>
-                    </div>
-                    <span id="loginDemoStudentPreview" class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono truncate block mt-0.5">67080200501</span>
-                  </button>
-                  <button type="button" onclick="quickLoginAs('teacher')" class="p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 hover:bg-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-left transition pressable group">
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-extrabold text-neutral-900 dark:text-white group-hover:text-blue-600">👨‍🏫 Teacher</span>
-                      <span class="text-[9px] text-neutral-400">→</span>
-                    </div>
-                    <span id="loginDemoTeacherPreview" class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono truncate block mt-0.5">suripong.ler</span>
-                  </button>
-                  <button type="button" onclick="quickLoginAs('admin')" class="p-2.5 rounded-xl border border-neutral-900/20 dark:border-neutral-600 bg-neutral-900/5 hover:bg-neutral-900/10 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-left transition pressable group">
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-extrabold text-neutral-900 dark:text-white group-hover:text-orange-600">🛡️ Admin</span>
-                      <span class="text-[9px] text-neutral-400">→</span>
-                    </div>
-                    <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono truncate block mt-0.5">admin@kmutt</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -740,10 +707,35 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" id="btnAllTasksDeleteProject" onclick="deleteActiveProjectFromHub()" class="hidden px-3.5 py-2 rounded-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition pressable flex items-center gap-1.5 shrink-0">
+              <span>🗑</span>
+              <span id="btnAllTasksDeleteProjectLabel">Delete Group / Project</span>
+            </button>
             <button type="button" id="btnAllTasksAddTask" onclick="openStudentAddTaskModal()" class="hidden px-4 py-2 rounded-full genz-primary-btn text-xs font-bold transition pressable flex items-center gap-1.5 shrink-0 shadow-xs">
               <span>+</span>
               <span>Add Task</span>
             </button>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-neutral-900 rounded-2xl p-3 sm:p-4 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-full text-[11px] font-bold w-fit">
+            <button type="button" id="tabFilterAll" onclick="setTasksHubFilter('all')" class="px-3 py-1.5 rounded-full bg-white text-neutral-900 font-extrabold shadow-xs transition pressable whitespace-nowrap"><span>All (0)</span></button>
+            <button type="button" id="tabFilterUnfinished" onclick="setTasksHubFilter('unfinished')" class="px-3 py-1.5 rounded-full text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 transition pressable font-bold whitespace-nowrap"><span>Unfinished (0)</span></button>
+            <button type="button" id="tabFilterCompleted" onclick="setTasksHubFilter('completed')" class="px-3 py-1.5 rounded-full text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 transition pressable font-bold whitespace-nowrap"><span>Completed (0)</span></button>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 lg:max-w-xl lg:justify-end">
+            <div class="relative flex-1 min-w-[200px]">
+              <input type="text" id="tasksHubSearchInput" oninput="renderGlobalTasksHub()" placeholder="Search task, course code, status, member..." class="w-full px-3.5 py-2 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-neutral-900 dark:text-white placeholder:text-neutral-400" />
+            </div>
+            <select id="tasksHubSortSelect" onchange="renderGlobalTasksHub()" class="px-3 py-2 text-xs font-bold bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shrink-0">
+              <option value="due_asc">📅 Sort: Due Date (Earliest)</option>
+              <option value="course_asc">📚 Sort: Course Code (A-Z)</option>
+              <option value="status">⚡ Sort: Task Status</option>
+              <option value="newest">🕒 Sort: Newest Published</option>
+              <option value="title_asc">🔤 Sort: Title (A-Z)</option>
+            </select>
           </div>
         </div>
 
@@ -1310,7 +1302,7 @@
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <h3 class="text-xs sm:text-sm font-black text-neutral-900 dark:text-white">Cloud &amp; SQL Realtime Sync Bridge</h3>
-                <span id="adminSqlStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">● Connected to SQL Server</span>
+                <span id="adminSqlStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">● Firebase Cloud Ready</span>
               </div>
               <p class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-snug">ซิงค์ข้อมูลข้ามเครื่องอัตโนมัติผ่าน Firebase Cloud บน GitHub Pages หรือสลับไปเชื่อม SQL Server (ATHT_devv3) ด้วย URL เช่น http://localhost:5080</p>
             </div>
@@ -1650,13 +1642,20 @@
 
         <div id="modalMembersList" class="bg-neutral-50 dark:bg-neutral-800/60 rounded-2xl p-3.5 space-y-2.5 max-h-72 overflow-y-auto border border-neutral-200/80 dark:border-neutral-700/60"></div>
 
+        <div id="modalMemberLeaderHint" class="text-[11px] text-neutral-500 dark:text-neutral-400 px-1">
+          👑 หัวหน้ากลุ่ม (Leader) สามารถโอนสิทธิ์ให้สมาชิกคนอื่น หรือลบกลุ่ม/โปรเจกต์ที่สร้างขึ้นเองได้
+        </div>
+
         <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <button onclick="addMemberToModal()" class="px-3.5 py-2 text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50 rounded-xl transition pressable">
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnAddMemberInModal" onclick="addMemberToModal()" class="px-3.5 py-2 text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-sky-300 border border-blue-200/70 dark:border-blue-800/50 rounded-xl transition pressable">
               <span data-i18n="addMember">+ Add</span>
             </button>
-            <button onclick="removeLastMemberFromModal()" class="px-3.5 py-2 text-xs font-bold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/50 rounded-xl transition pressable">
+            <button id="btnRemoveMemberInModal" onclick="removeLastMemberFromModal()" class="px-3.5 py-2 text-xs font-bold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/50 rounded-xl transition pressable">
               <span data-i18n="removeMember">Remove</span>
+            </button>
+            <button id="btnDeleteGroupInModal" type="button" onclick="deleteActiveGroupProjectFromModal()" class="hidden px-3.5 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition pressable">
+              🗑 <span id="btnDeleteGroupInModalLabel">ลบกลุ่ม / โปรเจกต์</span>
             </button>
           </div>
 
@@ -1664,7 +1663,7 @@
             <button onclick="closeMemberEditModal()" class="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition">
               <span data-i18n="cancel">Cancel</span>
             </button>
-            <button onclick="saveMembersFromModal()" class="px-5 py-2 text-xs font-bold genz-primary-btn rounded-xl transition pressable">
+            <button id="btnSaveMembersInModal" onclick="saveMembersFromModal()" class="px-5 py-2 text-xs font-bold genz-primary-btn rounded-xl transition pressable">
               <span data-i18n="saveTeam">Save</span>
             </button>
           </div>
@@ -2357,9 +2356,15 @@
           </div>
         </div>
 
-        <div>
-          <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Linked KMUTT Email *</label>
-          <input type="email" id="adminFormEmailInput" required placeholder="e.g. somchai.pra@mail.kmutt.ac.th" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-neutral-800" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Linked KMUTT Email *</label>
+            <input type="email" id="adminFormEmailInput" required placeholder="e.g. somchai.pra@mail.kmutt.ac.th" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-neutral-800" />
+          </div>
+          <div>
+            <label id="adminFormPasswordLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Account Password</label>
+            <input type="password" id="adminFormPasswordInput" autocomplete="new-password" placeholder="Default: student1234 / teacher1234" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-neutral-800" />
+          </div>
         </div>
 
         <div id="adminStudentFieldsGroup" class="space-y-3 pt-1 border-t border-neutral-100 dark:border-neutral-800">
@@ -2504,11 +2509,25 @@
         </div>
 
         <div>
-          <label id="adminCourseStudentVisLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Student Visibility (การมองเห็นฝั่งนักศึกษา)</label>
-          <select id="adminCourseStudentVisibilitySelect" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold focus:outline-none">
-            <option value="all">Sync & Visible to All Students (แสดงให้นักศึกษาทุกคนเห็นทันที)</option>
-            <option value="hidden">Hidden from Students (ซ่อนจากนักศึกษา — เห็นเฉพาะ Admin & อาจารย์ที่เลือก)</option>
+          <label id="adminCourseStudentVisLabel" class="block font-bold text-neutral-700 dark:text-neutral-300 mb-1">Student Enrollment &amp; Visibility (การลงทะเบียนและการมองเห็นฝั่งนักศึกษา)</label>
+          <select id="adminCourseStudentVisibilitySelect" onchange="onAdminCourseVisibilityChange(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold focus:outline-none">
+            <option value="enrolled">Enrolled Students Only (แสดงเฉพาะนักศึกษาที่เลือกในรายวิชานี้)</option>
+            <option value="all">Sync &amp; Visible to All Students (แสดงให้นักศึกษาทุกคนเห็นทั้งหมด)</option>
+            <option value="hidden">Hidden from Students (ซ่อนจากนักศึกษา — เห็นเฉพาะ Admin &amp; อาจารย์ที่เลือก)</option>
           </select>
+        </div>
+
+        <div id="adminCourseStudentsSection">
+          <div class="flex items-center justify-between mb-1.5 gap-2">
+            <label id="adminCourseStudentsLabel" class="font-bold text-neutral-700 dark:text-neutral-300">Enrolled Students (<span id="adminCourseSelectedStudentsCount">0</span> Selected)</label>
+            <div class="flex items-center gap-2 text-[11px] shrink-0">
+              <button type="button" onclick="toggleAdminCourseAllStudents(true)" class="font-bold text-blue-600 dark:text-sky-400 hover:underline">Select All</button>
+              <span class="text-neutral-300">|</span>
+              <button type="button" onclick="toggleAdminCourseAllStudents(false)" class="font-semibold text-neutral-500 hover:underline">Clear</button>
+            </div>
+          </div>
+          <input type="text" id="adminCourseStudentSearchInput" oninput="filterAdminCourseStudentsList()" placeholder="Search student ID or name..." class="w-full mb-2 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div id="adminCourseStudentsCheckboxes" class="space-y-1.5 max-h-44 overflow-y-auto p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"></div>
         </div>
 
         <div class="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2.5">
@@ -2528,13 +2547,13 @@
       </form>
     </div>
   </div>
-
   <script src="/api/bootstrap.js" onerror="window.__ATHT_SQL_BOOTSTRAP=null"></script>
-  <script src="js/00-sql-sync.js?v=20261126e"></script>
-  <script src="js/01-data.js"></script>
-  <script src="js/02-core-i18n-auth-nav.js"></script>
-  <script src="js/03-student-projects-tasks.js?v=20261126e"></script>
-  <script src="js/04-teacher-drawer-init.js?v=20261126e"></script>
-  <script src="js/05-admin.js?v=20261126b"></script>
+
+  <script src="js/00-sql-sync.js?v=20261126f"></script>
+  <script src="js/01-data.js?v=20261126f"></script>
+  <script src="js/02-core-i18n-auth-nav.js?v=20261126f"></script>
+  <script src="js/03-student-projects-tasks.js?v=20261126f"></script>
+  <script src="js/04-teacher-drawer-init.js?v=20261126f"></script>
+  <script src="js/05-admin.js?v=20261126f"></script>
 </body>
 </html>
