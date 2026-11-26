@@ -882,14 +882,39 @@
             alertMessage(isThai ? 'ไม่พบบัญชีผู้ใช้งานนี้ในระบบ หรือรหัสผ่านไม่ถูกต้อง' : 'Account not found or invalid credentials.');
             return;
           }
-          const expectedStuPass = stuRec.password || 'student1234';
-          if (rawPass !== expectedStuPass) {
-            alertMessage(isThai ? 'รหัสผ่านไม่ถูกต้อง' : 'Invalid password.');
-            return;
-          }
           if ((stuRec.status || 'Active') === 'Inactive') {
             alertMessage(isThai ? 'บัญชีนักศึกษานี้ถูกระงับการใช้งาน กรุณาติดต่อ Admin' : 'This student account has been suspended by Administrator.');
             return;
+          }
+          if (stuRec.pendingPasswordSetup === true && !isStudentAccountActivated(stuRec)) {
+            if (rawPass.length < 4) {
+              alertMessage(isThai ? 'กรุณาตั้งรหัสผ่านอย่างน้อย 4 ตัวอักษรสำหรับการเข้าใช้งานครั้งแรก' : 'Please choose a password of at least 4 characters for your first login.');
+              return;
+            }
+            stuRec.password = rawPass;
+            stuRec.passwordActivated = true;
+            stuRec.pendingPasswordSetup = false;
+            stuRec.activatedAt = new Date().toISOString();
+            if (typeof saveAdminPersistedDirectories === 'function') saveAdminPersistedDirectories();
+            if (typeof addAdminAuditLog === 'function') {
+              addAdminAuditLog('Student First-Time Password Set', `${stuRec.id} - ${stuRec.fullName}`, 'AUTH');
+            }
+            if (typeof syncAllATHTData === 'function') syncAllATHTData();
+            if (typeof window !== 'undefined' && window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+              try { window.__ATHT_SQL_SYNC.flushNow(); } catch (_err) {}
+            }
+          } else {
+            const expectedStuPass = stuRec.password || 'student1234';
+            if (rawPass !== expectedStuPass) {
+              if (!isStudentAccountActivated(stuRec)) {
+                alertMessage(isThai
+                  ? `รหัสผ่านไม่ถูกต้อง หากเข้าใช้งานครั้งแรกด้วยรหัสผ่านใหม่ของตัวเอง กรุณากดแท็บ 'Sign Up' ด้านบน แล้วกรอกรหัส ${stuRec.id}`
+                  : `Invalid password. If setting your own password for the first time, use the 'Sign Up' tab with Student ID ${stuRec.id}.`);
+              } else {
+                alertMessage(isThai ? 'รหัสผ่านไม่ถูกต้อง' : 'Invalid password.');
+              }
+              return;
+            }
           }
           currentUserRole = 'student';
           localStorage.setItem('atht_student_id', stuRec.id);
@@ -918,6 +943,187 @@
         const student = getCurrentStudent();
         alertMessage(isThai ? `ยินดีต้อนรับ ${student.fullName}! (รหัส: ${student.id})` : `Welcome back, ${student.fullName}! (ID: ${student.id})`);
       }
+    }
+
+    function isStudentAccountActivated(stuRec) {
+      if (!stuRec) return false;
+      if (stuRec.passwordActivated === true) return true;
+      return Boolean(stuRec.password && stuRec.password !== 'student1234');
+    }
+
+    function switchAuthTab(tab = 'login') {
+      const isSignup = tab === 'signup';
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const heading = document.getElementById('authPanelHeading');
+      const btnLogin = document.getElementById('tabBtnLogin');
+      const btnSignup = document.getElementById('tabBtnSignup');
+
+      if (loginForm) loginForm.classList.toggle('hidden', isSignup);
+      if (signupForm) signupForm.classList.toggle('hidden', !isSignup);
+      if (heading) heading.innerText = isSignup ? 'SIGN UP' : 'LOGIN';
+
+      if (btnLogin && btnSignup) {
+        const activeCls = ['bg-white', 'dark:bg-neutral-900', 'text-neutral-900', 'dark:text-white', 'shadow-xs', 'font-extrabold'];
+        const idleCls = ['text-neutral-500', 'hover:text-neutral-900', 'dark:text-neutral-400', 'dark:hover:text-white', 'font-bold'];
+        if (isSignup) {
+          btnLogin.classList.remove(...activeCls);
+          btnLogin.classList.add(...idleCls);
+          btnSignup.classList.remove(...idleCls);
+          btnSignup.classList.add(...activeCls);
+        } else {
+          btnSignup.classList.remove(...activeCls);
+          btnSignup.classList.add(...idleCls);
+          btnLogin.classList.remove(...idleCls);
+          btnLogin.classList.add(...activeCls);
+        }
+      }
+      if (isSignup) previewSignUpStudentLookup();
+    }
+
+    function previewSignUpStudentLookup() {
+      const hintEl = document.getElementById('signupLookupHint');
+      const idInput = document.getElementById('signupStudentId');
+      if (!hintEl || !idInput) return;
+
+      const rawId = (idInput.value || '').trim();
+      hintEl.className = 'text-[11px] mt-1.5 leading-snug text-neutral-500 dark:text-neutral-400';
+
+      if (!rawId) {
+        hintEl.innerText = 'พิมพ์รหัสนักศึกษาที่มีชื่อในระบบเพื่อตั้งรหัสผ่านเข้าใช้บัญชีนั้น หรือพิมพ์รหัสใหม่เพื่อสร้างบัญชีนักศึกษาทันที';
+        return;
+      }
+
+      const lower = rawId.toLowerCase();
+      if (lower === 'admin' || lower === 'admin@kmutt.ac.th' || (typeof findAuthTeacherAccount === 'function' && findAuthTeacherAccount(rawId))) {
+        hintEl.className = 'text-[11px] mt-1.5 leading-snug text-red-600 dark:text-red-400 font-semibold';
+        hintEl.innerText = '⚠ ไม่สามารถลงทะเบียนหรืออ้างสิทธิ์บัญชีอาจารย์ / Admin ได้ กรุณาเข้าสู่ระบบที่แท็บ Login';
+        return;
+      }
+
+      const existing = (typeof studentDirectory !== 'undefined' && studentDirectory[rawId]) ||
+        (typeof findAuthStudentAccount === 'function' ? findAuthStudentAccount(rawId) : null);
+
+      if (existing) {
+        if (isStudentAccountActivated(existing)) {
+          hintEl.className = 'text-[11px] mt-1.5 leading-snug text-amber-600 dark:text-amber-400 font-semibold';
+          hintEl.innerText = `⚠ พบบัญชี ${existing.id} (${existing.fullName}) ที่เปิดใช้งานแล้ว กรุณาเข้าสู่ระบบที่แท็บ Login`;
+        } else {
+          hintEl.className = 'text-[11px] mt-1.5 leading-snug text-emerald-600 dark:text-emerald-400 font-semibold';
+          hintEl.innerText = `✓ พบรหัส ${existing.id} ในระบบ: ${existing.fullName} — ตั้งรหัสผ่านเพื่อเข้าใช้บัญชีนี้ได้เลย`;
+        }
+      } else {
+        hintEl.className = 'text-[11px] mt-1.5 leading-snug text-blue-600 dark:text-blue-400 font-semibold';
+        hintEl.innerText = `✨ ยังไม่พบรหัส "${rawId}" ในรายชื่อ — ตั้งรหัสผ่านเพื่อสร้างบัญชีนักศึกษาใหม่ด้วยรหัสนี้ทันที`;
+      }
+    }
+
+    function handleSignUpSubmit(e) {
+      if (e) e.preventDefault();
+      const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
+
+      const rawId = (document.getElementById('signupStudentId')?.value || '').trim();
+      const rawPass = document.getElementById('signupPassword')?.value || '';
+      const rawFullName = (document.getElementById('signupFullName')?.value || '').trim();
+      const rawEmail = (document.getElementById('signupEmail')?.value || '').trim();
+
+      if (!rawId || rawId.length < 3 || /\s/.test(rawId)) {
+        alertMessage(isThai ? 'กรุณากรอกรหัสนักศึกษาให้ถูกต้อง (อย่างน้อย 3 ตัวอักษร และไม่มีช่องว่าง)' : 'Please enter a valid Student ID (at least 3 characters, no spaces).');
+        return;
+      }
+
+      if (!rawPass || rawPass.length < 4) {
+        alertMessage(isThai ? 'กรุณาตั้งรหัสผ่านอย่างน้อย 4 ตัวอักษร' : 'Password must be at least 4 characters.');
+        return;
+      }
+
+      const lowerId = rawId.toLowerCase();
+      if (lowerId === 'admin' || lowerId === 'admin@kmutt.ac.th' || (typeof findAuthTeacherAccount === 'function' && (findAuthTeacherAccount(rawId) || (rawEmail && findAuthTeacherAccount(rawEmail))))) {
+        alertMessage(isThai ? 'ไม่สามารถลงทะเบียนทับบัญชีอาจารย์หรือ Admin ได้ กรุณาเข้าสู่ระบบผ่านหน้า Login' : 'Teacher and Admin accounts cannot be claimed or created via Sign Up.');
+        return;
+      }
+
+      const existingStu = (typeof studentDirectory !== 'undefined' && studentDirectory[rawId]) ||
+        (typeof findAuthStudentAccount === 'function' ? findAuthStudentAccount(rawId) : null);
+
+      let activeStudent = null;
+      let isClaimExisting = false;
+
+      if (existingStu) {
+        if ((existingStu.status || 'Active') === 'Inactive') {
+          alertMessage(isThai ? 'บัญชีนักศึกษานี้ถูกระงับการใช้งาน กรุณาติดต่อ Admin' : 'This student account is suspended. Please contact Administrator.');
+          return;
+        }
+        if (isStudentAccountActivated(existingStu)) {
+          alertMessage(isThai
+            ? `รหัสนักศึกษา ${existingStu.id} ถูกลงทะเบียนตั้งรหัสผ่านไปแล้ว กรุณาเข้าสู่ระบบที่หน้า Login หรือติดต่อ Admin หากลืมรหัสผ่าน`
+            : `Student ID ${existingStu.id} has already been activated. Please sign in on the Login tab or contact Admin.`);
+          return;
+        }
+
+        existingStu.password = rawPass;
+        existingStu.passwordActivated = true;
+        existingStu.pendingPasswordSetup = false;
+        existingStu.activatedAt = new Date().toISOString();
+        activeStudent = existingStu;
+        isClaimExisting = true;
+      } else {
+        if (rawEmail && typeof findAuthStudentAccount === 'function' && findAuthStudentAccount(rawEmail)) {
+          alertMessage(isThai
+            ? 'อีเมลนี้มีบัญชีในระบบแล้ว กรุณากรอกรหัสนักศึกษาของอีเมลนี้แทน'
+            : 'This email already belongs to an existing student account. Please sign up using that Student ID.');
+          return;
+        }
+
+        const finalName = rawFullName || `Student ${rawId}`;
+        const cleanWords = finalName.trim().split(/\s+/);
+        const initials = ((cleanWords[0]?.charAt(0) || 'S') + (cleanWords[1]?.charAt(0) || '')).toUpperCase();
+        const shortName = cleanWords.length > 1
+          ? `${cleanWords[0]} ${cleanWords[cleanWords.length - 1].charAt(0)}.`
+          : finalName;
+        const safeEmailLocal = rawId.toLowerCase().replace(/[^a-z0-9._-]/g, '');
+        const finalEmail = rawEmail || `${safeEmailLocal || 'student'}@mail.kmutt.ac.th`;
+
+        studentDirectory[rawId] = {
+          id: rawId,
+          fullName: finalName,
+          shortName,
+          email: finalEmail,
+          initials,
+          major: 'Applied Computer Science - Multimedia',
+          dept: 'Department of Applied Computer Science - Multimedia',
+          year: rawId.length >= 2 ? `ID ${rawId.slice(0, 2)}` : 'Student',
+          password: rawPass,
+          passwordActivated: true,
+          activatedAt: new Date().toISOString(),
+          status: 'Active'
+        };
+        activeStudent = studentDirectory[rawId];
+      }
+
+      if (typeof saveAdminPersistedDirectories === 'function') saveAdminPersistedDirectories();
+      if (typeof addAdminAuditLog === 'function') {
+        addAdminAuditLog(
+          isClaimExisting ? 'Student Claimed & Activated via Sign Up' : 'New Student Registered via Sign Up',
+          `${activeStudent.id} - ${activeStudent.fullName}`,
+          'AUTH'
+        );
+      }
+      if (typeof syncAllATHTData === 'function') syncAllATHTData();
+      if (typeof window !== 'undefined' && window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.flushNow === 'function') {
+        try { window.__ATHT_SQL_SYNC.flushNow(); } catch (_err) {}
+      }
+
+      currentUserRole = 'student';
+      localStorage.setItem('atht_student_id', activeStudent.id);
+      localStorage.setItem('atht_user_role', 'student');
+      localStorage.setItem('atht_is_logged_in', 'true');
+
+      navigateTo('dashboard');
+      alertMessage(isClaimExisting
+        ? (isThai ? `เปิดใช้งานบัญชี ${activeStudent.fullName} (${activeStudent.id}) และตั้งรหัสผ่านสำเร็จ!` : `Account activated! Signed in as ${activeStudent.fullName} (${activeStudent.id}).`)
+        : (isThai ? `สร้างบัญชีใหม่ ${activeStudent.fullName} (${activeStudent.id}) และเข้าสู่ระบบสำเร็จ!` : `Account created! Signed in as ${activeStudent.fullName} (${activeStudent.id}).`)
+      );
     }
 
     function buildRouteHash(screenId) {

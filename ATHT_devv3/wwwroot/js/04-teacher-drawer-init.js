@@ -2640,6 +2640,12 @@
       if (emailInput) emailInput.value = '';
       if (passInput) passInput.value = '';
 
+      ['signupStudentId', 'signupPassword', 'signupFullName', 'signupEmail'].forEach(fid => {
+        const el = document.getElementById(fid);
+        if (el) el.value = '';
+      });
+      if (typeof switchAuthTab === 'function') switchAuthTab('login');
+
       navigateTo('login', false);
       alertMessage(t('signedOutMsg', 'Signed out safely.'));
     }
