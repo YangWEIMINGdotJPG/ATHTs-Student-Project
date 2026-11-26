@@ -44,7 +44,7 @@
     })();
   </script>
 
-    <link rel="stylesheet" href="styles.css?v=20261126d">
+    <link rel="stylesheet" href="styles.css?v=20261126e">
 </head>
 <body class="min-h-screen text-neutral-800 antialiased bg-white flex flex-col m-0 p-0 overflow-x-hidden">
 
@@ -205,14 +205,38 @@
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-0 items-stretch w-full shadow-2xl rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
 
-          <div class="md:col-span-6 genz-hero-panel relative overflow-hidden p-8 sm:p-10 lg:p-12 flex flex-col items-center justify-center text-center space-y-5 text-white">
-            <div class="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-white/15 blur-2xl pointer-events-none"></div>
-            <div class="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
-            <div class="relative z-10 p-4 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-md shadow-xl">
-              <img src="atht-logo.png" onerror="this.onerror=null;this.src=ATHT_LOGO_URI;" alt="ATHT Logo" class="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg" />
+          <div id="loginHeroPanel" class="md:col-span-6 genz-hero-panel atht-login-hero relative overflow-hidden p-8 sm:p-10 lg:p-12 flex flex-col items-center justify-center text-center space-y-5 text-white">
+            <div class="atht-hero-aurora pointer-events-none" aria-hidden="true"></div>
+            <div class="atht-hero-orb atht-hero-orb-1 pointer-events-none" aria-hidden="true"></div>
+            <div class="atht-hero-orb atht-hero-orb-2 pointer-events-none" aria-hidden="true"></div>
+            <div class="atht-hero-orb atht-hero-orb-3 pointer-events-none" aria-hidden="true"></div>
+
+            <div class="atht-hero-sparks pointer-events-none" aria-hidden="true">
+              <span class="atht-hero-spark atht-hero-spark-1">✦</span>
+              <span class="atht-hero-spark atht-hero-spark-2">•</span>
+              <span class="atht-hero-spark atht-hero-spark-3">✦</span>
+              <span class="atht-hero-spark atht-hero-spark-4">•</span>
+              <span class="atht-hero-spark atht-hero-spark-5">✦</span>
             </div>
-            <div class="relative z-10 space-y-1.5 max-w-sm">
-              <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">ATHT Student Project</h1>
+
+            <div class="relative z-10 flex items-center justify-center">
+              <div class="atht-hero-ring atht-hero-ring-outer pointer-events-none" aria-hidden="true"></div>
+              <div class="atht-hero-ring atht-hero-ring-inner pointer-events-none" aria-hidden="true"></div>
+
+              <div id="loginHeroLogoCard" class="atht-hero-logo-card relative z-10 p-4 rounded-3xl bg-white/15 border border-white/30 backdrop-blur-md shadow-xl">
+                <img id="loginHeroLogoImg" src="atht-logo.png" onerror="this.onerror=null;this.src=ATHT_LOGO_URI;" alt="ATHT Logo" class="atht-hero-logo-img w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg" />
+              </div>
+            </div>
+
+            <div class="relative z-10 flex flex-col items-center space-y-2.5 max-w-sm">
+              <h1 class="atht-hero-title text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                ATHT Student Project
+              </h1>
+              <div class="atht-hero-accent-bar" aria-hidden="true"></div>
+              <div class="atht-hero-pill inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 backdrop-blur-sm text-[11px] font-semibold text-white/95 shadow-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-300 atht-hero-live-dot"></span>
+                <span>KMUTT • Academic Portal</span>
+              </div>
             </div>
           </div>
 
@@ -2602,11 +2626,11 @@
   </div>
 
   <script src="/api/bootstrap.js" onerror="window.__ATHT_SQL_BOOTSTRAP=null"></script>
-  <script src="js/00-sql-sync.js?v=20261126h"></script>
-  <script src="js/01-data.js?v=20261126h"></script>
-  <script src="js/02-core-i18n-auth-nav.js?v=20261126h"></script>
-  <script src="js/03-student-projects-tasks.js?v=20261126h"></script>
-  <script src="js/04-teacher-drawer-init.js?v=20261126h"></script>
-  <script src="js/05-admin.js?v=20261126h"></script>
+  <script src="js/00-sql-sync.js?v=20261126i"></script>
+  <script src="js/01-data.js?v=20261126i"></script>
+  <script src="js/02-core-i18n-auth-nav.js?v=20261126i"></script>
+  <script src="js/03-student-projects-tasks.js?v=20261126i"></script>
+  <script src="js/04-teacher-drawer-init.js?v=20261126i"></script>
+  <script src="js/05-admin.js?v=20261126i"></script>
 </body>
 </html>

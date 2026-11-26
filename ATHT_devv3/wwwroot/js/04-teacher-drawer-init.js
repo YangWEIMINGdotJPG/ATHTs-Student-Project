@@ -2650,7 +2650,30 @@
       alertMessage(t('signedOutMsg', 'Signed out safely.'));
     }
 
+    function initLoginHeroParallax() {
+      const heroPanel = document.getElementById('loginHeroPanel');
+      const logoCard = document.getElementById('loginHeroLogoCard');
+      if (!heroPanel || !logoCard || heroPanel.dataset.parallaxBound === '1') return;
+      heroPanel.dataset.parallaxBound = '1';
+
+      heroPanel.addEventListener('mousemove', (ev) => {
+        if (!heroPanel.getBoundingClientRect) return;
+        const rect = heroPanel.getBoundingClientRect();
+        if (!rect || !rect.width || !rect.height) return;
+        const nx = (ev.clientX - rect.left) / rect.width - 0.5;
+        const ny = (ev.clientY - rect.top) / rect.height - 0.5;
+        logoCard.style.setProperty('--hero-rx', `${(-ny * 18).toFixed(2)}deg`);
+        logoCard.style.setProperty('--hero-ry', `${(nx * 20).toFixed(2)}deg`);
+      });
+
+      heroPanel.addEventListener('mouseleave', () => {
+        logoCard.style.setProperty('--hero-rx', '0deg');
+        logoCard.style.setProperty('--hero-ry', '0deg');
+      });
+    }
+
     window.onload = function() {
+      initLoginHeroParallax();
       populateLoginDemoDropdowns();
       applyLanguage(localStorage.getItem('atht_lang') || 'en');
       updateThemeIcons(document.documentElement.classList.contains('dark'));
