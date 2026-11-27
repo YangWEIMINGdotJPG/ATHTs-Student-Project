@@ -16,6 +16,8 @@
 
   const API_URL_STORAGE_KEY = 'atht_sql_api_url';
   const FIREBASE_URL_STORAGE_KEY = 'atht_firebase_db_url';
+  const FIREBASE_AUTH_STORAGE_KEY = 'atht_fb_auth_session';
+  const FIREBASE_WEB_API_KEY = 'AIzaSyCWCIUlXEBZGe39Q2Br88uplKe7zoUT3Ik';
   const DEFAULT_FIREBASE_DB_URL = 'https://athts-student-project-default-rtdb.asia-southeast1.firebasedatabase.app';
   const FIREBASE_PORTAL_ROOT = 'atht_portal';
   const MAX_FIREBASE_FILE_BYTES = 5 * 1024 * 1024; // 5 MB safe limit for RTDB JSON storage
@@ -64,10 +66,30 @@
 
   const boot = window.__ATHT_SQL_BOOTSTRAP || null;
   const isSameOriginSql = Boolean(boot && boot.connected);
+  let serverAuthMode = Boolean(boot && boot.authEnabled);
+  let serverAuthAuthenticated = Boolean(boot && boot.authenticated);
+  let serverAuthUser = (boot && boot.user) || null;
+  let serverAuthToken = ''; // In-memory only for cross-origin; same-origin uses HttpOnly cookie
 
   let syncMode = ''; // 'sql' | 'firebase' | ''
   let apiBase = '';
   let firebaseBase = '';
+
+  function buildAuthHeaders(extra = {}) {
+    const h = Object.assign({}, extra || {});
+    if (serverAuthToken) {
+      h['Authorization'] = `Bearer ${serverAuthToken}`;
+    }
+    return h;
+  }
+
+  function sqlFetch(url, opts = {}) {
+    const merged = Object.assign({ credentials: 'include' }, opts || {});
+    if (serverAuthToken) {
+      merged.headers = buildAuthHeaders(opts && opts.headers);
+    }
+    return fetch(url, merged);
+  }
 
   function resolveInitialMode() {
     if (isSameOriginSql) {
@@ -80,6 +102,12 @@
     if (savedSql) {
       syncMode = 'sql';
       apiBase = savedSql;
+      firebaseBase = '';
+      return;
+    }
+    if (boot && boot.disableFirebase) {
+      syncMode = '';
+      apiBase = '';
       firebaseBase = '';
       return;
     }
@@ -103,7 +131,7 @@
   resolveInitialMode();
 
   let currentRevision = Number((boot && boot.revision) || 0);
-  let initialHydrationDone = isSameOriginSql;
+  let initialHydrationDone = Boolean(isSameOriginSql && (!serverAuthMode || serverAuthAuthenticated));
   let pendingBuckets = {};
   let flushTimer = null;
   let flushFailCount = 0;
@@ -114,13 +142,114 @@
   let sseSource = null;
   let lastVisibilityCheckAt = 0;
 
+  let fbIdToken = '';
+  let fbRefreshToken = '';
+  let fbTokenExpiresAt = 0;
+  let fbAuthInFlight = null;
+  let fbRefreshTimer = null;
+
+  try {
+    const savedFbAuth = localStorage.getItem(FIREBASE_AUTH_STORAGE_KEY);
+    if (savedFbAuth) {
+      const parsedFb = JSON.parse(savedFbAuth);
+      if (parsedFb && parsedFb.idToken) {
+        fbIdToken = String(parsedFb.idToken || '');
+        fbRefreshToken = String(parsedFb.refreshToken || '');
+        fbTokenExpiresAt = Number(parsedFb.expiresAt || 0);
+      }
+    }
+  } catch (_e) {}
+
+  function saveFbAuthCache(idToken, refreshToken, expiresInSec) {
+    fbIdToken = String(idToken || '');
+    fbRefreshToken = String(refreshToken || fbRefreshToken || '');
+    const ttl = Math.max(60, Number(expiresInSec || 3600));
+    fbTokenExpiresAt = Date.now() + ttl * 1000;
+    try {
+      origSetItem.call(localStorage, FIREBASE_AUTH_STORAGE_KEY, JSON.stringify({
+        idToken: fbIdToken,
+        refreshToken: fbRefreshToken,
+        expiresAt: fbTokenExpiresAt
+      }));
+    } catch (_e) {}
+    if (fbRefreshTimer) clearTimeout(fbRefreshTimer);
+    if (syncMode === 'firebase' && typeof setTimeout === 'function') {
+      const nextRefreshMs = Math.max(30000, (ttl - 180) * 1000);
+      fbRefreshTimer = setTimeout(async () => {
+        if (syncMode === 'firebase') {
+          await ensureFirebaseIdToken(true);
+          if (sseSource) connectSseRealtime();
+        }
+      }, nextRefreshMs);
+    }
+  }
+
+  async function ensureFirebaseIdToken(forceRefresh = false) {
+    if (!FIREBASE_WEB_API_KEY || typeof fetch !== 'function') return '';
+    if (!forceRefresh && fbIdToken && Date.now() < fbTokenExpiresAt - 120000) {
+      return fbIdToken;
+    }
+    if (fbAuthInFlight && !forceRefresh) return fbAuthInFlight;
+
+    fbAuthInFlight = (async () => {
+      try {
+        if (fbRefreshToken) {
+          const refRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(FIREBASE_WEB_API_KEY)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(fbRefreshToken)}`
+          });
+          if (refRes.ok) {
+            const refData = await refRes.json();
+            if (refData && refData.id_token) {
+              saveFbAuthCache(refData.id_token, refData.refresh_token || fbRefreshToken, refData.expires_in);
+              return fbIdToken;
+            }
+          }
+        }
+
+        const signRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(FIREBASE_WEB_API_KEY)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ returnSecureToken: true })
+        });
+        if (signRes.ok) {
+          const signData = await signRes.json();
+          if (signData && signData.idToken) {
+            saveFbAuthCache(signData.idToken, signData.refreshToken, signData.expiresIn);
+            return fbIdToken;
+          }
+        }
+      } catch (_e) {}
+      return fbIdToken || '';
+    })();
+
+    try {
+      return await fbAuthInFlight;
+    } finally {
+      fbAuthInFlight = null;
+    }
+  }
+
   function sqlUrl(path) {
     return apiBase ? `${apiBase}${path}` : path;
   }
 
-  function fbUrl(subPath) {
+  function fbUrl(subPath, baseOverride = '') {
     const cleanSub = String(subPath || '').replace(/^\/+/, '');
-    return cleanSub ? `${firebaseBase}/${FIREBASE_PORTAL_ROOT}/${cleanSub}.json` : `${firebaseBase}/${FIREBASE_PORTAL_ROOT}.json`;
+    const baseRoot = baseOverride || firebaseBase;
+    const raw = cleanSub ? `${baseRoot}/${FIREBASE_PORTAL_ROOT}/${cleanSub}.json` : `${baseRoot}/${FIREBASE_PORTAL_ROOT}.json`;
+    return fbIdToken ? `${raw}?auth=${encodeURIComponent(fbIdToken)}` : raw;
+  }
+
+  async function fbFetch(subPath, opts = {}, baseOverride = '') {
+    await ensureFirebaseIdToken(false);
+    let res = await fetch(fbUrl(subPath, baseOverride), opts);
+    if (res.status === 401 && FIREBASE_WEB_API_KEY) {
+      await ensureFirebaseIdToken(true);
+      res = await fetch(fbUrl(subPath, baseOverride), opts);
+    }
+    return res;
   }
 
   // 1. Synchronous hydration when served from ATHT_devv3 (/api/bootstrap.js)
@@ -130,7 +259,20 @@
       SYNC_KEYS.forEach((key) => {
         if (Object.prototype.hasOwnProperty.call(boot.buckets, key)) {
           origSetItem.call(localStorage, key, String(boot.buckets[key]));
-        } else {
+        } else if (!serverAuthMode || serverAuthAuthenticated) {
+          origRemoveItem.call(localStorage, key);
+        }
+      });
+    } finally {
+      isApplyingRemote = false;
+    }
+  }
+  if (isSameOriginSql && serverAuthMode && !serverAuthAuthenticated) {
+    // Ensure stale authenticated data is wiped before login when session cookie is absent/expired
+    isApplyingRemote = true;
+    try {
+      SYNC_KEYS.forEach((key) => {
+        if (key !== 'atht_global_festival_theme' && key !== 'atht_festival_theme') {
           origRemoveItem.call(localStorage, key);
         }
       });
@@ -245,7 +387,7 @@
         const form = new FormData();
         form.append('fileKey', fileKey);
         form.append('file', fileBlob, fileBlob.name || `${fileKey}.bin`);
-        const res = await fetch(sqlUrl('/api/files'), { method: 'POST', body: form });
+        const res = await sqlFetch(sqlUrl('/api/files'), { method: 'POST', body: form });
         return res.ok;
       } catch (e) {
         return false;
@@ -263,7 +405,7 @@
           dataUrl,
           uploadedAt: new Date().toISOString()
         };
-        const res = await fetch(fbUrl(`files/${encodeFirebaseKey(fileKey)}`), {
+        const res = await fbFetch(`files/${encodeFirebaseKey(fileKey)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -280,7 +422,7 @@
     if (!syncMode || !fileKey || typeof fetch !== 'function') return null;
     if (syncMode === 'sql') {
       try {
-        const res = await fetch(sqlUrl(`/api/files/${encodeURIComponent(fileKey)}`), { cache: 'no-store' });
+        const res = await sqlFetch(sqlUrl(`/api/files/${encodeURIComponent(fileKey)}`), { cache: 'no-store' });
         if (!res.ok) return null;
         return await res.blob();
       } catch (e) {
@@ -289,7 +431,7 @@
     }
     if (syncMode === 'firebase') {
       try {
-        const res = await fetch(fbUrl(`files/${encodeFirebaseKey(fileKey)}`), { cache: 'no-store' });
+        const res = await fbFetch(`files/${encodeFirebaseKey(fileKey)}`, { cache: 'no-store' });
         if (!res.ok) return null;
         const rec = await res.json();
         if (!rec || !rec.dataUrl) return null;
@@ -312,14 +454,27 @@
 
     try {
       if (syncMode === 'sql') {
-        const bodyStr = JSON.stringify({ clientId, buckets: batch });
+        if (serverAuthMode && !serverAuthAuthenticated) return;
+        const safeBatch = Object.assign({}, batch);
+        if (serverAuthMode) {
+          ['atht_admin_students', 'atht_admin_teachers'].forEach(dk => {
+            if (typeof safeBatch[dk] === 'string') {
+              try {
+                const parsed = JSON.parse(safeBatch[dk]);
+                Object.values(parsed || {}).forEach(u => { if (u && typeof u === 'object') delete u.password; });
+                safeBatch[dk] = JSON.stringify(parsed);
+              } catch (_e) {}
+            }
+          });
+        }
+        const bodyStr = JSON.stringify({ clientId, buckets: safeBatch });
         const fetchOpts = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: bodyStr
         };
         if (isUnloading && bodyStr.length < 55000) fetchOpts.keepalive = true;
-        const res = await fetch(sqlUrl('/api/sync'), fetchOpts);
+        const res = await sqlFetch(sqlUrl('/api/sync'), fetchOpts);
         if (res.ok) {
           flushFailCount = 0;
           const data = await res.json();
@@ -341,7 +496,7 @@
         };
         // Note: Chrome/Edge enforce a strict 64 KB cap when keepalive is true; never use keepalive on >55 KB payloads (courses catalog is ~395 KB).
         if (isUnloading && bodyStr.length < 55000) patchOpts.keepalive = true;
-        const patchRes = await fetch(fbUrl('buckets'), patchOpts);
+        const patchRes = await fbFetch('buckets', patchOpts);
         if (!patchRes.ok) throw new Error(`Firebase buckets PATCH failed (${patchRes.status})`);
 
         const nextRev = Math.max(Date.now(), currentRevision + 1);
@@ -356,7 +511,7 @@
           body: JSON.stringify(metaPayload)
         };
         if (isUnloading) metaOpts.keepalive = true;
-        const metaRes = await fetch(fbUrl('meta'), metaOpts);
+        const metaRes = await fbFetch('meta', metaOpts);
         if (metaRes.ok) {
           flushFailCount = 0;
           currentRevision = nextRev;
@@ -562,7 +717,7 @@
 
       if (syncMode === 'firebase') {
         const nextRev = Math.max(Date.now(), currentRevision + 1);
-        const res = await fetch(fbUrl(''), {
+        const res = await fbFetch('', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -590,9 +745,20 @@
 
     try {
       if (syncMode === 'sql') {
-        const bRes = await fetch(sqlUrl('/api/bootstrap'), { cache: 'no-store' });
+        if (serverAuthMode && !serverAuthAuthenticated) return false;
+        const bRes = await sqlFetch(sqlUrl('/api/bootstrap'), { cache: 'no-store' });
         if (!bRes.ok) return false;
         const bData = await bRes.json();
+        if (bData && bData.authEnabled) {
+          serverAuthMode = true;
+          serverAuthAuthenticated = Boolean(bData.authenticated);
+          if (bData.authenticated && bData.user) {
+            serverAuthUser = bData.user;
+          } else {
+            initialHydrationDone = false;
+            return false;
+          }
+        }
         if (bData && bData.connected && bData.buckets) {
           if (Object.keys(bData.buckets).length === 0) {
             await seedRemoteOnFirstRun(true);
@@ -602,7 +768,7 @@
           return true;
         }
       } else if (syncMode === 'firebase') {
-        const res = await fetch(fbUrl(''), { cache: 'no-store' });
+        const res = await fbFetch('', { cache: 'no-store' });
         if (!res.ok) return false;
         const data = await res.json();
         if (!data || !data.buckets || typeof data.buckets !== 'object' || Object.keys(data.buckets).length === 0) {
@@ -631,7 +797,9 @@
 
     try {
       if (syncMode === 'sql') {
-        sseSource = new EventSource(sqlUrl(`/api/events?clientId=${encodeURIComponent(clientId)}`));
+        if (serverAuthMode && !serverAuthAuthenticated) return;
+        const sseTokParam = serverAuthToken ? `&token=${encodeURIComponent(serverAuthToken)}` : '';
+        sseSource = new EventSource(sqlUrl(`/api/events?clientId=${encodeURIComponent(clientId)}${sseTokParam}`), { withCredentials: true });
         sseSource.addEventListener('connected', () => {
           updateSyncBadge(true, true);
         });
@@ -660,38 +828,42 @@
           }
         };
       } else if (syncMode === 'firebase') {
-        sseSource = new EventSource(fbUrl('meta'));
-        const handleFbMetaEvent = (evt) => {
-          updateSyncBadge(true, true);
-          try {
-            const payload = JSON.parse(evt.data);
-            if (!payload || payload.data === null || payload.data === undefined) return;
-            let rev = 0;
-            let senderId = '';
-            if (payload.path === '/' && typeof payload.data === 'object') {
-              rev = Number(payload.data.revision || 0);
-              senderId = String(payload.data.clientId || '');
-            } else if (payload.path === '/revision') {
-              rev = Number(payload.data || 0);
+        ensureFirebaseIdToken(false).then(() => {
+          if (syncMode !== 'firebase') return;
+          closeSse();
+          sseSource = new EventSource(fbUrl('meta'));
+          const handleFbMetaEvent = (evt) => {
+            updateSyncBadge(true, true);
+            try {
+              const payload = JSON.parse(evt.data);
+              if (!payload || payload.data === null || payload.data === undefined) return;
+              let rev = 0;
+              let senderId = '';
+              if (payload.path === '/' && typeof payload.data === 'object') {
+                rev = Number(payload.data.revision || 0);
+                senderId = String(payload.data.clientId || '');
+              } else if (payload.path === '/revision') {
+                rev = Number(payload.data || 0);
+              }
+              if (senderId === clientId) {
+                if (rev > currentRevision) currentRevision = rev;
+                return;
+              }
+              if (rev > currentRevision) {
+                pullLatestFromRemote(rev);
+              }
+            } catch (e) {}
+          };
+          sseSource.addEventListener('open', () => updateSyncBadge(true, true));
+          sseSource.addEventListener('put', handleFbMetaEvent);
+          sseSource.addEventListener('patch', handleFbMetaEvent);
+          sseSource.onerror = () => {
+            updateSyncBadge(true, false);
+            if (sseSource && sseSource.readyState === 2) {
+              setTimeout(() => { if (syncMode === 'firebase') connectSseRealtime(); }, 3000);
             }
-            if (senderId === clientId) {
-              if (rev > currentRevision) currentRevision = rev;
-              return;
-            }
-            if (rev > currentRevision) {
-              pullLatestFromRemote(rev);
-            }
-          } catch (e) {}
-        };
-        sseSource.addEventListener('open', () => updateSyncBadge(true, true));
-        sseSource.addEventListener('put', handleFbMetaEvent);
-        sseSource.addEventListener('patch', handleFbMetaEvent);
-        sseSource.onerror = () => {
-          updateSyncBadge(true, false);
-          if (sseSource && sseSource.readyState === 2) {
-            setTimeout(() => { if (syncMode === 'firebase') connectSseRealtime(); }, 3000);
-          }
-        };
+          };
+        });
       }
     } catch (e) {}
   }
@@ -702,7 +874,8 @@
 
     try {
       if (syncMode === 'sql') {
-        const res = await fetch(sqlUrl('/api/version'), { cache: 'no-store' });
+        if (serverAuthMode && !serverAuthAuthenticated) return;
+        const res = await sqlFetch(sqlUrl('/api/version'), { cache: 'no-store' });
         if (!res.ok) { updateSyncBadge(false, false); return; }
         const vData = await res.json();
         updateSyncBadge(Boolean(vData && vData.connected), Boolean(sseSource && sseSource.readyState === 1));
@@ -710,7 +883,7 @@
           await pullLatestFromRemote(vData.revision);
         }
       } else if (syncMode === 'firebase') {
-        const res = await fetch(fbUrl('meta'), { cache: 'no-store' });
+        const res = await fbFetch('meta', { cache: 'no-store' });
         if (!res.ok) { updateSyncBadge(false, false); return; }
         const meta = await res.json();
         updateSyncBadge(true, Boolean(sseSource && sseSource.readyState === 1));
@@ -741,7 +914,7 @@
     }
 
     try {
-      const testRes = await fetch(`${clean}/${FIREBASE_PORTAL_ROOT}/meta.json`, { cache: 'no-store' });
+      const testRes = await fbFetch('meta', { cache: 'no-store' }, clean);
       if (!testRes.ok) throw new Error(`HTTP ${testRes.status}`);
       origRemoveItem.call(localStorage, API_URL_STORAGE_KEY);
       origSetItem.call(localStorage, FIREBASE_URL_STORAGE_KEY, clean);
@@ -802,7 +975,7 @@
     }
 
     try {
-      const res = await fetch(`${clean}/api/health`, { cache: 'no-store' });
+      const res = await sqlFetch(`${clean}/api/health`, { cache: 'no-store' });
       const data = await res.json();
       if (!res.ok || !data || !data.connected) {
         throw new Error((data && data.error) || 'SQL API unreachable');
@@ -810,11 +983,14 @@
       apiBase = clean;
       firebaseBase = '';
       syncMode = 'sql';
+      if (data.authEnabled) serverAuthMode = true;
       currentRevision = 0;
       origSetItem.call(localStorage, API_URL_STORAGE_KEY, clean);
-      await pullLatestFromRemote(null, true);
-      connectSseRealtime();
-      updateSyncBadge(true, true);
+      if (!serverAuthMode || serverAuthAuthenticated) {
+        await pullLatestFromRemote(null, true);
+        connectSseRealtime();
+      }
+      updateSyncBadge(true, !serverAuthMode || serverAuthAuthenticated);
       if (typeof alertMessage === 'function') {
         alertMessage(currentLanguage === 'th'
           ? `เชื่อมต่อ SQL Server (${data.database || 'ATHT_StudentProjectDB'}) แบบเรียลไทม์สำเร็จ!`
@@ -894,22 +1070,78 @@
     }
     updateSyncBadge(Boolean(syncMode), false);
     if (isSameOriginSql) {
+      if (serverAuthMode && !serverAuthAuthenticated) {
+        initialHydrationDone = false;
+        updateSyncBadge(true, false);
+        return;
+      }
       initialHydrationDone = true;
       await seedRemoteOnFirstRun(false);
       connectSseRealtime();
       updateSyncBadge(true, true);
     } else if (syncMode === 'sql' || syncMode === 'firebase') {
+      if (syncMode === 'sql' && serverAuthMode && !serverAuthAuthenticated) {
+        initialHydrationDone = false;
+        updateSyncBadge(true, false);
+        return;
+      }
       const ok = await pullLatestFromRemote(null, true);
-      initialHydrationDone = true;
+      initialHydrationDone = Boolean(ok || !serverAuthMode);
       if (ok) {
         connectSseRealtime();
         updateSyncBadge(true, true);
       } else {
-        updateSyncBadge(false, false);
+        updateSyncBadge(Boolean(serverAuthMode), false);
       }
     } else {
       initialHydrationDone = true;
     }
+  }
+
+  function applyServerAuthLogin(userObj, bootstrapPayload, tokenStr = '') {
+    serverAuthMode = true;
+    serverAuthAuthenticated = true;
+    serverAuthUser = userObj || null;
+    if (tokenStr) serverAuthToken = tokenStr;
+
+    const b = bootstrapPayload && bootstrapPayload.buckets;
+    const rev = (bootstrapPayload && bootstrapPayload.revision) || currentRevision;
+    if (b && typeof b === 'object' && Object.keys(b).length > 0) {
+      applyRemoteBuckets(b, rev);
+    }
+    initialHydrationDone = true;
+    if (userObj && userObj.role === 'admin' && (!b || Object.keys(b).length === 0)) {
+      seedRemoteOnFirstRun(true);
+    }
+    connectSseRealtime();
+    updateSyncBadge(true, true);
+  }
+
+  async function clearServerAuthSession() {
+    if (syncMode === 'sql') {
+      try {
+        await sqlFetch(sqlUrl('/api/auth/logout'), { method: 'POST' });
+      } catch (_e) {}
+    }
+    serverAuthAuthenticated = false;
+    serverAuthUser = null;
+    serverAuthToken = '';
+    initialHydrationDone = false;
+    pendingBuckets = {};
+    closeSse();
+    if (serverAuthMode) {
+      isApplyingRemote = true;
+      try {
+        SYNC_KEYS.forEach((key) => {
+          if (key !== 'atht_global_festival_theme' && key !== 'atht_festival_theme') {
+            origRemoveItem.call(localStorage, key);
+          }
+        });
+      } finally {
+        isApplyingRemote = false;
+      }
+    }
+    updateSyncBadge(syncMode === 'sql', false);
   }
 
   window.addEventListener('load', () => {
@@ -940,6 +1172,12 @@
 
   window.__ATHT_SQL_SYNC = {
     isSqlMode: () => Boolean(syncMode),
+    isServerAuthMode: () => Boolean(syncMode === 'sql' && serverAuthMode),
+    isServerAuthenticated: () => Boolean(syncMode === 'sql' && serverAuthMode && serverAuthAuthenticated),
+    getAuthenticatedUser: () => serverAuthUser,
+    sqlFetch: (path, opts) => sqlFetch(sqlUrl(path), opts),
+    applyServerAuthLogin,
+    clearServerAuthSession,
     getSyncMode: () => syncMode || 'local',
     getApiBase: () => apiBase,
     getFirebaseUrl: () => firebaseBase,

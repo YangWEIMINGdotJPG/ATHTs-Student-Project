@@ -2644,6 +2644,9 @@
         const el = document.getElementById(fid);
         if (el) el.value = '';
       });
+      if (typeof window !== 'undefined' && window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.clearServerAuthSession === 'function') {
+        window.__ATHT_SQL_SYNC.clearServerAuthSession();
+      }
       if (typeof switchAuthTab === 'function') switchAuthTab('login');
 
       navigateTo('login', false);
@@ -2691,7 +2694,25 @@
         }
       }
 
-      const isLoggedIn = localStorage.getItem('atht_is_logged_in') === 'true';
+      let isLoggedIn = localStorage.getItem('atht_is_logged_in') === 'true';
+      const syncBridge = typeof window !== 'undefined' ? window.__ATHT_SQL_SYNC : null;
+      const serverAuthOn = Boolean(syncBridge && typeof syncBridge.isServerAuthMode === 'function' && syncBridge.isServerAuthMode());
+      if (serverAuthOn) {
+        if (!syncBridge.isServerAuthenticated()) {
+          isLoggedIn = false;
+          localStorage.removeItem('atht_is_logged_in');
+          localStorage.removeItem('atht_user_role');
+        } else {
+          const authUser = syncBridge.getAuthenticatedUser();
+          if (authUser && authUser.role) {
+            isLoggedIn = true;
+            localStorage.setItem('atht_is_logged_in', 'true');
+            localStorage.setItem('atht_user_role', authUser.role);
+            if (authUser.role === 'teacher') localStorage.setItem('atht_teacher_id', authUser.id);
+            if (authUser.role === 'student') localStorage.setItem('atht_student_id', authUser.id);
+          }
+        }
+      }
 
       if (isLoggedIn) {
         const savedRole = localStorage.getItem('atht_user_role');

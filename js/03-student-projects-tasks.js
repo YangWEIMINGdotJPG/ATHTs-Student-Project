@@ -2141,7 +2141,13 @@
       ensureRelationalIntegrity();
       saveCoursesCatalog();
       saveStoredProjects(studentProjectsList);
-      if (typeof saveAdminPersistedDirectories === 'function') saveAdminPersistedDirectories();
+      const isServerRestrictedRole = typeof window !== 'undefined' &&
+        window.__ATHT_SQL_SYNC &&
+        typeof window.__ATHT_SQL_SYNC.isServerAuthMode === 'function' &&
+        window.__ATHT_SQL_SYNC.isServerAuthMode() &&
+        typeof currentUserRole !== 'undefined' &&
+        currentUserRole !== 'admin';
+      if (!isServerRestrictedRole && typeof saveAdminPersistedDirectories === 'function') saveAdminPersistedDirectories();
       if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
       if (typeof currentScreen !== 'undefined' && currentScreen === 'admin' && typeof renderAdminScreen === 'function') {
         renderAdminScreen();

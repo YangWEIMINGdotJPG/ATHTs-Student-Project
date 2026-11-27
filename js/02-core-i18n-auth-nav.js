@@ -829,7 +829,24 @@
       handleLoginSubmit({ preventDefault: () => {} });
     }
 
-    function handleLoginSubmit(e) {
+    function isServerAuthActive() {
+      return typeof window !== 'undefined' &&
+        window.__ATHT_SQL_SYNC &&
+        typeof window.__ATHT_SQL_SYNC.isServerAuthMode === 'function' &&
+        window.__ATHT_SQL_SYNC.isServerAuthMode();
+    }
+
+    function applyHydratedServerStores() {
+      if (typeof loadPersistedCoursesCatalog === 'function') loadPersistedCoursesCatalog();
+      if (typeof loadAdminPersistedDirectories === 'function') loadAdminPersistedDirectories();
+      if (typeof getStoredProjects === 'function' && typeof studentProjectsList !== 'undefined') {
+        studentProjectsList = getStoredProjects();
+      }
+      if (typeof ensureRelationalIntegrity === 'function') ensureRelationalIntegrity();
+      if (typeof syncDynamicCourseSelectors === 'function') syncDynamicCourseSelectors();
+    }
+
+    async function handleLoginSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
 
       const rawInput = (document.getElementById('loginEmail')?.value || '').trim();
@@ -844,6 +861,70 @@
       if (!rawPass) {
         alertMessage(isThai ? 'กรุณากรอกรหัสผ่าน' : 'Please enter your password.');
         return;
+      }
+
+      if (isServerAuthActive()) {
+        const rememberCheckbox = document.getElementById('rememberMeCheckbox');
+        try {
+          const res = await window.__ATHT_SQL_SYNC.sqlFetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              identifier: rawInput,
+              password: rawPass,
+              rememberMe: Boolean(rememberCheckbox && rememberCheckbox.checked)
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data || !data.ok || !data.user) {
+            if (data && data.code === 'NOT_ACTIVATED' && data.studentId) {
+              alertMessage(isThai
+                ? `รหัสผ่านไม่ถูกต้อง หากเข้าใช้งานครั้งแรกด้วยรหัสผ่านใหม่ของตัวเอง กรุณากดแท็บ 'Sign Up' ด้านบน แล้วกรอกรหัส ${data.studentId}`
+                : data.error);
+            } else if (data && data.code === 'SUSPENDED') {
+              alertMessage(isThai ? 'บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อ Admin' : data.error);
+            } else if (res.status === 429) {
+              alertMessage(isThai ? 'ลองเข้าสู่ระบบผิดเกินกำหนด กรุณารอสักครู่แล้วลองใหม่' : (data.error || 'Too many failed attempts.'));
+            } else {
+              alertMessage(isThai ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' : ((data && data.error) || 'Invalid username or password.'));
+            }
+            return;
+          }
+
+          window.__ATHT_SQL_SYNC.applyServerAuthLogin(data.user, data.bootstrap, data.token || '');
+          applyHydratedServerStores();
+
+          currentUserRole = data.user.role;
+          localStorage.setItem('atht_user_role', data.user.role);
+          if (data.user.role === 'teacher') {
+            localStorage.setItem('atht_teacher_id', data.user.id);
+          } else if (data.user.role === 'student') {
+            localStorage.setItem('atht_student_id', data.user.id);
+          }
+          localStorage.setItem('atht_is_logged_in', 'true');
+          if (rememberCheckbox && rememberCheckbox.checked) {
+            localStorage.setItem('atht_remember_me', 'true');
+          } else {
+            localStorage.removeItem('atht_remember_me');
+          }
+
+          if (currentUserRole === 'admin') {
+            navigateTo('admin');
+            alertMessage(isThai ? 'ยินดีต้อนรับเข้าสู่ระบบจัดการผู้ใช้ (System Administrator)' : 'Welcome, System Administrator! (User Management Portal)');
+          } else if (currentUserRole === 'teacher') {
+            const teacher = getCurrentTeacher();
+            navigateTo('teacher-dashboard');
+            alertMessage(isThai ? `ยินดีต้อนรับ ${teacher.fullName}! (${teacher.email})` : `Welcome back, ${teacher.fullName}! (${teacher.email})`);
+          } else {
+            navigateTo('dashboard');
+            const student = getCurrentStudent();
+            alertMessage(isThai ? `ยินดีต้อนรับ ${student.fullName}! (รหัส: ${student.id})` : `Welcome back, ${student.fullName}! (ID: ${student.id})`);
+          }
+          return;
+        } catch (_err) {
+          alertMessage(isThai ? 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ยืนยันตัวตนได้' : 'Could not reach authentication server.');
+          return;
+        }
       }
 
       const isAdminInput = inputVal === 'admin' || inputVal === 'admin@kmutt.ac.th';
@@ -994,6 +1075,33 @@
         return;
       }
 
+      if (isServerAuthActive()) {
+        clearTimeout(window.__athtLookupTimer);
+        window.__athtLookupTimer = setTimeout(async () => {
+          try {
+            const res = await window.__ATHT_SQL_SYNC.sqlFetch(`/api/auth/lookup?id=${encodeURIComponent(rawId)}`, { cache: 'no-store' });
+            if (!res.ok) return;
+            const info = await res.json();
+            const curVal = (document.getElementById('signupStudentId')?.value || '').trim();
+            if (curVal !== rawId) return;
+            if (info.isStaff) {
+              hintEl.className = 'text-[11px] mt-1.5 leading-snug text-red-600 dark:text-red-400 font-semibold';
+              hintEl.innerText = '⚠ ไม่สามารถลงทะเบียนหรืออ้างสิทธิ์บัญชีอาจารย์ / Admin ได้ กรุณาเข้าสู่ระบบที่แท็บ Login';
+            } else if (info.exists && info.activated) {
+              hintEl.className = 'text-[11px] mt-1.5 leading-snug text-amber-600 dark:text-amber-400 font-semibold';
+              hintEl.innerText = `⚠ พบบัญชี ${info.id} ที่เปิดใช้งานแล้ว กรุณาเข้าสู่ระบบที่แท็บ Login`;
+            } else if (info.exists && !info.activated) {
+              hintEl.className = 'text-[11px] mt-1.5 leading-snug text-emerald-600 dark:text-emerald-400 font-semibold';
+              hintEl.innerText = `✓ พบรหัส ${info.id} ในระบบ${info.fullName ? ': ' + info.fullName : ''} — ตั้งรหัสผ่านเพื่อเข้าใช้บัญชีนี้ได้เลย`;
+            } else {
+              hintEl.className = 'text-[11px] mt-1.5 leading-snug text-blue-600 dark:text-blue-400 font-semibold';
+              hintEl.innerText = `✨ ยังไม่พบรหัส "${rawId}" ในรายชื่อ — ตั้งรหัสผ่านเพื่อสร้างบัญชีนักศึกษาใหม่ด้วยรหัสนี้ทันที`;
+            }
+          } catch (_e) {}
+        }, 160);
+        return;
+      }
+
       const lower = rawId.toLowerCase();
       if (lower === 'admin' || lower === 'admin@kmutt.ac.th' || (typeof findAuthTeacherAccount === 'function' && findAuthTeacherAccount(rawId))) {
         hintEl.className = 'text-[11px] mt-1.5 leading-snug text-red-600 dark:text-red-400 font-semibold';
@@ -1018,7 +1126,7 @@
       }
     }
 
-    function handleSignUpSubmit(e) {
+    async function handleSignUpSubmit(e) {
       if (e) e.preventDefault();
       const isThai = typeof currentLanguage !== 'undefined' && currentLanguage === 'th';
 
@@ -1035,6 +1143,45 @@
       if (!rawPass || rawPass.length < 4) {
         alertMessage(isThai ? 'กรุณาตั้งรหัสผ่านอย่างน้อย 4 ตัวอักษร' : 'Password must be at least 4 characters.');
         return;
+      }
+
+      if (isServerAuthActive()) {
+        try {
+          const res = await window.__ATHT_SQL_SYNC.sqlFetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              studentId: rawId,
+              password: rawPass,
+              fullName: rawFullName,
+              email: rawEmail
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data || !data.ok || !data.user) {
+            alertMessage((data && data.error) || (isThai ? 'ลงทะเบียนไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง' : 'Sign Up failed.'));
+            return;
+          }
+
+          window.__ATHT_SQL_SYNC.applyServerAuthLogin(data.user, data.bootstrap, data.token || '');
+          applyHydratedServerStores();
+
+          currentUserRole = 'student';
+          localStorage.setItem('atht_student_id', data.user.id);
+          localStorage.setItem('atht_user_role', 'student');
+          localStorage.setItem('atht_is_logged_in', 'true');
+
+          navigateTo('dashboard');
+          const student = getCurrentStudent();
+          alertMessage(data.claimedExisting
+            ? (isThai ? `เปิดใช้งานบัญชี ${student.fullName} (${student.id}) และตั้งรหัสผ่านสำเร็จ!` : `Account activated! Signed in as ${student.fullName} (${student.id}).`)
+            : (isThai ? `สร้างบัญชีใหม่ ${student.fullName} (${student.id}) และเข้าสู่ระบบสำเร็จ!` : `Account created! Signed in as ${student.fullName} (${student.id}).`)
+          );
+          return;
+        } catch (_err) {
+          alertMessage(isThai ? 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ลงทะเบียนได้' : 'Could not reach registration server.');
+          return;
+        }
       }
 
       const lowerId = rawId.toLowerCase();

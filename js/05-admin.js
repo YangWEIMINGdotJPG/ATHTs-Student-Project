@@ -48,8 +48,23 @@
 
     function saveAdminPersistedDirectories() {
       try {
-        localStorage.setItem('atht_admin_students', JSON.stringify(studentDirectory));
-        localStorage.setItem('atht_admin_teachers', JSON.stringify(teacherDirectory));
+        const stripPass = typeof window !== 'undefined' &&
+          window.__ATHT_SQL_SYNC &&
+          typeof window.__ATHT_SQL_SYNC.isServerAuthMode === 'function' &&
+          window.__ATHT_SQL_SYNC.isServerAuthMode();
+        const sanitizeMap = (dir) => {
+          if (!stripPass) return dir;
+          const out = {};
+          Object.entries(dir || {}).forEach(([k, v]) => {
+            if (!v || typeof v !== 'object') return;
+            const copy = Object.assign({}, v);
+            delete copy.password;
+            out[k] = copy;
+          });
+          return out;
+        };
+        localStorage.setItem('atht_admin_students', JSON.stringify(sanitizeMap(studentDirectory)));
+        localStorage.setItem('atht_admin_teachers', JSON.stringify(sanitizeMap(teacherDirectory)));
       } catch (e) {}
     }
 
@@ -705,6 +720,29 @@
         );
       }
 
+      if (typeof window !== 'undefined' && window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.isServerAuthMode === 'function' && window.__ATHT_SQL_SYNC.isServerAuthMode()) {
+        const targetUid = role === 'teacher'
+          ? (mode === 'edit' && origId ? origId : (email.split('@')[0].toLowerCase() || rawId.toLowerCase()))
+          : rawId;
+        const resetToPending = role === 'student' && Boolean(document.getElementById('adminFormResetPassSetupCheckbox')?.checked);
+        window.__ATHT_SQL_SYNC.sqlFetch('/api/auth/admin/upsert-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role,
+            mode,
+            origId: origId || '',
+            id: targetUid,
+            fullName,
+            email,
+            facultyCode: role === 'teacher' ? rawId.toUpperCase() : '',
+            status,
+            password: rawCustomPass || '',
+            resetToPending
+          })
+        }).catch(() => {});
+      }
+
       saveAdminPersistedDirectories();
       if (typeof syncAllATHTData === 'function') syncAllATHTData();
       if (typeof populateLoginDemoDropdowns === 'function') populateLoginDemoDropdowns();
@@ -729,6 +767,28 @@
         addAdminAuditLog('Status Changed', `Student ${s.id} (${s.shortName}) set to ${s.status}`, 'STATUS');
         alertMessage(`${s.shortName} (${s.id}) status changed to ${s.status}`);
       }
+      if (typeof window !== 'undefined' && window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.isServerAuthMode === 'function' && window.__ATHT_SQL_SYNC.isServerAuthMode()) {
+        const uObj = role === 'teacher' ? teacherDirectory[id] : studentDirectory[id];
+        if (uObj) {
+          window.__ATHT_SQL_SYNC.sqlFetch('/api/auth/admin/upsert-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              role,
+              mode: 'edit',
+              origId: id,
+              id,
+              fullName: uObj.fullName || id,
+              email: uObj.email || '',
+              facultyCode: role === 'teacher' ? (uObj.facultyCode || '') : '',
+              status: uObj.status || 'Active',
+              password: '',
+              resetToPending: false
+            })
+          }).catch(() => {});
+        }
+      }
+
       saveAdminPersistedDirectories();
       if (typeof syncAllATHTData === 'function') syncAllATHTData();
       renderAdminScreen();
@@ -785,6 +845,14 @@
       } else {
         delete studentDirectory[id];
         addAdminAuditLog('Removed Student', `Deleted student ${name} (${id})`, 'DELETE');
+      }
+
+      if (role !== 'course' && typeof window !== 'undefined' && window.__ATHT_SQL_SYNC && typeof window.__ATHT_SQL_SYNC.isServerAuthMode === 'function' && window.__ATHT_SQL_SYNC.isServerAuthMode()) {
+        window.__ATHT_SQL_SYNC.sqlFetch('/api/auth/admin/delete-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, id })
+        }).catch(() => {});
       }
 
       saveAdminPersistedDirectories();
